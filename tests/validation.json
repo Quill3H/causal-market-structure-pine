@@ -56,9 +56,9 @@
     "History search uses synthetic monotonic data, not a trading performance dataset"
   ],
   "sha256": {
-    "TOOL.pine": "a33228467b9488564797013e2894e75554d1750c207719a0275e9097c5fe06d2",
-    "tests/regression-recent.pine": "28236c1e4ce9e056a010adbb2a3ddaf159b8176aff65c321a8f16a44af57ce0a",
-    "tests/regression-old.pine": "f8954748066c73a65876f659f9038a7d333162fa180dbece67c1086c1531bb8b",
-    "tests/regression-history.pine": "2d6422d64f99e22d72815e37b8c5a26eee9b9b775f630dceb57ad190fb19765c"
+    "TOOL.pine": "280f77036d03f85cb6f8f560f106e5d8d71b50c8239a901611a49ca12e3cc30d",
+    "tests/regression-recent.pine": "187223c4470c540c2e97c0e1bd71518caa83ba37eb36e9167994a31886e2e286",
+    "tests/regression-old.pine": "6a1551c48e8eed7e9b3e23055213874ca5eca07ff11ea957eb96d74483a444e4",
+    "tests/regression-history.pine": "ab26a163e39f09240b68b70a0e05c27b141649a2061490c19ac5ef063e0b18e4"
   }
 }
