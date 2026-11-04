@@ -1,0 +1,63 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © BigBeluga
+//@version=6
+indicator("SMC history regression", max_bars_back = 5000)
+const int HISTORY_LIMIT = 4500
+// Synthetic monotonic prices force a minimum anchor to become very old.
+float high = 110.0 + bar_index
+float low = 100.0 + bar_index
+type structure
+    int    zn
+    float  zz
+    float  bos
+    float  choch
+    int    loc
+    int    temp
+    int    trend
+    int    start
+    float  main
+    int    xloc
+    bool   upsweep
+    bool   dnsweep
+    string txt = na
+
+historyOffset(int loc) =>
+    math.min(math.max(bar_index - nz(loc, bar_index), 0), math.min(bar_index, HISTORY_LIMIT))
+
+method IDMIDX(bool use_max, int loc) =>
+    int idx = 0
+    float extreme = na
+    for i = 0 to historyOffset(loc)
+        float value = use_max ? high[i] : low[i]
+        if not na(value) and (na(extreme) or (use_max ? value >= extreme : value <= extreme))
+            extreme := value
+            idx := i
+    idx
+
+method find(structure ms, bool use_max, bool sweep, bool useob) =>
+    int span = historyOffset(sweep ? ms.xloc : ms.loc)
+    int last = span > 1 ? span - 1 : span
+    int idx = 0
+    float extreme = na
+    for i = 0 to last
+        float value = use_max ? high[i] : low[i]
+        if not na(value) and (na(extreme) or (use_max ? value >= extreme : value <= extreme))
+            extreme := value
+            idx := i
+    if useob and idx < math.min(bar_index, HISTORY_LIMIT)
+        if use_max ? high[idx + 1] > high[idx] : low[idx + 1] < low[idx]
+            idx += 1
+    idx
+
+
+var structure anchor = structure.new(loc = 0, xloc = 0)
+int lowOffset = anchor.find(false, false, true)
+int highOffset = anchor.find(true, false, true)
+int mappedOffset = IDMIDX(false, 0)
+if barstate.islastconfirmedhistory
+    if bar_index <= HISTORY_LIMIT
+        runtime.error("Load more than 4500 bars to exercise history bounds")
+    if lowOffset != 4500 or mappedOffset != 4500 or highOffset != 0
+        runtime.error("History search did not preserve extrema within its bounded range")
+    label.new(bar_index, lowOffset, "HISTORY PASS")
+plot(lowOffset, "Bounded minimum offset")

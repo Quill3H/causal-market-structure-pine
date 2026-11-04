@@ -1,0 +1,234 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © BigBeluga
+//@version=6
+indicator("SMC regression Recent", overlay = true)
+// Deterministic OHLC for helper tests only.
+float open = 99
+float high = 106
+float low = 98
+float close = 105
+string obmiti = "Close"
+bool obshowbb = false
+string wichlap = "Recent"
+string fvg_src = "Close"
+string what_fvg = "FVG"
+int HISTORY_LIMIT = 4500
+int MAX_ZONES = 100
+type ob
+    bool  bull
+    float top
+    float btm
+    float avg
+    int   loc
+    color css
+    float vol
+    bool  isbb = false
+    int   bbloc
+
+type FVG
+    float top     = na
+    float btm     = na
+    int   loc     = bar_index
+    bool  isbb    = false
+    int   bbloc   = na
+    bool  israid  = false
+    float raidy   = na
+    int   raidloc = na
+    int   raidx2  = na
+    bool  active  = false
+    color raidcs  = na
+
+zonesOverlap(float topA, float bottomA, float topB, float bottomB) =>
+    math.min(topA, topB) > math.max(bottomA, bottomB)
+
+preferFirst(int firstTime, int secondTime, string policy) =>
+    policy == "Recent" ? firstTime >= secondTime : firstTime <= secondTime
+
+mitigationHit(bool below, float boundary, string mode, float midpoint) =>
+    float price = mode == "Close" ? close : below ? low : high
+    float level = mode == "Avg" ? midpoint : boundary
+    below ? price < level : price > level
+
+method mitigated(ob[] block) =>
+    if barstate.isconfirmed and block.size() > 0
+        for i = block.size() - 1 to 0
+            stuff = block.get(i)
+            bool below = stuff.bull != stuff.isbb
+            if mitigationHit(below, below ? stuff.btm : stuff.top, obmiti, stuff.avg)
+                if stuff.isbb or not obshowbb
+                    block.remove(i)
+                else
+                    stuff.isbb := true
+                    stuff.bbloc := time
+    true
+
+overlap(ob[] bull, ob[] bear) =>
+    // Resolve actual pairs. Removing index 0 for a different pair loses valid zones.
+    for side = 0 to 1
+        zones = side == 0 ? bull : bear
+        int i = 0
+        while i < zones.size()
+            int j = i + 1
+            bool removed = false
+            while j < zones.size() and not removed
+                first = zones.get(i)
+                other = zones.get(j)
+                if zonesOverlap(first.top, first.btm, other.top, other.btm)
+                    if preferFirst(first.loc, other.loc, wichlap)
+                        zones.remove(j)
+                    else
+                        zones.remove(i)
+                        removed := true
+                else
+                    j += 1
+            if not removed
+                i += 1
+    int i = 0
+    while i < bull.size()
+        int j = 0
+        bool removed = false
+        while j < bear.size() and not removed
+            first = bull.get(i)
+            other = bear.get(j)
+            if zonesOverlap(first.top, first.btm, other.top, other.btm)
+                if preferFirst(first.loc, other.loc, wichlap)
+                    bear.remove(j)
+                else
+                    bull.remove(i)
+                    removed := true
+            else
+                j += 1
+        if not removed
+            i += 1
+
+overlapFVG(FVG[] blFVG, FVG[] brFVG) =>
+    for side = 0 to 1
+        zones = side == 0 ? blFVG : brFVG
+        int i = 0
+        while i < zones.size()
+            int j = i + 1
+            bool removed = false
+            while j < zones.size() and not removed
+                first = zones.get(i)
+                other = zones.get(j)
+                if zonesOverlap(first.top, first.btm, other.top, other.btm)
+                    if first.loc >= other.loc
+                        zones.remove(j)
+                    else
+                        zones.remove(i)
+                        removed := true
+                else
+                    j += 1
+            if not removed
+                i += 1
+    int i = 0
+    while i < blFVG.size()
+        int j = 0
+        bool removed = false
+        while j < brFVG.size() and not removed
+            first = blFVG.get(i)
+            other = brFVG.get(j)
+            if zonesOverlap(first.top, first.btm, other.top, other.btm)
+                if first.loc >= other.loc
+                    brFVG.remove(j)
+                else
+                    blFVG.remove(i)
+                    removed := true
+            else
+                j += 1
+        if not removed
+            i += 1
+
+method mitigateFVG(FVG[] zones, bool bull) =>
+    if barstate.isconfirmed and zones.size() > 0
+        for i = zones.size() - 1 to 0
+            gap = zones.get(i)
+            bool below = bull != gap.isbb
+            if mitigationHit(below, below ? gap.btm : gap.top, fvg_src, math.avg(gap.top, gap.btm))
+                if gap.isbb or what_fvg == "FVG"
+                    zones.remove(i)
+                else
+                    gap.isbb := true
+                    gap.bbloc := time
+    true
+
+historyOffset(int loc) =>
+    math.min(math.max(bar_index - nz(loc, bar_index), 0), math.min(bar_index, HISTORY_LIMIT))
+
+
+testOB(float bottom, float top, int stamp, bool bull = true) =>
+    result = ob.new(bull = bull, top = top, btm = bottom, avg = math.avg(top, bottom), loc = stamp, vol = 1)
+    result
+
+testFVG(float bottom, float top, int stamp) =>
+    result = FVG.new(top = top, btm = bottom, loc = stamp)
+    result
+
+check(bool ok, string message) =>
+    if not ok
+        runtime.error(message)
+    true
+
+if barstate.islastconfirmedhistory
+    bulls = array.new<ob>()
+    bears = array.new<ob>()
+    bulls.push(testOB(200, 210, 300))
+    bulls.push(testOB(100, 110, 100))
+    bears.push(testOB(105, 115, 200, false))
+    overlap(bulls, bears)
+    check(bulls.size() >= 1, "overlap removed every bull, including unrelated zone")
+    check(bulls.get(0).btm == 200, "overlap deleted an unrelated zone")
+    check(bulls.size() == 1 and bears.size() == 1, "Recent must retain newer bear")
+
+    invalid = array.new<ob>()
+    invalid.push(testOB(120, 130, 100))
+    invalid.push(testOB(140, 150, 200))
+    invalid.mitigated()
+    check(invalid.size() == 0, "consecutive invalid OBs must all be removed")
+
+    reclaimed = array.new<ob>()
+    reclaimed.push(testOB(100, 110, 100))
+    reclaimed.mitigated()
+    check(reclaimed.size() == 1, "Close must ignore an open below the zone")
+
+    fvgs = array.new<FVG>()
+    emptyFVG = array.new<FVG>()
+    fvgs.push(testFVG(100, 110, 200))
+    fvgs.push(testFVG(100, 110, 100))
+    overlapFVG(fvgs, emptyFVG)
+    check(fvgs.size() == 1, "identical FVG intervals must overlap")
+
+    gaps = array.new<FVG>()
+    gaps.push(testFVG(120, 130, 100))
+    gaps.push(testFVG(140, 150, 200))
+    gaps.mitigateFVG(true)
+    check(gaps.size() == 0, "consecutive invalid FVGs must all be removed")
+    gaps.push(testFVG(100, 110, 300))
+    gaps.mitigateFVG(true)
+    check(gaps.size() == 1, "FVG Close must ignore the open")
+
+    check(zonesOverlap(110, 100, 110, 100), "equal intervals overlap")
+    check(zonesOverlap(120, 90, 110, 100), "containing intervals overlap")
+    check(not zonesOverlap(110, 100, 120, 110), "touching edges are not overlap")
+    check(not zonesOverlap(210, 200, 110, 100), "disjoint intervals are not overlap")
+    check(not mitigationHit(true, 100, "Close", 105), "Close ignores the lower wick and open")
+    check(mitigationHit(true, 100, "Wick", 105), "Wick uses the low")
+    check(mitigationHit(true, 100, "Avg", 105), "Avg uses the midpoint")
+    check(not mitigationHit(false, 105, "Close", 100), "equal close does not break an upper boundary")
+    check(mitigationHit(false, 105, "Wick", 100), "bearish Wick uses the high")
+    shorts = array.new<ob>()
+    shorts.push(testOB(70, 80, 100, false))
+    shorts.push(testOB(90, 100, 200, false))
+    shorts.mitigated()
+    check(shorts.size() == 0, "consecutive invalid bearish OBs must all be removed")
+    inverse = array.new<ob>()
+    converted = testOB(100, 110, 100)
+    converted.isbb := true
+    inverse.push(converted)
+    inverse.mitigated()
+    check(inverse.size() == 1, "bullish breaker survives a close below its top")
+    check(historyOffset(bar_index - 10000) <= HISTORY_LIMIT, "history must be bounded")
+    check(historyOffset(bar_index + 1) == 0, "future anchor must not create negative offset")
+
+    label.new(bar_index, 105, "REGRESSION PASS", color = color.green, textcolor = color.white)
+plot(na)

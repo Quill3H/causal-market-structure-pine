@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-04",
+  "source": "original TOOL",
+  "compiler": "TradingView Pine v5",
+  "test": "original helper regression Recent",
+  "result": "runtime_error",
+  "message": "Error on bar 6152: overlap removed every bull, including unrelated zone",
+  "originalCompile": "success; prior review item 1 corrected"
+}

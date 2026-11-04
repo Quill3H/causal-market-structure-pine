@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-04",
+  "timezone": "Asia/Bangkok",
+  "compiler": "TradingView Pine v6 compiler, through the logged-in browser session",
+  "production_compilation": {
+    "success": true,
+    "warnings": []
+  },
+  "baseline": {
+    "source_commit": "055cee2a00d85759744d79b8090d0fbb234d4f41",
+    "original_v5_compiles": true,
+    "regression_recent_error": "overlap removed every bull, including unrelated zone"
+  },
+  "regressions": [
+    {
+      "name": "Recent",
+      "completed": true,
+      "runtime_error": false
+    },
+    {
+      "name": "Old",
+      "completed": true,
+      "runtime_error": false
+    },
+    {
+      "name": "History search beyond 4500 bars",
+      "completed": true,
+      "runtime_error": false
+    }
+  ],
+  "chart_smoke_tests": [
+    {
+      "symbol": "BINANCE:BTCUSDT",
+      "timeframe": "15m",
+      "configuration": "defaults and all features on (pre-final cosmetic input text changes)",
+      "runtime_error": false
+    },
+    {
+      "symbol": "BINANCE:BTCUSDT",
+      "timeframe": "1h",
+      "configuration": "final source defaults",
+      "runtime_error": false
+    },
+    {
+      "symbol": "BINANCE:BTCUSDT",
+      "timeframe": "1h",
+      "configuration": "final source Window off, Mapping, OB and FVG Breakers, Old policy, 20 visible zones per side, Raids",
+      "runtime_error": false
+    }
+  ],
+  "harness_warnings": "OHLC shadowing is intentional in the deterministic test fixtures; production has none.",
+  "limits": [
+    "No profitability or probability calibration test",
+    "No full Bar Replay session",
+    "No prolonged realtime soak",
+    "History search uses synthetic monotonic data, not a trading performance dataset"
+  ],
+  "sha256": {
+    "TOOL.pine": "a33228467b9488564797013e2894e75554d1750c207719a0275e9097c5fe06d2",
+    "tests/regression-recent.pine": "28236c1e4ce9e056a010adbb2a3ddaf159b8176aff65c321a8f16a44af57ce0a",
+    "tests/regression-old.pine": "f8954748066c73a65876f659f9038a7d333162fa180dbece67c1086c1531bb8b",
+    "tests/regression-history.pine": "2d6422d64f99e22d72815e37b8c5a26eee9b9b775f630dceb57ad190fb19765c"
+  }
+}
