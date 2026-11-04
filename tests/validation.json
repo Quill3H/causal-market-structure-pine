@@ -26,9 +26,53 @@
       "name": "History search beyond 4500 bars",
       "completed": true,
       "runtime_error": false
+    },
+    {
+      "name": "Arrow predicates and full bullish/bearish selection, per-OB consumption",
+      "completed": true,
+      "runtime_error": false
     }
   ],
   "chart_smoke_tests": [
+    {
+      "symbol": "OKX:BNBUSDT",
+      "timeframe": "4h",
+      "configuration": "all arrow filters on, OB/FVG/Mapping drawings hidden or visible",
+      "runtime_error": false,
+      "arrows_in_first_inspected_plot_window": {
+        "buy": 0,
+        "sell": 0
+      },
+      "interpretation": "No complete confluence in this inspected window; this is not a performance result."
+    },
+    {
+      "symbol": "OKX:BNBUSDT",
+      "timeframe": "4h",
+      "configuration": "structure + active OB rejection + confirmation RVOL 1.2; other optional filters disabled",
+      "runtime_error": false,
+      "arrows_in_inspected_plot_window": {
+        "buy": 5,
+        "sell": 5
+      },
+      "interpretation": "Rendering/selection smoke test only; no win-rate measurement."
+    }
+  ],
+  "harness_warnings": "OHLC shadowing is intentional in the deterministic test fixtures; production has none.",
+  "limits": [
+    "No profitability or probability calibration test",
+    "No full Bar Replay session",
+    "No prolonged realtime soak",
+    "History search uses synthetic monotonic data, not a trading performance dataset"
+  ],
+  "sha256": {
+    "TOOL.pine": "10cb1290daf65774edb75cd167932d1df51f3d52211d706114f1c5c9fd1721c6",
+    "tests/regression-recent.pine": "2499816d2945fff15c25fa785218dce05fd0918e03b4af3af4aa0f83ca95fcd0",
+    "tests/regression-old.pine": "94d408808960c6cc3623a8e4157896164da6415740f0b1563b588daea75a6fa5",
+    "tests/regression-history.pine": "ab26a163e39f09240b68b70a0e05c27b141649a2061490c19ac5ef063e0b18e4",
+    "tests/regression-signals.pine": "5d0bc40b13828656464566e77afe3c3ec50b28a3d4f3134a1b04a78b3b8566c0"
+  },
+  "version": "1.2.0",
+  "previous_version_chart_smoke_tests": [
     {
       "symbol": "BINANCE:BTCUSDT",
       "timeframe": "15m",
@@ -48,17 +92,20 @@
       "runtime_error": false
     }
   ],
-  "harness_warnings": "OHLC shadowing is intentional in the deterministic test fixtures; production has none.",
-  "limits": [
-    "No profitability or probability calibration test",
-    "No full Bar Replay session",
-    "No prolonged realtime soak",
-    "History search uses synthetic monotonic data, not a trading performance dataset"
-  ],
-  "sha256": {
-    "TOOL.pine": "280f77036d03f85cb6f8f560f106e5d8d71b50c8239a901611a49ca12e3cc30d",
-    "tests/regression-recent.pine": "187223c4470c540c2e97c0e1bd71518caa83ba37eb36e9167994a31886e2e286",
-    "tests/regression-old.pine": "6a1551c48e8eed7e9b3e23055213874ca5eca07ff11ea957eb96d74483a444e4",
-    "tests/regression-history.pine": "ab26a163e39f09240b68b70a0e05c27b141649a2061490c19ac5ef063e0b18e4"
+  "signal_feature_baseline": {
+    "before": "TradingView compiler could not find zoneRejection before feature implementation",
+    "after": "Pine arrow harness completed without runtime error"
+  },
+  "arrow_defaults": {
+    "mapping_agreement": true,
+    "overlapping_active_FVG": true,
+    "recent_sweep_or_raid": true,
+    "lookback_bars": 10,
+    "confirmation_rvol_min": 1.2,
+    "source_rvol_min": 1.0,
+    "volume_baseline_prior_bars": 20,
+    "calibrated_accuracy": false,
+    "same_bar_creation_excluded": true,
+    "one_signal_per_OB": true
   }
 }

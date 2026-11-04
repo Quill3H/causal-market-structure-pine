@@ -22,6 +22,8 @@ type ob
     int   loc
     color css
     float vol
+    float sourceRvol = na
+    bool  signaled = false
     bool  isbb = false
     int   bbloc
 
