@@ -1,0 +1,222 @@
+{
+  "chart": {
+    "arrows": [
+      {
+        "direction": "SELL",
+        "time": 1792454400
+      },
+      {
+        "direction": "BUY",
+        "time": 1792722600
+      },
+      {
+        "direction": "SELL",
+        "time": 1792756800
+      },
+      {
+        "direction": "BUY",
+        "time": 1792939500
+      },
+      {
+        "direction": "SELL",
+        "time": 1792963800
+      },
+      {
+        "direction": "BUY",
+        "time": 1793003400
+      },
+      {
+        "direction": "SELL",
+        "time": 1793019600
+      },
+      {
+        "direction": "BUY",
+        "time": 1793027700
+      },
+      {
+        "direction": "SELL",
+        "time": 1793095200
+      },
+      {
+        "direction": "SELL",
+        "time": 1793190600
+      },
+      {
+        "direction": "BUY",
+        "time": 1793282400
+      },
+      {
+        "direction": "SELL",
+        "time": 1793305800
+      },
+      {
+        "direction": "SELL",
+        "time": 1793480400
+      },
+      {
+        "direction": "SELL",
+        "time": 1793535300
+      },
+      {
+        "direction": "BUY",
+        "time": 1793575800
+      },
+      {
+        "direction": "SELL",
+        "time": 1793618100
+      },
+      {
+        "direction": "BUY",
+        "time": 1793776500
+      },
+      {
+        "direction": "BUY",
+        "time": 1793925000
+      },
+      {
+        "direction": "BUY",
+        "time": 1794041100
+      }
+    ],
+    "buy": 9,
+    "first": 1792440900,
+    "last": 1794059100,
+    "minimumSourceRvol": 1.2,
+    "mode": "CHoCH + Source RVOL",
+    "resolution": "15",
+    "rows": 1799,
+    "sell": 10,
+    "status": {
+      "type": 2
+    },
+    "symbol": "BINANCE:BTCUSDT"
+  },
+  "compiler": [
+    {
+      "key": "production",
+      "success": true,
+      "warnings": []
+    },
+    {
+      "key": "recent",
+      "success": true,
+      "warning_count": 4
+    },
+    {
+      "key": "old",
+      "success": true,
+      "warning_count": 4
+    },
+    {
+      "key": "history",
+      "success": true,
+      "warning_count": 2
+    },
+    {
+      "key": "signals",
+      "success": true,
+      "warning_count": 3
+    },
+    {
+      "key": "initialBull",
+      "success": true,
+      "warning_count": 16
+    },
+    {
+      "key": "initialBear",
+      "success": true,
+      "warning_count": 16
+    },
+    {
+      "key": "choch",
+      "success": true,
+      "warnings": []
+    }
+  ],
+  "date": "2026-11-07",
+  "runtime": {
+    "choch": {
+      "bars": 0,
+      "error": false,
+      "resolution": "15",
+      "status": {
+        "type": 2
+      }
+    },
+    "legacy": {
+      "bars": 0,
+      "error": false,
+      "resolution": "15",
+      "status": {
+        "type": 2
+      }
+    },
+    "production": {
+      "bars": 402,
+      "error": false,
+      "resolution": "15",
+      "status": {
+        "type": 2
+      }
+    },
+    "recent": {
+      "bars": 0,
+      "error": false,
+      "status": { "type": 2 }
+    },
+    "old": {
+      "bars": 0,
+      "error": false,
+      "status": { "type": 2 }
+    },
+    "history": {
+      "bars": 402,
+      "error": false,
+      "status": { "type": 2 }
+    },
+    "signals": {
+      "bars": 0,
+      "error": false,
+      "status": { "type": 2 }
+    },
+    "initialBull": {
+      "bars": 402,
+      "error": false,
+      "status": { "type": 2 }
+    },
+    "initialBear": {
+      "bars": 402,
+      "error": false,
+      "status": { "type": 2 }
+    }
+  },
+  "version": "1.4.0",
+  "applied_chart_post_reload": {
+    "date": "2026-11-08",
+    "symbol": "BINANCE:BTCUSDT",
+    "resolution": "15",
+    "studies": [
+      "SMC Confirmed [1.4.0]",
+      "OBV"
+    ],
+    "autosave_restored": true,
+    "indicator_runtime_error": false,
+    "returned_plot_rows_after_zoom": 410,
+    "note": "Final post-fix reload check. The 410 returned plot rows use a different loaded-history window than the 1799-row validation snapshot; the saved chart retained SMC 1.4.0 plus OBV at 15m."
+  },
+  "sha256": {
+    "TOOL.pine": "6908e9732c00734cd10b14334eb1caec655fe8f7404c4280da5bca9c0a7b6247",
+    "tests/build_choch_signal_regression.py": "ffcea9fdfcb2af764bde2d1c15a28ad82db6a3d054754999ddeca6805282e664",
+    "tests/regression-choch-signals.pine": "165f4d36fad87d33baeb66a0f495a9ec91a4208cd18ef38cf7c81ccae608e2a2",
+    "tests/check_choch_mode_source.py": "0236a279888709334c33d82a3a3682be45746f10f3b37fe8607ed4fb3368ca9f",
+    "tests/build_signal_regression.py": "34422681e66fa1cc06abe1894bfbddde4f6d84af27ffa9005efc27df5772ca88",
+    "tests/regression-signals.pine": "e3714cb7aa8f609ca28c02ae273321bf6b275ddca6109e273d02135d72af251e"
+  },
+  "limits": [
+    "The 1.2 source-RVOL threshold is a configurable heuristic, not a calibrated probability or demonstrated accuracy improvement.",
+    "Counts are a snapshot of 1799 returned plot rows; loaded history and the current forming bar can change the row count.",
+    "The default mode does not require an OB retest, Mapping, FVG, sweep, or CHoCH-candle volume.",
+    "CHoCH source RVOL uses a fixed preceding-20-candle baseline; changing the legacy baseline input does not affect this mode.",
+    "No profitability, price-target calibration, full Bar Replay, or prolonged realtime validation."
+  ]
+}

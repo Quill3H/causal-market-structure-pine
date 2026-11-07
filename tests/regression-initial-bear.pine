@@ -3,7 +3,7 @@
 //
 //@version=6
 // Maintenance revision 2026-11-04: confirmed-bar visual indicator.
-indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [1.2.1]",
+indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [1.4.0]",
      overlay = true,
      max_bars_back = 5000,
      max_boxes_count = 500,
@@ -102,15 +102,20 @@ dispraid     = input.bool(false, "Display Raids", inline="raid", group="FAIR VAL
 // Closed-candle directional opportunities; thresholds are heuristics, not probabilities.
 SIG = "CONFIRMED ARROWS"
 showSignals = input.bool(true, "Show buy/sell arrows", group = SIG)
-signalUseMapping = input.bool(true, "Require Mapping agreement", group = SIG)
-signalUseFVG = input.bool(true, "Require overlapping FVG", group = SIG, tooltip = "The candle must reject the common price area of an older active OB and a same-direction FVG. FVG calculation works even when its drawing is hidden.")
-signalUseSweep = input.bool(true, "Require recent sweep or FVG raid", group = SIG)
+signalUseMapping = input.bool(true, "Use Mapping agreement", group = SIG)
+signalUseFVG = input.bool(true, "Use overlapping FVG", group = SIG, tooltip = "The candle must reject the common price area of an older active OB and a same-direction FVG. FVG calculation works even when its drawing is hidden.")
+signalUseSweep = input.bool(true, "Use recent sweep or FVG raid", group = SIG)
 signalSweepBars = input.int(10, "Sweep/raid lookback", minval = 1, maxval = 100, group = SIG)
-signalUseVolume = input.bool(true, "Require confirmation volume", group = SIG)
-signalVolLength = input.int(20, "Volume baseline candles", minval = 2, maxval = 200, group = SIG, tooltip = "Baseline excludes the candle being measured. Missing or zero baseline blocks volume-filtered signals.")
+signalUseVolume = input.bool(true, "Use confirmation volume", group = SIG)
+signalVolLength = input.int(20, "Balanced/Strict: volume baseline candles", minval = 2, maxval = 200, group = SIG, tooltip = "Used only by the legacy Balanced/Strict volume checks. The CHoCH mode always compares its OB source candle with the preceding 20-candle baseline.")
 signalVolumeMin = input.float(1.2, "Minimum confirmation RVOL", minval = 0.1, step = 0.1, group = SIG)
-signalUseSourceVolume = input.bool(true, "Require OB source relative volume", group = SIG)
+signalUseSourceVolume = input.bool(true, "Use OB source relative volume", group = SIG)
 signalSourceMin = input.float(1.0, "Minimum source RVOL", minval = 0.1, step = 0.1, group = SIG)
+
+signalMode = input.string("CHoCH + Source RVOL", "Signal mode", options = ["CHoCH + Source RVOL", "Balanced", "Strict"], group = SIG, tooltip = "CHoCH mode signals on the closed structure-change candle when the OB source RVOL clears its threshold. Balanced and Strict retain the prior OB-rejection rules. None of these modes is a probability.")
+chochSourceRvolMin = input.float(1.2, "CHoCH: minimum OB source RVOL", minval = 0.1, step = 0.1, group = SIG)
+signalMinEvidence = input.int(2, "Balanced: minimum supporting checks", minval = 1, maxval = 5, group = SIG)
+showSignalStatus = input.bool(true, "Show signal status", group = SIG)
 
 type store
     line    [] ln
@@ -150,6 +155,7 @@ type ob
     color css
     float vol
     float sourceRvol = na
+    float chochSourceRvol = na
     bool  signaled = false
     bool  isbb = false
     int   bbloc
@@ -224,6 +230,7 @@ ghl() => [high[2], low[2], close[1], open[1], close, open, high, low, high[1], l
 
 
 float signalVolumeBase = ta.sma(volume, signalVolLength)[1]
+float chochVolumeBase = ta.sma(volume, 20)[1]
 
 historyOffset(int loc) =>
     math.min(math.max(bar_index - nz(loc, bar_index), 0), math.min(bar_index, HISTORY_LIMIT))
@@ -256,14 +263,20 @@ method find(structure ms, bool use_max, bool sweep, bool useob) =>
 relativeVolume(float measured, float baseline) =>
     not na(measured) and not na(baseline) and baseline > 0 ? measured / baseline : na
 
-method fnOB(ob[] block, bool bull, float cords, int idx, float sourceRvol) =>
+chochSourceSignal(bool confirmed, bool event, float sourceRvol, float minimum) =>
+    confirmed and event and not na(sourceRvol) and sourceRvol >= minimum
+
+structureEventDirection(string eventType, int direction) =>
+    eventType == "choch" and math.abs(direction) == 1 ? direction : 0
+
+method fnOB(ob[] block, bool bull, float cords, int idx, float sourceRvol, float chochSourceRvol) =>
     if bar_index == 211
         initialCalls.push(bull)
     float top = bull ? cords : high[idx]
     float bottom = bull ? low[idx] : cords
     // ATR is unavailable during warm-up; do not create an invalid price zone.
     if not na(top) and not na(bottom) and top > bottom
-        block.unshift(ob.new(bull = bull, top = top, btm = bottom, avg = math.avg(top, bottom), loc = time, css = bull ? obupcs : obdncs, vol = volume[idx], sourceRvol = sourceRvol))
+        block.unshift(ob.new(bull = bull, top = top, btm = bottom, avg = math.avg(top, bottom), loc = time, css = bull ? obupcs : obdncs, vol = volume[idx], sourceRvol = sourceRvol, chochSourceRvol = chochSourceRvol))
         if block.size() > MAX_ZONES
             block.pop()
 
@@ -288,10 +301,18 @@ gapConfirmation(FVG[] gaps, ob zone, int direction, int candleTime, float candle
                 break
     confirmed
 
+signalEvidence(int direction, int mappingTrend, bool gapOK, bool sweepOK, float confirmationRvol, float sourceRvol) =>
+    int enabled = (signalUseMapping ? 1 : 0) + (signalUseFVG ? 1 : 0) + (signalUseSweep ? 1 : 0) + (signalUseVolume ? 1 : 0) + (signalUseSourceVolume ? 1 : 0)
+    int score = (signalUseMapping and mappingTrend == direction ? 1 : 0) + (signalUseFVG and gapOK ? 1 : 0) + (signalUseSweep and sweepOK ? 1 : 0) + (signalUseVolume and not na(confirmationRvol) and confirmationRvol >= signalVolumeMin ? 1 : 0) + (signalUseSourceVolume and not na(sourceRvol) and sourceRvol >= signalSourceMin ? 1 : 0)
+    bool available = (not signalUseVolume or not na(confirmationRvol)) and (not signalUseSourceVolume or not na(sourceRvol))
+    [score, enabled, available]
+
+evidenceDecision(string mode, int minimum, int score, int enabled, bool available) =>
+    available and score >= (mode == "Strict" ? enabled : math.min(minimum, enabled))
+
 signalAgreement(int direction, int structureTrend, int mappingTrend, bool gapOK, bool sweepOK, float confirmationRvol, float sourceRvol) =>
-    bool volumeOK = not signalUseVolume or (not na(confirmationRvol) and confirmationRvol >= signalVolumeMin)
-    bool sourceOK = not signalUseSourceVolume or (not na(sourceRvol) and sourceRvol >= signalSourceMin)
-    structureTrend == direction and (not signalUseMapping or mappingTrend == direction) and (not signalUseFVG or gapOK) and (not signalUseSweep or sweepOK) and volumeOK and sourceOK
+    [score, enabled, available] = signalEvidence(direction, mappingTrend, gapOK, sweepOK, confirmationRvol, sourceRvol)
+    structureTrend == direction and evidenceDecision(signalMode, signalMinEvidence, score, enabled, available)
 
 resolveSignals(bool confirmed, int bullIndex, int bearIndex) =>
     [confirmed and bullIndex >= 0 and bearIndex < 0, confirmed and bearIndex >= 0 and bullIndex < 0]
@@ -307,6 +328,18 @@ signalCandidate(ob[] zones, FVG[] gaps, int direction, int structureTrend, int m
                     found := i
                     break
     found
+
+signalProgress(ob[] zones, FVG[] gaps, int direction, int mappingTrend, bool sweepOK, float confirmationRvol) =>
+    int best = -1
+    bool dataOK = false
+    for zone in zones
+        if zoneRejection(zone, direction, time, high, low, close)
+            bool gapOK = gapConfirmation(gaps, zone, direction, time, high, low, close)
+            [score, enabled, available] = signalEvidence(direction, mappingTrend, gapOK, sweepOK, confirmationRvol, zone.sourceRvol)
+            if score > best or (score == best and available)
+                best := score
+                dataOK := available
+    [best, dataOK]
 
 preferFirst(int firstTime, int secondTime, string policy) =>
     policy == "Recent" ? firstTime >= secondTime : firstTime <= secondTime
@@ -442,8 +475,11 @@ method display(ob id, ob[] full, int i) =>
              )
 
     if showmetric
-        string metricText = na(id.vol) ? "Source V: N/A" : "Source V: " + str.tostring(id.vol, format.volume)
-        bin.lb.unshift(label.new(bar_index, id.avg, text = metricText, textcolor = color.new(id.css, 0), style = label.style_label_left, size = obtxt.txSz(), color = #ffffff00, tooltip = "Volume of the source candle. This is not measured buy/sell volume or a probability."))
+        string sourceVolumeText = na(id.vol) ? "N/A" : str.tostring(id.vol, format.volume)
+        float displayedSourceRvol = signalMode == "CHoCH + Source RVOL" ? id.chochSourceRvol : id.sourceRvol
+        string sourceRvolText = na(displayedSourceRvol) ? "N/A" : str.tostring(displayedSourceRvol, "#.##") + "x"
+        string metricText = "OB Source Vol: " + sourceVolumeText + " | RVOL: " + sourceRvolText
+        bin.lb.unshift(label.new(bar_index, id.avg, text = metricText, textcolor = color.new(id.css, 0), style = label.style_label_left, size = obtxt.txSz(), color = #ffffff00, tooltip = "Volume of the OB source candle and its RVOL. CHoCH mode uses the preceding 20-candle baseline; legacy modes use their configured baseline. This is not measured buy/sell volume or a probability."))
 
 method dispFVG(FVG fvg, int i, bool bull) =>
     ext = fvgextend ? extend.right : extend.none
@@ -632,12 +668,16 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
     var drawms     [] brdw     = array.new<  drawms   >()
     bool      crossup =     false
     bool      crossdn =     false
+    string    structureEventType = ""
+    int       structureEventSide = 0
     var float up      =     na
     var float dn      =     na
     idbull            =  ms.find(false, false, true)
     idbear            =  ms.find(true , false, true)
     float sourceBullRvol = relativeVolume(volume[idbull], signalVolumeBase[idbull])
     float sourceBearRvol = relativeVolume(volume[idbear], signalVolumeBase[idbear])
+    float sourceBullChochRvol = relativeVolume(volume[idbull], chochVolumeBase[idbull])
+    float sourceBearChochRvol = relativeVolume(volume[idbear], chochVolumeBase[idbear])
     btmP              =  obmode == "Length" ? (high[idbear] - 1 * atr[idbear]) < low [idbear] ? low [idbear] : (high[idbear] - 1 * atr[idbear]) : low [idbear]
     topP              =  obmode == "Length" ? (low [idbull] + 1 * atr[idbull]) > high[idbull] ? high[idbull] : (low [idbull] + 1 * atr[idbull]) : high[idbull]
     ph                = ta.pivothigh(high, mslen, mslen)
@@ -748,7 +788,9 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                 close <= ms.choch =>
 
                     ms.txt       := "choch"
-                    brob.fnOB(false, btmP, idbear, sourceBearRvol)
+                    structureEventType := "choch"
+                    structureEventSide := -1
+                    brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
                     ms.trend     := -1
                     ms.choch     := ms.bos
                     ms.bos       := na
@@ -766,7 +808,9 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                 close >= ms.bos =>
 
                     ms.txt       := "choch"
-                    blob.fnOB(true, topP, idbull, sourceBullRvol)
+                    structureEventType := "choch"
+                    structureEventSide := 1
+                    blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
                     ms.trend     := 1
                     ms.choch     := ms.choch
                     ms.bos       := na
@@ -856,7 +900,9 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                             ms.txt       := "bos"
                             ms.zz        := ms.bos
                             ms.zn        := bar_index
-                            brob.fnOB(false, btmP, idbear, sourceBearRvol)
+                            structureEventType := "bos"
+                            structureEventSide := -1
+                            brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
                             id        = ms.find(true, false, false)
                             ms.xloc  := bar_index
                             ms.bos   := na
@@ -898,9 +944,11 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                         close >= ms.choch =>
 
                             ms.txt       := "choch"
+                            structureEventType := "choch"
+                            structureEventSide := 1
                             ms.zz        := ms.choch
                             ms.zn        := bar_index
-                            blob.fnOB(true, topP, idbull, sourceBullRvol)
+                            blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
                             id        = ms.find(false, false, false)
                             switch
                                 na(ms.bos) =>
@@ -1014,7 +1062,9 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                             ms.txt       := "bos"
                             ms.zz        := ms.bos
                             ms.zn        := bar_index
-                            blob.fnOB(true, topP, idbull, sourceBullRvol)
+                            structureEventType := "bos"
+                            structureEventSide := 1
+                            blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
                             id        = ms.find(false, false, false)
                             ms.xloc  := bar_index
                             ms.bos   := na
@@ -1056,9 +1106,11 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                         close <= ms.choch =>
 
                             ms.txt       := "choch"
+                            structureEventType := "choch"
+                            structureEventSide := -1
                             ms.zz        := ms.choch
                             ms.zn        := bar_index
-                            brob.fnOB(false, btmP, idbear, sourceBearRvol)
+                            brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
                             id        = ms.find(true, false, false)
                             switch
                                 na(ms.bos) =>
@@ -1198,13 +1250,18 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                                   )
                                  )
 
-    [ms, blob, brob]
+    int chochDirection = structureEventDirection(structureEventType, structureEventSide)
+    bool bullChochEvent = chochDirection == 1
+    bool bearChochEvent = chochDirection == -1
+    float bullChochSourceRvol = bullChochEvent ? sourceBullChochRvol : na
+    float bearChochSourceRvol = bearChochEvent ? sourceBearChochRvol : na
+    [ms, blob, brob, bullChochEvent, bearChochEvent, bullChochSourceRvol, bearChochSourceRvol]
 
 //}
 // Section
 
 // Always call stateful calculations so their history remains consistent.
-[ms, bullOBs, bearOBs] = structure(swingcssup, swingcssdn, showSwing, false, swingLimit)
+[ms, bullOBs, bearOBs, bullChochEvent, bearChochEvent, bullChochSourceRvol, bearChochSourceRvol] = structure(swingcssup, swingcssdn, showSwing, false, swingLimit)
 
 var color css = na
 
@@ -1239,16 +1296,55 @@ bool bearSweepOK = recentEvent(bearSweepBar, bar_index, signalSweepBars) or rece
 float confirmationRvol = relativeVolume(volume, signalVolumeBase)
 int bullCandidate = signalCandidate(bullOBs, bullGaps, 1, ms.trend, mappingTrend, bullSweepOK, confirmationRvol)
 int bearCandidate = signalCandidate(bearOBs, bearGaps, -1, ms.trend, mappingTrend, bearSweepOK, confirmationRvol)
-[buyArrow, sellArrow] = resolveSignals(barstate.isconfirmed, bullCandidate, bearCandidate)
-if buyArrow
+[legacyBuyArrow, legacySellArrow] = resolveSignals(barstate.isconfirmed, bullCandidate, bearCandidate)
+bool chochBuyArrow = chochSourceSignal(barstate.isconfirmed, bullChochEvent, bullChochSourceRvol, chochSourceRvolMin)
+bool chochSellArrow = chochSourceSignal(barstate.isconfirmed, bearChochEvent, bearChochSourceRvol, chochSourceRvolMin)
+bool useChochMode = signalMode == "CHoCH + Source RVOL"
+bool buyArrow = useChochMode ? chochBuyArrow : legacyBuyArrow
+bool sellArrow = useChochMode ? chochSellArrow : legacySellArrow
+var int buyCount = 0
+var int sellCount = 0
+var string lastSignal = "Chưa có"
+var string waitReason = "Chờ nến đóng"
+if barstate.isconfirmed
+    if useChochMode
+        bool chochEvent = bullChochEvent or bearChochEvent
+        float eventRvol = bullChochEvent ? bullChochSourceRvol : bearChochSourceRvol
+        waitReason := not chochEvent ? "Chờ CHoCH" : na(eventRvol) ? "CHoCH: thiếu RVOL nguồn OB" : eventRvol < chochSourceRvolMin ? "CHoCH: RVOL nguồn " + str.tostring(eventRvol, "#.##") + "x | cần " + str.tostring(chochSourceRvolMin, "#.##") + "x" : "CHoCH + RVOL nguồn đạt"
+    else
+        int direction = ms.trend == 1 ? 1 : -1
+        zones = direction == 1 ? bullOBs : bearOBs
+        gaps = direction == 1 ? bullGaps : bearGaps
+        [best, available] = signalProgress(zones, gaps, direction, mappingTrend, direction == 1 ? bullSweepOK : bearSweepOK, confirmationRvol)
+        [unused, enabled, ignored] = signalEvidence(direction, mappingTrend, false, false, confirmationRvol, na)
+        int required = signalMode == "Strict" ? enabled : math.min(signalMinEvidence, enabled)
+        waitReason := ms.trend == 0 ? "Chờ cấu trúc" : best < 0 ? "Chờ nến từ chối OB" : not available ? "Thiếu dữ liệu volume" : "Đồng thuận " + str.tostring(best) + "/" + str.tostring(enabled) + " | cần " + str.tostring(required)
+    if buyArrow or sellArrow
+        buyCount += buyArrow ? 1 : 0
+        sellCount += sellArrow ? 1 : 0
+        lastSignal := (buyArrow ? "BUY " : "SELL ") + str.format_time(time_close, "dd/MM HH:mm", syminfo.timezone)
+
+var table signalPanel = table.new(position.top_right, 1, 4, bgcolor = color.new(color.black, 15))
+if barstate.islast
+    if showSignalStatus
+        table.cell(signalPanel, 0, 0, "SMC 1.4.0 | " + signalMode, text_color = color.white)
+        table.cell(signalPanel, 0, 1, "Lịch sử đã tính: BUY " + str.tostring(buyCount) + " | SELL " + str.tostring(sellCount), text_color = color.white)
+        table.cell(signalPanel, 0, 2, "Gần nhất (giờ sàn): " + lastSignal, text_color = color.white)
+        table.cell(signalPanel, 0, 3, waitReason, text_color = color.yellow)
+    else
+        table.clear(signalPanel, 0, 0, 0, 3)
+if legacyBuyArrow and not useChochMode
     chosen = bullOBs.get(bullCandidate)
     chosen.signaled := true
-if sellArrow
+if legacySellArrow and not useChochMode
     chosen = bearOBs.get(bearCandidate)
     chosen.signaled := true
 
-plotshape(showSignals and buyArrow, title = "Confirmed bullish opportunity", style = shape.arrowup, location = location.belowbar, color = #089981, text = "BUY", textcolor = #089981, size = size.small)
-plotshape(showSignals and sellArrow, title = "Confirmed bearish opportunity", style = shape.arrowdown, location = location.abovebar, color = #f23645, text = "SELL", textcolor = #f23645, size = size.small)
+plotshape(showSignals and buyArrow, title = "Confirmed bullish opportunity", style = shape.arrowup, location = location.belowbar, color = #089981, text = "BUY", textcolor = #089981, size = size.normal)
+plotshape(showSignals and sellArrow, title = "Confirmed bearish opportunity", style = shape.arrowdown, location = location.abovebar, color = #f23645, text = "SELL", textcolor = #f23645, size = size.normal)
+
+alertcondition(buyArrow, "Closed-candle BUY", "Closed-candle BUY: {{ticker}} {{interval}} at {{close}}")
+alertcondition(sellArrow, "Closed-candle SELL", "Closed-candle SELL: {{ticker}} {{interval}} at {{close}}")
 
 if bar_index == 211 and barstate.isconfirmed
     if ms.trend != -1 or initialCalls.size() != 1

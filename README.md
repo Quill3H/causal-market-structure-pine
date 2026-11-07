@@ -1,4 +1,4 @@
-# SMC Confirmed 1.3.0
+# SMC Confirmed 1.4.0
 
 Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value Gap (FVG), sửa từ file `TOOL` của repo này. Mã gốc ghi tác giả BigBeluga và giấy phép MPL 2.0; bản bảo trì giữ nguyên ghi nhận đó.
 
@@ -6,12 +6,24 @@ Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value G
 
 1. Mở Pine Editor, tạo **indicator mới**.
 2. Chép toàn bộ nội dung `TOOL.pine` vào editor, lưu rồi chọn **Add to chart**.
-3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.3.0]**.
+3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.4.0]**.
 4. Muốn xem FVG, bật **Enable FVG** trong nhóm FAIR VALUE GAP.
 
 `TOOL` là bản v5 cũ để đối chiếu. Dùng `TOOL.pine` cho bản sửa v6. Các thiết lập của bản cũ không tự chuyển sang script mới.
 
 ## Các thay đổi
+
+### Bản 1.4.0: mũi tên theo CHoCH và RVOL nguồn OB
+
+Mặc định **Signal mode = CHoCH + Source RVOL**. BUY xuất hiện trên nến đóng xác nhận CHoCH tăng khi RVOL của nến nguồn OB tăng đạt ít nhất **1,2×** trung bình 20 nến trước nến nguồn. SELL áp dụng đối xứng cho CHoCH giảm và nguồn OB giảm. Mũi tên nằm trên nến CHoCH, không đặt lùi về nến nguồn.
+
+Nến chưa đóng, BOS không phải CHoCH, RVOL nguồn dưới ngưỡng, thiếu volume hoặc baseline bằng 0 đều không phát tín hiệu. Chế độ này không đợi giá quay lại OB và không yêu cầu Mapping, FVG, sweep hay volume của nến CHoCH. Ngưỡng 1,2 có thể thay đổi trong **CHoCH: minimum OB source RVOL**; đây là heuristic, không phải xác suất hoặc mức chính xác đã được chứng minh.
+
+Nhãn vùng đổi từ **Source V** thành **OB Source Vol** và hiển thị cả volume tuyệt đối của nến nguồn lẫn **RVOL**. Volume tuyệt đối phụ thuộc dữ liệu sàn/mã; RVOL mới là tỷ lệ được dùng cho tín hiệu. Nó không phải khối lượng mua/bán chủ động.
+
+`Balanced` và `Strict` vẫn còn trong **Signal mode** để đối chiếu hoặc quay lại quy tắc 1.3.0. Các bộ lọc Mapping/FVG/sweep/volume bên dưới chỉ quyết định mũi tên khi chọn hai chế độ cũ. Thiết lập **Balanced/Strict: volume baseline candles** không thay đổi baseline cố định 20 nến của chế độ CHoCH.
+
+Kiểm tra TradingView ngày 07/11/2026 trên BINANCE:BTCUSDT 15 phút: khi thu nhỏ biểu đồ, ảnh chụp kiểm tra có 1.799 hàng dữ liệu và chế độ mặc định cho **9 BUY / 10 SELL**. Mã chính và harness CHoCH biên dịch không cảnh báo; harness xác nhận nến đóng, đúng ngưỡng, dưới ngưỡng, thiếu RVOL và không nhầm BOS với CHoCH. Chi tiết/hash ở `tests/validation-1.4.0.json`. Số tín hiệu thay đổi theo lịch sử được tải và không chứng minh hiệu quả dự báo.
 
 ### Bản 1.3.0: chế độ Cân bằng và trạng thái tín hiệu
 
@@ -33,20 +45,20 @@ Vì vậy, không thấy mũi tên trong đoạn này không phải do không c�
 
 ### Mũi tên xác nhận
 
-**BUY xanh dưới nến** báo một thiết lập thiên về tăng. **SELL đỏ trên nến** báo một thiết lập thiên về giảm. Mũi tên được vẽ ngay trên nến xác nhận sau khi nến đóng, không đặt lùi về nến nguồn và không xuất hiện trên nến còn chạy. Đây là hướng của thiết lập, không phải giá mục tiêu hoặc dự báo chắc chắn cho nến kế tiếp.
+**BUY xanh dưới nến** báo CHoCH tăng có RVOL nguồn đạt ngưỡng trong chế độ mặc định. **SELL đỏ trên nến** áp dụng đối xứng cho CHoCH giảm. Mũi tên được vẽ sau khi nến CHoCH đóng, không đặt lùi về nến nguồn và không xuất hiện trên nến còn chạy. Đây là hướng của thiết lập, không phải giá mục tiêu hoặc dự báo chắc chắn cho nến kế tiếp.
 
-Trong chế độ **Strict**, cần đủ các dữ kiện sau cho chiều tăng; chiều giảm áp dụng đối xứng. **Balanced** luôn yêu cầu mục 2 và cấu trúc cùng hướng, rồi dùng Mapping cùng các mục 3–6 làm năm điểm hỗ trợ:
+Hai chế độ cũ **Strict** và **Balanced** tiếp tục dùng các dữ kiện sau. Strict cần đủ; Balanced luôn yêu cầu mục 2 và cấu trúc cùng hướng, rồi dùng Mapping cùng các mục 3–6 làm năm điểm hỗ trợ:
 
 1. Cấu trúc thị trường và Mapping đều đang tăng.
 2. Nến chạm một OB tăng còn hiệu lực, đã được tạo từ nến trước, rồi đóng vượt mép trên vùng. Breaker và vùng đã bị phá không được dùng làm OB thường.
 3. Có FVG tăng còn hiệu lực từ nến trước chồng lấn OB. Nến xác nhận phải chạm phần giá chung và đóng vượt mép trên của cả hai vùng.
 4. Trong 10 nến gần đây có quét đáy theo cấu trúc hoặc raid FVG tăng; chiều giảm dùng quét đỉnh/raid FVG giảm.
 5. Volume nến xác nhận ít nhất bằng **1,2 lần** volume trung bình của **20 nến trước nó**.
-6. Volume nến nguồn của OB ít nhất bằng **1 lần** trung bình của **20 nến trước nến nguồn**. Đây là RVOL nguồn được tính riêng, không so trực tiếp con số Source V tuyệt đối.
+6. Volume nến nguồn của OB ít nhất bằng **1 lần** trung bình của **20 nến trước nến nguồn**. Đây là RVOL nguồn được tính riêng, không so trực tiếp volume tuyệt đối.
 
 Mỗi OB phát tối đa một mũi tên. Nếu hai hướng cùng đủ điều kiện, chỉ báo không vẽ mũi tên để tránh tín hiệu mâu thuẫn. Khi bật bộ lọc volume, thiếu dữ liệu hoặc trung bình bằng 0 sẽ không phát tín hiệu theo bộ lọc đó.
 
-Nhóm **CONFIRMED ARROWS** cho phép bật/tắt từng bộ lọc và thay các ngưỡng. Mặc định bật toàn bộ năm kiểm tra và dùng Balanced 2/5; vẫn có thể có đoạn không có nến đủ điều kiện. Strict giữ quy tắc tất cả cùng đạt. Các ngưỡng 1,2 / 1,0 / 20 / 10 là quy tắc ban đầu, chưa được tối ưu hay chứng minh làm tăng tỷ lệ đúng.
+Nhóm **CONFIRMED ARROWS** cho phép chọn chế độ và ngưỡng. Mặc định dùng CHoCH + Source RVOL 1,2×. Khi chọn Balanced hoặc Strict, có thể bật/tắt năm bộ lọc cũ và thay ngưỡng của chúng. Các ngưỡng đều là quy tắc ban đầu, chưa được tối ưu hay chứng minh làm tăng tỷ lệ đúng.
 
 FVG và Mapping vẫn được tính để xét mũi tên dù bạn ẩn hình vẽ của chúng. Tắt **Show buy/sell arrows** chỉ ẩn mũi tên; không thay đổi quá trình tính và ghi nhận OB. Các tùy chọn tạo cấu trúc như Build Sweep và các chế độ mitigation vẫn ảnh hưởng dữ kiện được tạo ra.
 
@@ -55,7 +67,7 @@ FVG và Mapping vẫn được tính để xét mũi tên dù bạn ẩn hình v
 - Sửa xóa nhầm vùng chồng lấn; Recent/Old chọn vùng theo nến xác nhận. Khoảng giá bằng nhau hoàn toàn cũng được xử lý; hai vùng chỉ chạm mép không bị coi là chồng lấn.
 - Xóa vùng bị phá từ cuối mảng về đầu, tránh bỏ sót nhiều vùng bị phá trên cùng một nến.
 - Close chỉ so sánh giá đóng cửa. Wick dùng high/low của nến đã đóng; Avg dùng high/low vượt trung điểm vùng, giữ ý nghĩa cũ của chế độ này.
-- Bỏ các thanh Buy/Sell Activity mô phỏng và phần trăm dễ gây hiểu nhầm. **Source V** là volume của nến nguồn dùng để dựng OB; thiếu dữ liệu sẽ hiện N/A. Nó không phải xác suất mua hoặc số liệu bên mua/bán chủ động.
+- Bỏ các thanh Buy/Sell Activity mô phỏng và phần trăm dễ gây hiểu nhầm. **OB Source Vol** là volume của nến nguồn dùng để dựng OB; **RVOL** đi kèm là tỷ lệ so với 20 nến trước nguồn. Thiếu dữ liệu sẽ hiện N/A. Chúng không phải xác suất hoặc số liệu bên mua/bán chủ động.
 - Chỉ cập nhật trạng thái cấu trúc, vùng giá, breaker và raid sau khi nến đóng. Hình vẽ ở nến đang chạy dùng trạng thái đã xác nhận.
 - OB và FVG được vẽ bắt đầu ở nến phát hiện, không neo ngược về nến nguồn. Giá của OB vẫn lấy từ nến nguồn; FVG vẫn dùng cấu trúc ba nến. FVG xuất hiện khi nến thứ ba đóng, bỏ độ trễ thêm một nến của bản cũ.
 - Pivot với độ dài 5 vẫn cần 5 nến bên phải để xác nhận; các đường cấu trúc có thể nối về cực trị đã xác nhận. Đây không phải tín hiệu đã biết ở thời điểm cực trị đó hình thành.
@@ -73,7 +85,7 @@ Window lọc phạm vi **hiển thị cấu trúc**, không khởi động lại
 
 ## Kiểm tra
 
-Kết quả mới nhất ở `tests/validation-1.3.0.json`. Kết quả bản 1.2.1 nằm trong `tests/validation-1.2.1.json`; `tests/validation.json` giữ kết quả bản 1.2.0. Lượt 1.2.1 chạy lại kiểm tra hướng OB đầu tiên ở cả hai chiều và kiểm tra mũi tên; không chạy lại toàn bộ bộ kiểm tra 1.2.0. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
+Kết quả mới nhất ở `tests/validation-1.4.0.json`. Các file validation theo phiên bản cũ được giữ để đối chiếu. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
 
 Tạo lại các script kiểm thử bằng Python 3 (thư viện chuẩn):
 
@@ -82,11 +94,13 @@ python tests/build_regression.py
 python tests/build_regression.py TOOL.pine Old
 python tests/build_history_regression.py
 python tests/build_signal_regression.py
+python tests/build_choch_signal_regression.py
+python tests/check_choch_mode_source.py
 python tests/build_initial_ob_regression.py bull
 python tests/build_initial_ob_regression.py bear
 ```
 
-Chạy từng file `tests/regression-*.pine` như một indicator riêng trong TradingView. Hai script recent/old phải hiện **REGRESSION PASS**; history phải hiện **HISTORY PASS** và cần hơn 4.500 nến đã tải; signals phải hiện **ARROWS PASS**. `runtime.error` sẽ chỉ ra kiểm tra không đạt. Cảnh báo shadowing OHLC trong harness là chủ đích để dùng dữ liệu cố định; mã sản phẩm không shadow các biến này.
+Chạy từng file `tests/regression-*.pine` như một indicator riêng trong TradingView. Hai script recent/old phải hiện **REGRESSION PASS**; history phải hiện **HISTORY PASS** và cần hơn 4.500 nến đã tải; signals phải hiện **ARROWS PASS**; CHoCH phải hiện **CHOCH RVOL PASS**. Harness CHoCH kiểm tra cả hướng tăng/giảm, BOS không phát tín hiệu, nến chưa đóng, ngưỡng, dưới ngưỡng và RVOL thiếu. `runtime.error` sẽ chỉ ra kiểm tra không đạt. Cảnh báo shadowing OHLC trong harness là chủ đích để dùng dữ liệu cố định; mã sản phẩm không shadow các biến này.
 
 Hai script initial quan sát hướng được yêu cầu trong lời gọi tạo OB tại lần phá cấu trúc đầu tiên. Chúng phải hiện **INITIAL BULL PASS** / **INITIAL BEAR PASS**; không kiểm tra khả năng tồn tại của vùng hay chất lượng dự báo. Cùng ca quan sát này đã thất bại trên mã 1.2.0 trước sửa ở cả hai chiều.
 

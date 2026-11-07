@@ -24,6 +24,7 @@ type ob
     color css
     float vol
     float sourceRvol = na
+    float chochSourceRvol = na
     bool  signaled = false
     bool  isbb = false
     int   bbloc
