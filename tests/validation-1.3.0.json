@@ -1,0 +1,171 @@
+{
+  "chartComparisons": [
+    {
+      "buy": 0,
+      "first": 1792930500,
+      "inputs": [
+        {
+          "id": "in_43",
+          "value": true
+        },
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_47",
+          "value": 10
+        },
+        {
+          "id": "in_48",
+          "value": true
+        },
+        {
+          "id": "in_49",
+          "value": 20
+        },
+        {
+          "id": "in_50",
+          "value": 1.2
+        },
+        {
+          "id": "in_51",
+          "value": true
+        },
+        {
+          "id": "in_52",
+          "value": 1
+        },
+        {
+          "id": "in_53",
+          "value": "Strict"
+        },
+        {
+          "id": "in_54",
+          "value": 2
+        },
+        {
+          "id": "in_55",
+          "value": true
+        }
+      ],
+      "last": 1794056400,
+      "mode": "Strict",
+      "resolution": "15",
+      "rows": 1252,
+      "sell": 0,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    },
+    {
+      "buy": 5,
+      "first": 1792930500,
+      "inputs": [
+        {
+          "id": "in_43",
+          "value": true
+        },
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_47",
+          "value": 10
+        },
+        {
+          "id": "in_48",
+          "value": true
+        },
+        {
+          "id": "in_49",
+          "value": 20
+        },
+        {
+          "id": "in_50",
+          "value": 1.2
+        },
+        {
+          "id": "in_51",
+          "value": true
+        },
+        {
+          "id": "in_52",
+          "value": 1
+        },
+        {
+          "id": "in_53",
+          "value": "Balanced"
+        },
+        {
+          "id": "in_54",
+          "value": 2
+        },
+        {
+          "id": "in_55",
+          "value": true
+        }
+      ],
+      "last": 1794056400,
+      "mode": "Balanced",
+      "resolution": "15",
+      "rows": 1252,
+      "sell": 10,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    }
+  ],
+  "date": "2026-11-07",
+  "productionCompilation": {
+    "success": true,
+    "warnings": []
+  },
+  "regression": {
+    "bars": 0,
+    "error": false,
+    "resolution": "15",
+    "status": {
+      "type": 2
+    }
+  },
+  "regressionCompilation": {
+    "success": true,
+    "warnings": [
+      "CW10011",
+      "CW10011",
+      "CW10011"
+    ]
+  },
+  "version": "1.3.0",
+  "limits": [
+    "Balanced 2/5 is a configurable heuristic, not a calibrated probability or a demonstrated improvement in prediction accuracy.",
+    "Counts cover 1252 returned plot rows. Panel totals cover all calculated loaded history and may be larger.",
+    "Waited for settled input recalculations; an earlier unsettled read was discarded.",
+    "No profitability, price-target calibration, full Bar Replay or prolonged realtime validation."
+  ],
+  "sha256": {
+    "TOOL.pine": "642b5763b5235de5798c69347f4af2eb0c1fcd39720d50356139924252841eaa",
+    "tests/build_signal_regression.py": "34422681e66fa1cc06abe1894bfbddde4f6d84af27ffa9005efc27df5772ca88",
+    "tests/regression-signals.pine": "af0744964c4da46087206d5428c7d3a565a10f3a60d93c367afd108b36c6ba57"
+  }
+}

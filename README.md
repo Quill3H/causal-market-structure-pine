@@ -1,4 +1,4 @@
-# SMC Confirmed 1.2.1
+# SMC Confirmed 1.3.0
 
 Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value Gap (FVG), sửa từ file `TOOL` của repo này. Mã gốc ghi tác giả BigBeluga và giấy phép MPL 2.0; bản bảo trì giữ nguyên ghi nhận đó.
 
@@ -6,12 +6,22 @@ Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value G
 
 1. Mở Pine Editor, tạo **indicator mới**.
 2. Chép toàn bộ nội dung `TOOL.pine` vào editor, lưu rồi chọn **Add to chart**.
-3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.2.1]**.
+3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.3.0]**.
 4. Muốn xem FVG, bật **Enable FVG** trong nhóm FAIR VALUE GAP.
 
 `TOOL` là bản v5 cũ để đối chiếu. Dùng `TOOL.pine` cho bản sửa v6. Các thiết lập của bản cũ không tự chuyển sang script mới.
 
 ## Các thay đổi
+
+### Bản 1.3.0: chế độ Cân bằng và trạng thái tín hiệu
+
+Mặc định **Signal mode = Balanced**. Nến đã đóng, cấu trúc cùng hướng và từ chối OB còn hiệu lực từ nến trước vẫn bắt buộc. Năm kiểm tra bổ sung vẫn bật: Mapping, FVG chồng lấn, sweep/raid gần đây, RVOL xác nhận ≥ 1,2 và RVOL nguồn ≥ 1,0. Mỗi kiểm tra đạt đóng góp 1 điểm; cần ít nhất **2/5** để phát mũi tên. Đây là điểm đồng thuận, không phải xác suất, và chưa được tối ưu bằng kiểm tra hiệu quả dự báo.
+
+Chọn **Strict** để yêu cầu tất cả kiểm tra đang bật như bản 1.2.1. Tắt một kiểm tra loại nó khỏi cả tử số và mẫu số; ngưỡng Balanced được chặn bằng số kiểm tra đang bật. Nếu tắt cả năm, chỉ còn điều kiện bắt buộc về cấu trúc/OB. Thiếu dữ liệu volume hoặc baseline bằng 0 vẫn chặn tín hiệu khi kiểm tra volume tương ứng đang bật; dữ liệu thiếu không được bù bằng điểm khác.
+
+Mũi tên lớn hơn; có alert BUY/SELL chỉ sau nến đóng. **Show signal status** hiện chế độ, tổng tín hiệu trong toàn bộ lịch sử đã tính, thời điểm tín hiệu gần nhất theo múi giờ sàn, và trạng thái của nến đóng gần nhất: đang chờ từ chối OB, thiếu dữ liệu volume hoặc điểm đồng thuận chưa đạt. Các số tổng trên bảng có thể lớn hơn số mũi tên trong phần dữ liệu đang hiển thị/trả về; mỗi lần đổi dữ liệu hoặc thiết lập sẽ tính lại lịch sử.
+
+Kiểm tra TradingView trên BINANCE:BTCUSDT 15 phút, cùng 1.252 hàng dữ liệu biểu đồ trả về: **Strict 0 BUY / 0 SELL; Balanced 5 BUY / 10 SELL**, cả năm kiểm tra đều bật. Mã chính biên dịch không cảnh báo. Bài kiểm tra gồm ngưỡng điểm, thiếu dữ liệu, selector Balanced và các điều kiện Strict cũ. Chi tiết/hash ở `tests/validation-1.3.0.json`. Kết quả chỉ chứng minh luồng phát/hiển thị tín hiệu, chưa đo tỷ lệ đúng hay lợi nhuận.
 
 ### Sửa ở bản 1.2.1 và kiểm tra BTC 15 phút
 
@@ -25,7 +35,7 @@ Vì vậy, không thấy mũi tên trong đoạn này không phải do không c�
 
 **BUY xanh dưới nến** báo một thiết lập thiên về tăng. **SELL đỏ trên nến** báo một thiết lập thiên về giảm. Mũi tên được vẽ ngay trên nến xác nhận sau khi nến đóng, không đặt lùi về nến nguồn và không xuất hiện trên nến còn chạy. Đây là hướng của thiết lập, không phải giá mục tiêu hoặc dự báo chắc chắn cho nến kế tiếp.
 
-Mặc định cần đủ các dữ kiện sau cho chiều tăng; chiều giảm áp dụng đối xứng:
+Trong chế độ **Strict**, cần đủ các dữ kiện sau cho chiều tăng; chiều giảm áp dụng đối xứng. **Balanced** luôn yêu cầu mục 2 và cấu trúc cùng hướng, rồi dùng Mapping cùng các mục 3–6 làm năm điểm hỗ trợ:
 
 1. Cấu trúc thị trường và Mapping đều đang tăng.
 2. Nến chạm một OB tăng còn hiệu lực, đã được tạo từ nến trước, rồi đóng vượt mép trên vùng. Breaker và vùng đã bị phá không được dùng làm OB thường.
@@ -36,7 +46,7 @@ Mặc định cần đủ các dữ kiện sau cho chiều tăng; chiều giảm
 
 Mỗi OB phát tối đa một mũi tên. Nếu hai hướng cùng đủ điều kiện, chỉ báo không vẽ mũi tên để tránh tín hiệu mâu thuẫn. Khi bật bộ lọc volume, thiếu dữ liệu hoặc trung bình bằng 0 sẽ không phát tín hiệu theo bộ lọc đó.
 
-Nhóm **CONFIRMED ARROWS** cho phép bật/tắt từng bộ lọc và thay các ngưỡng. Mặc định bật toàn bộ theo yêu cầu dùng nhiều dữ kiện. Vì vậy có thể có nhiều đoạn không xuất hiện mũi tên; không hạ điều kiện chỉ để ép có tín hiệu. Các ngưỡng 1,2 / 1,0 / 20 / 10 là quy tắc ban đầu, chưa được tối ưu hay chứng minh làm tăng tỷ lệ đúng.
+Nhóm **CONFIRMED ARROWS** cho phép bật/tắt từng bộ lọc và thay các ngưỡng. Mặc định bật toàn bộ năm kiểm tra và dùng Balanced 2/5; vẫn có thể có đoạn không có nến đủ điều kiện. Strict giữ quy tắc tất cả cùng đạt. Các ngưỡng 1,2 / 1,0 / 20 / 10 là quy tắc ban đầu, chưa được tối ưu hay chứng minh làm tăng tỷ lệ đúng.
 
 FVG và Mapping vẫn được tính để xét mũi tên dù bạn ẩn hình vẽ của chúng. Tắt **Show buy/sell arrows** chỉ ẩn mũi tên; không thay đổi quá trình tính và ghi nhận OB. Các tùy chọn tạo cấu trúc như Build Sweep và các chế độ mitigation vẫn ảnh hưởng dữ kiện được tạo ra.
 
@@ -63,7 +73,7 @@ Window lọc phạm vi **hiển thị cấu trúc**, không khởi động lại
 
 ## Kiểm tra
 
-Kết quả bản 1.2.1 nằm trong `tests/validation-1.2.1.json`; `tests/validation.json` giữ kết quả bản 1.2.0. Lượt 1.2.1 chạy lại kiểm tra hướng OB đầu tiên ở cả hai chiều và kiểm tra mũi tên; không chạy lại toàn bộ bộ kiểm tra 1.2.0. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
+Kết quả mới nhất ở `tests/validation-1.3.0.json`. Kết quả bản 1.2.1 nằm trong `tests/validation-1.2.1.json`; `tests/validation.json` giữ kết quả bản 1.2.0. Lượt 1.2.1 chạy lại kiểm tra hướng OB đầu tiên ở cả hai chiều và kiểm tra mũi tên; không chạy lại toàn bộ bộ kiểm tra 1.2.0. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
 
 Tạo lại các script kiểm thử bằng Python 3 (thư viện chuẩn):
 

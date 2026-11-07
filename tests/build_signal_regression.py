@@ -11,6 +11,8 @@ indicator("SMC arrow regression", overlay = true)
 float high = 104
 float low = 101
 float close = 103
+string signalMode = "Strict"
+int signalMinEvidence = 2
 bool signalUseMapping = true
 bool signalUseFVG = true
 bool signalUseSweep = true
@@ -20,7 +22,7 @@ float signalVolumeMin = 1.2
 float signalSourceMin = 1.0
 '''
 out += schema(s, 'ob') + schema(s, 'FVG')
-for name in ('zonesOverlap', 'relativeVolume', 'recentEvent', 'zoneRejection', 'gapConfirmation', 'signalAgreement', 'resolveSignals', 'signalCandidate'):
+for name in ('zonesOverlap', 'relativeVolume', 'recentEvent', 'zoneRejection', 'gapConfirmation', 'signalEvidence', 'evidenceDecision', 'signalAgreement', 'resolveSignals', 'signalCandidate'):
     out += declaration(s, name)
 out += '''
 checkSignal(bool ok, string message) =>
@@ -29,6 +31,15 @@ checkSignal(bool ok, string message) =>
     true
 
 if barstate.islastconfirmedhistory
+    checkSignal(evidenceDecision("Balanced", 2, 2, 5, true), "balanced accepts two checks")
+    checkSignal(not evidenceDecision("Balanced", 2, 1, 5, true), "balanced blocks below threshold")
+    checkSignal(not evidenceDecision("Strict", 2, 4, 5, true), "strict requires every check")
+    checkSignal(not evidenceDecision("Balanced", 2, 5, 5, false), "missing volume cannot be outvoted")
+    checkSignal(evidenceDecision("Balanced", 2, 1, 1, true), "threshold capped to enabled checks")
+    checkSignal(evidenceDecision("Balanced", 2, 0, 0, true), "all disabled uses mandatory structure and OB only")
+    [partialScore, enabledChecks, dataReady] = signalEvidence(1, 1, false, false, 1.2, 0.8)
+    checkSignal(partialScore == 2 and enabledChecks == 5 and dataReady, "all enabled evidence contributes to score")
+    checkSignal(evidenceDecision("Balanced", 2, partialScore, enabledChecks, dataReady), "balanced can accept partial agreement")
     buyZone = ob.new(bull = true, top = 102, btm = 100, avg = 101, loc = 1000)
     sellZone = ob.new(bull = false, top = 110, btm = 108, avg = 109, loc = 1000)
     checkSignal(zoneRejection(buyZone, 1, 2000, 104, 101, 103), "valid bullish rejection")
@@ -95,6 +106,14 @@ if barstate.islastconfirmedhistory
     checkSignal(selectedBear == 0, "complete bearish pipeline must select the zone")
     [selectedBearBuy, selectedBearSell] = resolveSignals(true, -1, selectedBear)
     checkSignal(not selectedBearBuy and selectedBearSell, "bearish selector feeds the plotted direction")
+    signalMode := "Balanced"
+    buyZone.signaled := false
+    buyZone.sourceRvol := 0.8
+    emptyGaps = array.new<FVG>()
+    checkSignal(signalCandidate(candidates, emptyGaps, 1, 1, 1, false, 1.2) == 0, "balanced selector accepts mapping and confirmation volume")
+    checkSignal(signalCandidate(candidates, emptyGaps, 1, 1, -1, false, 1.2) == -1, "balanced selector blocks only one check")
+    checkSignal(signalCandidate(candidates, emptyGaps, 1, -1, 1, false, 1.2) == -1, "balanced still requires matching structure")
+    checkSignal(signalCandidate(candidates, emptyGaps, 1, 1, 1, false, na) == -1, "balanced blocks missing enabled volume")
     label.new(bar_index, high, "ARROWS PASS", color = color.green)
 plot(na)
 '''
