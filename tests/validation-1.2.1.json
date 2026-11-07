@@ -1,0 +1,457 @@
+{
+  "btc15_final": [
+    {
+      "arrows": [],
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "first": 1793696400,
+      "last": 1794055500,
+      "name": "strict",
+      "resolution": "15",
+      "rows": 400,
+      "sell": 0,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    },
+    {
+      "arrows": [],
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": false
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "first": 1793696400,
+      "last": 1794055500,
+      "name": "withoutFVG",
+      "resolution": "15",
+      "rows": 400,
+      "sell": 0,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    },
+    {
+      "arrows": [],
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": false
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "first": 1793696400,
+      "last": 1794055500,
+      "name": "withoutSweep",
+      "resolution": "15",
+      "rows": 400,
+      "sell": 0,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    },
+    {
+      "arrows": [],
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": false
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "first": 1793696400,
+      "last": 1794055500,
+      "name": "withoutMapping",
+      "resolution": "15",
+      "rows": 400,
+      "sell": 0,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    },
+    {
+      "arrows": [
+        {
+          "direction": "SELL",
+          "time": 1793771100
+        },
+        {
+          "direction": "SELL",
+          "time": 1793797200
+        },
+        {
+          "direction": "SELL",
+          "time": 1793923200
+        },
+        {
+          "direction": "BUY",
+          "time": 1793950200
+        },
+        {
+          "direction": "SELL",
+          "time": 1793976300
+        }
+      ],
+      "buy": 1,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": false
+        },
+        {
+          "id": "in_45",
+          "value": false
+        },
+        {
+          "id": "in_46",
+          "value": false
+        },
+        {
+          "id": "in_51",
+          "value": false
+        }
+      ],
+      "first": 1793696400,
+      "last": 1794055500,
+      "name": "core",
+      "resolution": "15",
+      "rows": 400,
+      "sell": 4,
+      "status": {
+        "type": 2
+      },
+      "symbol": "BINANCE:BTCUSDT"
+    }
+  ],
+  "btc15_initial_patch": [
+    {
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "name": "strict",
+      "rows": 915,
+      "sell": 0,
+      "status": {
+        "type": 2
+      }
+    },
+    {
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": false
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "name": "withoutFVG",
+      "rows": 915,
+      "sell": 0,
+      "status": {
+        "type": 2
+      }
+    },
+    {
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": true
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": false
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "name": "withoutSweep",
+      "rows": 915,
+      "sell": 1,
+      "status": {
+        "type": 2
+      }
+    },
+    {
+      "buy": 0,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": false
+        },
+        {
+          "id": "in_45",
+          "value": true
+        },
+        {
+          "id": "in_46",
+          "value": true
+        },
+        {
+          "id": "in_51",
+          "value": true
+        }
+      ],
+      "name": "withoutMapping",
+      "rows": 915,
+      "sell": 1,
+      "status": {
+        "type": 2
+      }
+    },
+    {
+      "buy": 1,
+      "filters": [
+        {
+          "id": "in_44",
+          "value": false
+        },
+        {
+          "id": "in_45",
+          "value": false
+        },
+        {
+          "id": "in_46",
+          "value": false
+        },
+        {
+          "id": "in_51",
+          "value": false
+        }
+      ],
+      "name": "core",
+      "rows": 915,
+      "sell": 7,
+      "status": {
+        "type": 2
+      }
+    }
+  ],
+  "compiler": [
+    {
+      "key": "afterBear",
+      "success": true,
+      "warnings": 16
+    },
+    {
+      "key": "beforeBull",
+      "success": true,
+      "warnings": 16
+    },
+    {
+      "key": "production",
+      "success": true,
+      "warnings": 0
+    },
+    {
+      "key": "beforeBear",
+      "success": true,
+      "warnings": 16
+    },
+    {
+      "key": "afterBull",
+      "success": true,
+      "warnings": 16
+    },
+    {
+      "key": "signals",
+      "success": true,
+      "warnings": 3
+    }
+  ],
+  "date": "2026-11-07",
+  "originalAutoSave": true,
+  "regressions": {
+    "afterBear": {
+      "bars": 631,
+      "error": false,
+      "status": {
+        "type": 2
+      }
+    },
+    "afterBull": {
+      "bars": 631,
+      "error": false,
+      "status": {
+        "type": 2
+      }
+    },
+    "beforeBear": {
+      "bars": 0,
+      "error": true,
+      "status": {
+        "errorDescription": {
+          "ctx": {
+            "bar_index": 211,
+            "code": "RE10142"
+          },
+          "error": "Error on bar {bar_index}: First bear break requested the wrong OB direction",
+          "is_user_defined": true,
+          "showReportItButton": false,
+          "stack_trace": [
+            {
+              "n": "#main",
+              "p": 1257
+            }
+          ],
+          "studyAccessBlocked": false,
+          "title": "User-defined error"
+        },
+        "type": 3
+      }
+    },
+    "beforeBull": {
+      "bars": 0,
+      "error": true,
+      "status": {
+        "errorDescription": {
+          "ctx": {
+            "bar_index": 211,
+            "code": "RE10142"
+          },
+          "error": "Error on bar {bar_index}: First bull break requested the wrong OB direction",
+          "is_user_defined": true,
+          "showReportItButton": false,
+          "stack_trace": [
+            {
+              "n": "#main",
+              "p": 1257
+            }
+          ],
+          "studyAccessBlocked": false,
+          "title": "User-defined error"
+        },
+        "type": 3
+      }
+    },
+    "production": {
+      "bars": 631,
+      "error": false,
+      "status": {
+        "type": 2
+      }
+    },
+    "signals": {
+      "bars": 0,
+      "error": false,
+      "status": {
+        "type": 2
+      }
+    }
+  },
+  "timezone": "Asia/Ho_Chi_Minh",
+  "version": "1.2.1",
+  "limits": [
+    "Initial structure fixtures observe the direction requested by the production branch; they do not test OB survival or price forecasts.",
+    "Fixtures intentionally shadow OHLC and instrument fnOB; their compiler warnings are test-only. Production compiles without warnings.",
+    "Only the btc15_final section verifies symbol and resolution for each configuration; btc15_initial_patch is exploratory and is not used as final evidence.",
+    "Counts cover returned plot rows, not all historical candles; warm-up and loaded history can change results.",
+    "No profitability, calibrated probability, full Bar Replay, or prolonged realtime validation."
+  ],
+  "browser_cleanup": {
+    "template_restored": true,
+    "original_studies_restored": true,
+    "auto_save_restored": true,
+    "test_tab_closed": true,
+    "indicator_published": false
+  },
+  "sha256": {
+    "TOOL.pine": "7416e6424780db4039e58f1d8ed46a9f37677fd70634af25aa015c0ec4568b53",
+    "tests/build_initial_ob_regression.py": "6e1a5dfc2d6898efb76673c46c423fd57bcdf0960035403c77202837d8de62c4",
+    "tests/regression-initial-bull.pine": "407bd110d9db9483e6514bb7399bc44501bdcc3b5b6bc40444a602884131e88b",
+    "tests/regression-initial-bear.pine": "76933aa41499d19774953dfe5486752894c4ca82fe4d588eea28798d92fa25ce",
+    "tests/regression-signals.pine": "5d0bc40b13828656464566e77afe3c3ec50b28a3d4f3134a1b04a78b3b8566c0"
+  }
+}

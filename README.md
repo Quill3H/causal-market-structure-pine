@@ -1,4 +1,4 @@
-# SMC Confirmed 1.2.0
+# SMC Confirmed 1.2.1
 
 Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value Gap (FVG), sửa từ file `TOOL` của repo này. Mã gốc ghi tác giả BigBeluga và giấy phép MPL 2.0; bản bảo trì giữ nguyên ghi nhận đó.
 
@@ -6,14 +6,22 @@ Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value G
 
 1. Mở Pine Editor, tạo **indicator mới**.
 2. Chép toàn bộ nội dung `TOOL.pine` vào editor, lưu rồi chọn **Add to chart**.
-3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.2.0]**.
+3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.2.1]**.
 4. Muốn xem FVG, bật **Enable FVG** trong nhóm FAIR VALUE GAP.
 
 `TOOL` là bản v5 cũ để đối chiếu. Dùng `TOOL.pine` cho bản sửa v6. Các thiết lập của bản cũ không tự chuyển sang script mới.
 
 ## Các thay đổi
 
-### Mũi tên xác nhận ở bản 1.2.0
+### Sửa ở bản 1.2.1 và kiểm tra BTC 15 phút
+
+Sửa hai nhánh khởi tạo cấu trúc: lần phá giảm đầu tiên phải tạo OB giảm; lần phá tăng đầu tiên phải tạo OB tăng. Bản 1.2.0 đã gọi ngược hướng ở hai nhánh này. Bản sửa giữ nguyên toàn bộ điều kiện mũi tên.
+
+Kiểm tra cuối trên TradingView ngày 07/11/2026, BINANCE:BTCUSDT 15 phút, cửa sổ trả về 400 nến: tất cả bộ lọc bật cho 0 BUY / 0 SELL; bộ cơ bản (cấu trúc, từ chối OB, RVOL xác nhận ≥ 1,2; tắt Mapping/FVG/sweep/RVOL nguồn) cho 1 BUY / 4 SELL. Tắt riêng một bộ lọc FVG, sweep hoặc Mapping vẫn cho 0 tín hiệu trong cửa sổ này. Mỗi lượt được đợi tính xong và kiểm tra mã/khung thời gian trước khi đếm. Các cấu hình này chỉ dùng để chẩn đoán trong tab thử nghiệm; không thay mặc định.
+
+Vì vậy, không thấy mũi tên trong đoạn này không phải do không có lệnh vẽ: bộ điều kiện đầy đủ chưa có nến thỏa mãn. Kết quả đếm không đo tỷ lệ đúng, không chứng minh cấu hình ít bộ lọc tốt hơn. Xem `tests/validation-1.2.1.json` để biết phạm vi kiểm tra và hash mã.
+
+### Mũi tên xác nhận
 
 **BUY xanh dưới nến** báo một thiết lập thiên về tăng. **SELL đỏ trên nến** báo một thiết lập thiên về giảm. Mũi tên được vẽ ngay trên nến xác nhận sau khi nến đóng, không đặt lùi về nến nguồn và không xuất hiện trên nến còn chạy. Đây là hướng của thiết lập, không phải giá mục tiêu hoặc dự báo chắc chắn cho nến kế tiếp.
 
@@ -55,7 +63,7 @@ Window lọc phạm vi **hiển thị cấu trúc**, không khởi động lại
 
 ## Kiểm tra
 
-Kết quả thực tế được ghi trong `tests/validation.json`. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
+Kết quả bản 1.2.1 nằm trong `tests/validation-1.2.1.json`; `tests/validation.json` giữ kết quả bản 1.2.0. Lượt 1.2.1 chạy lại kiểm tra hướng OB đầu tiên ở cả hai chiều và kiểm tra mũi tên; không chạy lại toàn bộ bộ kiểm tra 1.2.0. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
 
 Tạo lại các script kiểm thử bằng Python 3 (thư viện chuẩn):
 
@@ -64,9 +72,13 @@ python tests/build_regression.py
 python tests/build_regression.py TOOL.pine Old
 python tests/build_history_regression.py
 python tests/build_signal_regression.py
+python tests/build_initial_ob_regression.py bull
+python tests/build_initial_ob_regression.py bear
 ```
 
 Chạy từng file `tests/regression-*.pine` như một indicator riêng trong TradingView. Hai script recent/old phải hiện **REGRESSION PASS**; history phải hiện **HISTORY PASS** và cần hơn 4.500 nến đã tải; signals phải hiện **ARROWS PASS**. `runtime.error` sẽ chỉ ra kiểm tra không đạt. Cảnh báo shadowing OHLC trong harness là chủ đích để dùng dữ liệu cố định; mã sản phẩm không shadow các biến này.
+
+Hai script initial quan sát hướng được yêu cầu trong lời gọi tạo OB tại lần phá cấu trúc đầu tiên. Chúng phải hiện **INITIAL BULL PASS** / **INITIAL BEAR PASS**; không kiểm tra khả năng tồn tại của vùng hay chất lượng dự báo. Cùng ca quan sát này đã thất bại trên mã 1.2.0 trước sửa ở cả hai chiều.
 
 `tests/baseline.json` ghi nhận ví dụ kiểm thử lỗi trên bản gốc. Đính chính review ngày 03/11/2026: compiler TradingView ngày 04/11/2026 vẫn biên dịch được bản gốc; nhận định cũ rằng lời gọi `timeframe.change()` chắc chắn chặn biên dịch đã bị rút lại. Bản sửa bỏ điều kiện đổi timeframe không cần thiết vì FVG sử dụng ngay khung biểu đồ.
 

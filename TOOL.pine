@@ -3,7 +3,7 @@
 //
 //@version=6
 // Maintenance revision 2026-11-04: confirmed-bar visual indicator.
-indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [1.2.0]",
+indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [1.2.1]",
      overlay = true,
      max_bars_back = 5000,
      max_boxes_count = 500,
@@ -739,7 +739,7 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                 close <= ms.choch =>
 
                     ms.txt       := "choch"
-                    blob.fnOB(true, topP, idbull, sourceBullRvol)
+                    brob.fnOB(false, btmP, idbear, sourceBearRvol)
                     ms.trend     := -1
                     ms.choch     := ms.bos
                     ms.bos       := na
@@ -757,7 +757,7 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
                 close >= ms.bos =>
 
                     ms.txt       := "choch"
-                    brob.fnOB(false, btmP, idbear, sourceBearRvol)
+                    blob.fnOB(true, topP, idbull, sourceBullRvol)
                     ms.trend     := 1
                     ms.choch     := ms.choch
                     ms.bos       := na
