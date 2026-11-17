@@ -682,6 +682,16 @@ export function verifyPineSourcesMatchSpec() {
     );
   }
 
+  // Verify Strategy Tester order-sync invariants in TOOL_Strategy.pine:
+  // 1) LIMIT_PULLBACK signal-bar exit attaches stop=preStop only (no premature limit=preTarget on fill bar).
+  assert.ok(stratPine.includes('strategy.exit("Exit L", from_entry = "L", stop = preStop)'));
+  assert.ok(stratPine.includes('strategy.exit("Exit S", from_entry = "S", stop = preStop)'));
+  // 2) Expired order cancellation never cancels a same-bar replacement entry on the same ID.
+  assert.ok(stratPine.includes('if expiredSide == 1 and queuedSide != 1\n        strategy.cancel("L")'));
+  assert.ok(stratPine.includes('if expiredSide == -1 and queuedSide != -1\n        strategy.cancel("S")'));
+  // 3) No blanket strategy.close_all() that could wipe a same-bar pending order.
+  assert.ok(!stratPine.includes('strategy.close_all('));
+
   return staticCheck;
 }
 

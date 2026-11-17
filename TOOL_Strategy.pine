@@ -1565,7 +1565,11 @@ int   paperClosedSide = 0
 float paperClosedEntry = na
 
 if barstate.isconfirmed and chart.is_standard
-    bool expiredNow = false
+    int expiredSide = 0
+    int exitedSide = 0
+    int exitedReason = 0
+    int queuedSide = 0
+
     if paperSide == 0 and paperPendingSide != 0
         if paperPendingEntryMode == "MARKET_NEXT_OPEN"
             if paperSignalBar == bar_index - 1
@@ -1618,19 +1622,17 @@ if barstate.isconfirmed and chart.is_standard
                 paperPendingLimit := na
                 paperPendingExpiryBar := na
             else if bar_index >= paperPendingExpiryBar
+                expiredSide := paperPendingSide
                 paperPendingSide := 0
                 paperPendingAtr := na
                 paperPendingLimit := na
                 paperPendingExpiryBar := na
-                expiredNow := true
-
-    if expiredNow
-        strategy.cancel("L")
-        strategy.cancel("S")
 
     if paperSide != 0
         [exitRaw, exitReason] = paperExitConservative(paperSide, paperActiveEntryMode, bar_index == paperEntryBar, paperFilledAtOpen, paperBeArmed, open, high, low, close, paperStop, paperTarget, bar_index - paperEntryBar + 1, effMaxHoldBars)
         if exitReason != 0
+            exitedSide := paperSide
+            exitedReason := exitReason
             paperOutPrice := adverseFill(exitRaw, paperSide, false, paperSlippagePct)
             paperClosedNet := paperSide * (paperOutPrice - paperEntry) / paperEntry * 100.0 - paperFeePct
             paperClosedNet := math.abs(paperClosedNet) < EPS_ZERO ? 0.0 : paperClosedNet
@@ -1650,8 +1652,6 @@ if barstate.isconfirmed and chart.is_standard
             if paperHistory.size() > MAX_PAPER_VISUALS
                 paperHistory.pop()
             paperSide := 0
-            if strategy.position_size != 0
-                strategy.close_all(comment = exitReason == 3 ? "TIME" : exitReason == 4 ? "BE+" : exitReason == 2 ? "TP" : "SL")
 
     if paperSide != 0 and effBeTriggerR > 0 and not paperBeArmed
         if paperSide * (close - paperEntry) >= effBeTriggerR * paperInitialDist
@@ -1670,6 +1670,7 @@ if barstate.isconfirmed and chart.is_standard
         float refEntry = effEntryMode == "LIMIT_PULLBACK" ? candLimit : close
         [preOk, preStop, preTarget, _pd] = resolvePaperLevels(candSide, refEntry, qualityAtr, effStopAtr, effMinStopPct, effRewardRisk)
         if preOk
+            queuedSide := candSide
             paperPendingSide := candSide
             paperPendingAtr := qualityAtr
             paperPendingLimit := effEntryMode == "LIMIT_PULLBACK" ? candLimit : na
@@ -1682,16 +1683,31 @@ if barstate.isconfirmed and chart.is_standard
                 lastEmittedBuy := bar_index
                 if effEntryMode == "LIMIT_PULLBACK"
                     strategy.entry("L", strategy.long, limit = paperPendingLimit)
+                    // Omit limit = preTarget on the signal bar so non-gap fill-bar wicks cannot trigger premature TP before close.
+                    strategy.exit("Exit L", from_entry = "L", stop = preStop)
                 else
                     strategy.entry("L", strategy.long)
-                strategy.exit("Exit L", from_entry = "L", stop = preStop, limit = preTarget)
+                    strategy.exit("Exit L", from_entry = "L", stop = preStop, limit = preTarget)
             else
                 lastEmittedSell := bar_index
                 if effEntryMode == "LIMIT_PULLBACK"
                     strategy.entry("S", strategy.short, limit = paperPendingLimit)
+                    strategy.exit("Exit S", from_entry = "S", stop = preStop)
                 else
                     strategy.entry("S", strategy.short)
-                strategy.exit("Exit S", from_entry = "S", stop = preStop, limit = preTarget)
+                    strategy.exit("Exit S", from_entry = "S", stop = preStop, limit = preTarget)
+
+    if expiredSide == 1 and queuedSide != 1
+        strategy.cancel("L")
+    if expiredSide == -1 and queuedSide != -1
+        strategy.cancel("S")
+
+    if exitedSide != 0 and strategy.position_size != 0
+        string exComment = exitedReason == 3 ? "TIME" : exitedReason == 4 ? "BE+" : exitedReason == 2 ? "TP" : "SL"
+        if exitedSide == 1 and strategy.position_size > 0
+            strategy.close("L", comment = exComment)
+        else if exitedSide == -1 and strategy.position_size < 0
+            strategy.close("S", comment = exComment)
 
 if qualifiedBuyArrow and not useChochMode and not useV3Mode and bullCandidate >= 0
     chosen = bullOBs.get(bullCandidate)

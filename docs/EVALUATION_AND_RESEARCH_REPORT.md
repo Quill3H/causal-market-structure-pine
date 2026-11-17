@@ -198,7 +198,7 @@ Quy tắc phân chia **50% Calibration / 25% Validation / 25% Unseen Holdout** t
   - **28 plot calls** (giảm từ 41 ở v2.0.0; nằm dưới trần 55 và giới hạn 64 của TradingView).
   - **4 lời gọi `request.security`** (tất cả ở top-level vô điều kiện với `lookahead = barmerge.lookahead_off`).
   - **0 lỗi** về nhánh điều kiện trên `ta.*`, **0 khóa mã biểu tượng (`ticker.standard` / `BTCUSDT`)**.
-- **`TOOL_Strategy.pine`** (SHA-256 `fc96ae625fbce9b8a3d54bb841a92eeebb98ac2a5b3524f5f530a3c342245cad`):
+- **`TOOL_Strategy.pine`** (SHA-256 `66127668b5ac787a77b585ed92957dd102e8663730a4ca319666976437b29d0f`):
   - `//@version=6`, `strategy(...)` với `commission_type = strategy.commission.percent`, `commission_value = 0.075` (`0,15%` tổng ma sát khứ hồi), `pyramiding = 0`, **28 plot calls**, **0 lỗi**.
 
 ### 7.2. Parity từng nến & từng lệnh (`node tests/pine_parity.mjs`)
