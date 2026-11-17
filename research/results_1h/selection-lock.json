@@ -1,0 +1,430 @@
+{
+  "schema": "smc-v3-1h-selection-lock-v1",
+  "roundId": "r14",
+  "lockedAt": "2026-11-17T20:37:21.639Z",
+  "dataset": {
+    "file": "data/btcusdt_1h_24m.json",
+    "sha256": "1550906bcca9655c4397b226b1403078744ee36b4d994c7f577b7af3609beb63",
+    "rows": 17520,
+    "calEnd": 8760,
+    "valEnd": 13140,
+    "holdoutRange": [
+      13140,
+      17520
+    ]
+  },
+  "sources": {
+    "research/signals_1h.mjs": "5e8672851cc5dec56edcb74ed52fcb46b96f5577b246cef9a0be694c4c118559",
+    "research/search_1h.mjs": "68e71fa5ee088283c9a34d170d18384df8d4bab6b828d4e639eada6cbee1ada5",
+    "research/sim_engine.mjs": "7faf2bf4a1318a27737775ed53a92f59894b57beb78b74bf15840b247d70a477"
+  },
+  "rankingRule": "Filter cal.count>=50, val.count>=28, minSub6mCount>=24, minSub3mCount>=9, cal/val/6m WR>=65%, 3m WR>=60%, cal/val/6m PF>=1.20, 3m PF>=1.00, meanNet>0; rank by pooledWilson95 + 15*(calVal.profitFactor-1) + 40*pooledMeanNetPct + 10*min(minSubPf,2) + 10*min(minSub6Pf,2)",
+  "totalCandidates": 32,
+  "eligibleCount": 3,
+  "lockedWinner": {
+    "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+    "signalSpec": {
+      "specId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "family": "AdaptiveTrapPolarity",
+      "baseFamily": "HtfSmcMultiTrap",
+      "lookback": 20,
+      "trapMaxBars": 4,
+      "p4Lookback": 10,
+      "includePdhl": true,
+      "htfMode": "H4_50",
+      "limitOffsetAtr": 0.18,
+      "maxD1Atr": null,
+      "maxH4Cross30": null,
+      "requireH4Slope20": false,
+      "d1Er10Min": null,
+      "virtExec": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025
+      },
+      "winLen": 6,
+      "slThresh": 2,
+      "requireNegNet": true,
+      "sharedHistory": false
+    },
+    "execOptions": {
+      "entryMode": "LIMIT_PULLBACK",
+      "limitExpiryBars": 6,
+      "pendingPolicy": "ignore",
+      "limitSameBarTp": "close",
+      "cooldown": 4,
+      "warmup": 250,
+      "stopAtr": 3.2,
+      "minStopPct": 1.4,
+      "rewardRisk": 1.15,
+      "maxHoldBars": 96,
+      "beTriggerR": 0.43,
+      "beOffsetPct": 0.34,
+      "costPct": 0.1,
+      "slippagePct": 0.025
+    },
+    "cal": {
+      "count": 85,
+      "wins": 71,
+      "losses": 14,
+      "ties": 0,
+      "winRatePct": 83.52941176470588,
+      "wilsonLower95Pct": 74.23150301896173,
+      "meanNetPct": 0.2933122237890444,
+      "meanGrossPct": 0.3933122237890444,
+      "totalNetPct": 24.931539022068776,
+      "maxDrawdownPct": 6.329390960863565,
+      "profitFactor": 1.8611109966083617,
+      "exitReasons": {
+        "SL": 14,
+        "TP": 21,
+        "TIME": 0,
+        "BE": 50
+      },
+      "ignoredSignals": 76,
+      "purgedTrades": 0,
+      "expiredOrders": 13,
+      "cancelledPendingOrders": 0
+    },
+    "val": {
+      "count": 43,
+      "wins": 32,
+      "losses": 11,
+      "ties": 0,
+      "winRatePct": 74.4186046511628,
+      "wilsonLower95Pct": 59.76131013174514,
+      "meanNetPct": 0.38960813832560404,
+      "meanGrossPct": 0.48960813832560424,
+      "totalNetPct": 16.753149948000974,
+      "maxDrawdownPct": 5.367328120624801,
+      "profitFactor": 1.6442000144569644,
+      "exitReasons": {
+        "SL": 11,
+        "TP": 14,
+        "TIME": 1,
+        "BE": 17
+      },
+      "ignoredSignals": 109,
+      "purgedTrades": 0,
+      "expiredOrders": 17,
+      "cancelledPendingOrders": 0
+    },
+    "pooledWinRatePct": 80.46875,
+    "pooledWilson95Pct": 72.75577251368665,
+    "pooledMeanNetPct": 0.3256616325786699,
+    "rankScore": 124.30708847357282
+  },
+  "top15CalVal": [
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "eligible": true,
+      "pooledCount": 128,
+      "pooledWinRatePct": 80.46875,
+      "pooledWilson95Pct": 72.75577251368665,
+      "pooledMeanNetPct": 0.3256616325786699,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.8611109966083617,
+        "net": 0.2933122237890444
+      },
+      "val": {
+        "count": 43,
+        "wr": 74.4186046511628,
+        "pf": 1.6442000144569644,
+        "net": 0.38960813832560404
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.05|h96|be0.43_0.34|cd4",
+      "eligible": true,
+      "pooledCount": 128,
+      "pooledWinRatePct": 81.25,
+      "pooledWilson95Pct": 73.61492727731166,
+      "pooledMeanNetPct": 0.29364151221510104,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.723673743667942,
+        "net": 0.24649825154831356
+      },
+      "val": {
+        "count": 43,
+        "wr": 76.74418604651163,
+        "pf": 1.6794620727618752,
+        "net": 0.38683167864944845
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h84|be0.43_0.34|cd4",
+      "eligible": true,
+      "pooledCount": 128,
+      "pooledWinRatePct": 79.6875,
+      "pooledWilson95Pct": 71.90057513712908,
+      "pooledMeanNetPct": 0.26812808196957555,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.8919354574939833,
+        "net": 0.30381167299486167
+      },
+      "val": {
+        "count": 43,
+        "wr": 72.09302325581395,
+        "pf": 1.2913919930744455,
+        "net": 0.1975907508730798
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 79.52755905511812,
+      "pooledWilson95Pct": 71.69250871965484,
+      "pooledMeanNetPct": 0.3006137733772715,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.86741787216538,
+        "net": 0.29547384060665555
+      },
+      "val": {
+        "count": 42,
+        "wr": 71.42857142857143,
+        "pf": 1.4742701001152045,
+        "net": 0.31101601827018477
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w5_sl2_neg_ps|s3.2|m1.4|rr1.05|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 80.31496062992126,
+      "pooledWilson95Pct": 72.55382483359865,
+      "pooledMeanNetPct": 0.28475007866153096,
+      "cal": {
+        "count": 83,
+        "wr": 84.33734939759037,
+        "pf": 1.9498131397420897,
+        "net": 0.3047106481793438
+      },
+      "val": {
+        "count": 44,
+        "wr": 72.72727272727273,
+        "pf": 1.3796798182157832,
+        "net": 0.24709718616202042
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w5_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 79.52755905511812,
+      "pooledWilson95Pct": 71.69250871965484,
+      "pooledMeanNetPct": 0.278279384522495,
+      "cal": {
+        "count": 83,
+        "wr": 83.13253012048193,
+        "pf": 1.779190686060416,
+        "net": 0.273999026201558
+      },
+      "val": {
+        "count": 44,
+        "wr": 72.72727272727273,
+        "pf": 1.4399998285647901,
+        "net": 0.28635369680971723
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w6_sl2_neg_ps|s3.2|m1.4|rr1.05|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 79.52755905511812,
+      "pooledWilson95Pct": 71.69250871965484,
+      "pooledMeanNetPct": 0.24387499896382692,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.7294310917020053,
+        "net": 0.2484705619277406
+      },
+      "val": {
+        "count": 42,
+        "wr": 71.42857142857143,
+        "pf": 1.3552296089591052,
+        "net": 0.23457445487019207
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h84|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 78.74015748031496,
+      "pooledWilson95Pct": 70.83502720910046,
+      "pooledMeanNetPct": 0.24217883688025285,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.8973385033119825,
+        "net": 0.3056658876948624
+      },
+      "val": {
+        "count": 42,
+        "wr": 69.04761904761905,
+        "pf": 1.1555734430785602,
+        "net": 0.11369313880306679
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.05|h84|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 129,
+      "pooledWinRatePct": 79.06976744186046,
+      "pooledWilson95Pct": 71.26020732447344,
+      "pooledMeanNetPct": 0.19652536968415635,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.7544982045535638,
+        "net": 0.2569977007541308
+      },
+      "val": {
+        "count": 44,
+        "wr": 70.45454545454545,
+        "pf": 1.1082925078459187,
+        "net": 0.07970382102625113
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w5_sl2_neg_ps|s3.2|m1.4|rr1.15|h84|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 129,
+      "pooledWinRatePct": 78.29457364341084,
+      "pooledWilson95Pct": 70.41840313317833,
+      "pooledMeanNetPct": 0.21264536621516514,
+      "cal": {
+        "count": 84,
+        "wr": 83.33333333333334,
+        "pf": 1.8111664621037256,
+        "net": 0.2818474171867142
+      },
+      "val": {
+        "count": 45,
+        "wr": 68.88888888888889,
+        "pf": 1.1127522715323943,
+        "net": 0.08346820440160697
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w5_sl2_neg_ps|s3.2|m1.4|rr1.05|h84|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 129,
+      "pooledWinRatePct": 78.29457364341084,
+      "pooledWilson95Pct": 70.41840313317833,
+      "pooledMeanNetPct": 0.1858118589317664,
+      "cal": {
+        "count": 84,
+        "wr": 84.52380952380952,
+        "pf": 1.9848622423245978,
+        "net": 0.3121934246171453
+      },
+      "val": {
+        "count": 45,
+        "wr": 66.66666666666666,
+        "pf": 0.9382980066241441,
+        "net": -0.05010039701427406
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w5_sl2_neg_ps|s3.2|m1.4|rr1.05|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 126,
+      "pooledWinRatePct": 77.77777777777779,
+      "pooledWilson95Pct": 69.75778577959348,
+      "pooledMeanNetPct": 0.1918594408489337,
+      "cal": {
+        "count": 83,
+        "wr": 84.33734939759037,
+        "pf": 1.9561014165454127,
+        "net": 0.30673312884305404
+      },
+      "val": {
+        "count": 43,
+        "wr": 65.11627906976744,
+        "pf": 0.9630655148180507,
+        "net": -0.02987349179087997
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w6_sl2_neg_ps|s3.2|m1.4|rr1.05|h84|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 128,
+      "pooledWinRatePct": 77.34375,
+      "pooledWilson95Pct": 69.35716289452746,
+      "pooledMeanNetPct": 0.14668585425235342,
+      "cal": {
+        "count": 85,
+        "wr": 83.52941176470588,
+        "pf": 1.7593517228486075,
+        "net": 0.2586626090159474
+      },
+      "val": {
+        "count": 43,
+        "wr": 65.11627906976744,
+        "pf": 0.9099079839317609,
+        "net": -0.07466354469893699
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w5_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 126,
+      "pooledWinRatePct": 76.98412698412699,
+      "pooledWilson95Pct": 68.90145347488007,
+      "pooledMeanNetPct": 0.18084636718962419,
+      "cal": {
+        "count": 83,
+        "wr": 83.13253012048193,
+        "pf": 1.7854816589867961,
+        "net": 0.2762101764299967
+      },
+      "val": {
+        "count": 43,
+        "wr": 65.11627906976744,
+        "pf": 0.996009066311214,
+        "net": -0.0032279622743506546
+      }
+    },
+    {
+      "id": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.15:w6_sl2_neg_ps|s3.5|m1.5|rr1.15|h96|be0.43_0.34|cd4",
+      "eligible": false,
+      "pooledCount": 127,
+      "pooledWinRatePct": 72.44094488188976,
+      "pooledWilson95Pct": 64.09766803147677,
+      "pooledMeanNetPct": 0.20090849539856348,
+      "cal": {
+        "count": 83,
+        "wr": 74.69879518072288,
+        "pf": 1.2581535399871477,
+        "net": 0.1437924782318714
+      },
+      "val": {
+        "count": 44,
+        "wr": 68.18181818181817,
+        "pf": 1.381055605973268,
+        "net": 0.30865007323573257
+      }
+    }
+  ]
+}

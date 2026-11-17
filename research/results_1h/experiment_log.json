@@ -1,0 +1,1698 @@
+{
+  "rounds": [
+    {
+      "roundId": "r1",
+      "lockedAt": "2026-11-17T18:40:27.282Z",
+      "holdoutScoringStartedAt": "2026-11-17T18:40:27.292Z",
+      "selectionLockSha256": "0c1da87583192d9d1417a0ee1c2b809cddbe8157ae01800f25c98a78cd530d07",
+      "winnerId": "HtfTrapPullback:N20:K4:H4_50:off0.3|s2.5|rr0.75|h60|be0",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 32,
+        "wins": 13,
+        "losses": 19,
+        "ties": 0,
+        "winRatePct": 40.625,
+        "wilsonLower95Pct": 25.519402480313797,
+        "meanNetPct": -0.5275376286586074,
+        "meanGrossPct": -0.42753762865860745,
+        "totalNetPct": -16.881204117075438,
+        "maxDrawdownPct": 17.927870293096024,
+        "profitFactor": 0.35504902335014493,
+        "exitReasons": {
+          "SL": 19,
+          "TP": 13,
+          "TIME": 0,
+          "BE": 0
+        },
+        "ignoredSignals": 43,
+        "purgedTrades": 0,
+        "expiredOrders": 34,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 45,
+        "wins": 23,
+        "losses": 22,
+        "ties": 0,
+        "winRatePct": 51.11111111111111,
+        "wilsonLower95Pct": 37.00422432648974,
+        "meanNetPct": -0.2626554916595455,
+        "meanGrossPct": -0.1626554916595455,
+        "totalNetPct": -11.819497124679547,
+        "maxDrawdownPct": 17.927870293096028,
+        "profitFactor": 0.6100018881760123,
+        "exitReasons": {
+          "SL": 22,
+          "TP": 23,
+          "TIME": 0,
+          "BE": 0
+        },
+        "ignoredSignals": 14,
+        "purgedTrades": 0,
+        "expiredOrders": 12,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 120,
+        "wins": 74,
+        "losses": 46,
+        "ties": 0,
+        "winRatePct": 61.66666666666667,
+        "wilsonLower95Pct": 52.73391477284313,
+        "meanNetPct": 0.07043679489316909,
+        "meanGrossPct": 0.17043679489316907,
+        "totalNetPct": 8.452415387180292,
+        "maxDrawdownPct": 17.927870293096024,
+        "profitFactor": 1.1216575152398318,
+        "exitReasons": {
+          "SL": 46,
+          "TP": 73,
+          "TIME": 1,
+          "BE": 0
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 147,
+        "wins": 99,
+        "losses": 48,
+        "ties": 0,
+        "winRatePct": 67.3469387755102,
+        "wilsonLower95Pct": 59.408421755184484,
+        "meanNetPct": 0.2413500468536906,
+        "meanGrossPct": 0.34135004685369064,
+        "totalNetPct": 35.47845688749252,
+        "maxDrawdownPct": 17.927870293096028,
+        "profitFactor": 1.4903977740598393,
+        "exitReasons": {
+          "SL": 48,
+          "TP": 99,
+          "TIME": 0,
+          "BE": 0
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 58,
+        "wins": 33,
+        "losses": 25,
+        "ties": 0,
+        "winRatePct": 56.896551724137936,
+        "wilsonLower95Pct": 44.117876705727426,
+        "meanNetPct": -0.03995798141995084,
+        "meanGrossPct": 0.060042018580049296,
+        "totalNetPct": -2.317562922357149,
+        "maxDrawdownPct": 18.22418720584416,
+        "profitFactor": 0.9550340947075942,
+        "exitReasons": {
+          "SL": 23,
+          "TP": 33,
+          "TIME": 2,
+          "BE": 0
+        },
+        "ignoredSignals": 17,
+        "purgedTrades": 0,
+        "expiredOrders": 13,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r2",
+      "lockedAt": "2026-11-17T18:47:05.618Z",
+      "holdoutScoringStartedAt": "2026-11-17T18:47:05.628Z",
+      "selectionLockSha256": "9295480f3821e5343fe94da6df84f915ea85d6c9372173acc8d9e5114395b624",
+      "winnerId": "HtfTrapReclaim:N20:K4:H4_50:off0.15|s3|m1.2|rr0.85|h96|be0.55",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 35,
+        "wins": 19,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 54.285714285714285,
+        "wilsonLower95Pct": 38.18945134013752,
+        "meanNetPct": -0.25442360242227574,
+        "meanGrossPct": -0.15442360242227593,
+        "totalNetPct": -8.904826084779652,
+        "maxDrawdownPct": 19.534985632559543,
+        "profitFactor": 0.6909765046692201,
+        "exitReasons": {
+          "SL": 16,
+          "TP": 16,
+          "TIME": 0,
+          "BE": 3
+        },
+        "ignoredSignals": 53,
+        "purgedTrades": 0,
+        "expiredOrders": 16,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 48,
+        "wins": 29,
+        "losses": 19,
+        "ties": 0,
+        "winRatePct": 60.416666666666664,
+        "wilsonLower95Pct": 46.310154596935114,
+        "meanNetPct": -0.08251781420983938,
+        "meanGrossPct": 0.017482185790160778,
+        "totalNetPct": -3.9608550820722903,
+        "maxDrawdownPct": 19.534985632559547,
+        "profitFactor": 0.8813504469194583,
+        "exitReasons": {
+          "SL": 19,
+          "TP": 23,
+          "TIME": 0,
+          "BE": 6
+        },
+        "ignoredSignals": 18,
+        "purgedTrades": 0,
+        "expiredOrders": 5,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 111,
+        "wins": 70,
+        "losses": 41,
+        "ties": 0,
+        "winRatePct": 63.06306306306306,
+        "wilsonLower95Pct": 53.788047847727505,
+        "meanNetPct": 0.04421889759583288,
+        "meanGrossPct": 0.144218897595833,
+        "totalNetPct": 4.90829763313745,
+        "maxDrawdownPct": 16.646294291249486,
+        "profitFactor": 1.0613131132650078,
+        "exitReasons": {
+          "SL": 41,
+          "TP": 60,
+          "TIME": 3,
+          "BE": 7
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 155,
+        "wins": 106,
+        "losses": 49,
+        "ties": 0,
+        "winRatePct": 68.38709677419355,
+        "wilsonLower95Pct": 60.697827415662466,
+        "meanNetPct": 0.11368075844484858,
+        "meanGrossPct": 0.21368075844484832,
+        "totalNetPct": 17.62051755895153,
+        "maxDrawdownPct": 19.534985632559543,
+        "profitFactor": 1.181499423082787,
+        "exitReasons": {
+          "SL": 49,
+          "TP": 76,
+          "TIME": 1,
+          "BE": 29
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 62,
+        "wins": 36,
+        "losses": 26,
+        "ties": 0,
+        "winRatePct": 58.06451612903226,
+        "wilsonLower95Pct": 45.66536173784617,
+        "meanNetPct": -0.026556613188780893,
+        "meanGrossPct": 0.0734433868112191,
+        "totalNetPct": -1.6465100177044154,
+        "maxDrawdownPct": 23.158501349993898,
+        "profitFactor": 0.9758619503361321,
+        "exitReasons": {
+          "SL": 26,
+          "TP": 29,
+          "TIME": 2,
+          "BE": 5
+        },
+        "ignoredSignals": 18,
+        "purgedTrades": 0,
+        "expiredOrders": 8,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r3",
+      "lockedAt": "2026-11-17T18:52:28.772Z",
+      "holdoutScoringStartedAt": "2026-11-17T18:52:28.780Z",
+      "selectionLockSha256": "164b387e80363f8ed8da4e77eaf0fffb8b1c370747290e7267a1e4c935b80aae",
+      "winnerId": "HtfTrapReclaim:N20:K5:D1_20_and_H4_50:off0.15|s3.5|m1.4|rr1|h120|be0.45",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 35,
+        "wins": 19,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 54.285714285714285,
+        "wilsonLower95Pct": 38.18945134013752,
+        "meanNetPct": -0.6023271301448312,
+        "meanGrossPct": -0.5023271301448311,
+        "totalNetPct": -21.081449555069092,
+        "maxDrawdownPct": 25.108255226538688,
+        "profitFactor": 0.35266317657964547,
+        "exitReasons": {
+          "SL": 16,
+          "TP": 6,
+          "TIME": 0,
+          "BE": 13
+        },
+        "ignoredSignals": 62,
+        "purgedTrades": 0,
+        "expiredOrders": 13,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 47,
+        "wins": 30,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 63.829787234042556,
+        "wilsonLower95Pct": 49.53563457177045,
+        "meanNetPct": -0.21284574818631474,
+        "meanGrossPct": -0.11284574818631478,
+        "totalNetPct": -10.003750164756793,
+        "maxDrawdownPct": 25.10825522653868,
+        "profitFactor": 0.7103167333107278,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 13,
+          "TIME": 0,
+          "BE": 17
+        },
+        "ignoredSignals": 17,
+        "purgedTrades": 0,
+        "expiredOrders": 4,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 111,
+        "wins": 74,
+        "losses": 37,
+        "ties": 0,
+        "winRatePct": 66.66666666666666,
+        "wilsonLower95Pct": 57.46929345584374,
+        "meanNetPct": 0.040554628674674784,
+        "meanGrossPct": 0.14055462867467486,
+        "totalNetPct": 4.501563782888901,
+        "maxDrawdownPct": 25.108255226538688,
+        "profitFactor": 1.0580072201823232,
+        "exitReasons": {
+          "SL": 37,
+          "TP": 44,
+          "TIME": 3,
+          "BE": 27
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 138,
+        "wins": 99,
+        "losses": 39,
+        "ties": 0,
+        "winRatePct": 71.73913043478261,
+        "wilsonLower95Pct": 63.7168824023688,
+        "meanNetPct": 0.11591061605276985,
+        "meanGrossPct": 0.21591061605277004,
+        "totalNetPct": 15.99566501528224,
+        "maxDrawdownPct": 25.108255226538695,
+        "profitFactor": 1.1841774342660547,
+        "exitReasons": {
+          "SL": 38,
+          "TP": 44,
+          "TIME": 3,
+          "BE": 53
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 53,
+        "wins": 38,
+        "losses": 15,
+        "ties": 0,
+        "winRatePct": 71.69811320754717,
+        "wilsonLower95Pct": 58.429457999892264,
+        "meanNetPct": 0.5421584203906913,
+        "meanGrossPct": 0.6421584203906912,
+        "totalNetPct": 28.73439628070664,
+        "maxDrawdownPct": 9.394478593793924,
+        "profitFactor": 1.6687833132553487,
+        "exitReasons": {
+          "SL": 14,
+          "TP": 23,
+          "TIME": 2,
+          "BE": 14
+        },
+        "ignoredSignals": 16,
+        "purgedTrades": 0,
+        "expiredOrders": 8,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r4",
+      "lockedAt": "2026-11-17T19:00:25.079Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:00:25.090Z",
+      "selectionLockSha256": "4c87f1f5faaa5415fd9dcb47e52f291a631c1b0a8e9c995299b0d7038e718460",
+      "winnerId": "HtfTrapReclaim:N20:K3:D1_20_and_H4_50:off0.15|s3|m1.2|rr0.85|h96|be0.55",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 33,
+        "wins": 17,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 51.515151515151516,
+        "wilsonLower95Pct": 35.218104586210245,
+        "meanNetPct": -0.3028490364526939,
+        "meanGrossPct": -0.20284903645269403,
+        "totalNetPct": -9.994018202938898,
+        "maxDrawdownPct": 19.60993563255955,
+        "profitFactor": 0.6531783542914597,
+        "exitReasons": {
+          "SL": 16,
+          "TP": 15,
+          "TIME": 0,
+          "BE": 2
+        },
+        "ignoredSignals": 41,
+        "purgedTrades": 0,
+        "expiredOrders": 14,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 45,
+        "wins": 28,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 62.22222222222222,
+        "wilsonLower95Pct": 47.62967000646754,
+        "meanNetPct": -0.020499907245286518,
+        "meanGrossPct": 0.07950009275471363,
+        "totalNetPct": -0.9224958260378933,
+        "maxDrawdownPct": 19.609935632559555,
+        "profitFactor": 0.9697739104310321,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 23,
+          "TIME": 0,
+          "BE": 5
+        },
+        "ignoredSignals": 13,
+        "purgedTrades": 0,
+        "expiredOrders": 4,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 110,
+        "wins": 71,
+        "losses": 39,
+        "ties": 0,
+        "winRatePct": 64.54545454545455,
+        "wilsonLower95Pct": 55.25323623689828,
+        "meanNetPct": 0.0885047767218921,
+        "meanGrossPct": 0.1885047767218922,
+        "totalNetPct": 9.73552543940813,
+        "maxDrawdownPct": 23.042407822784185,
+        "profitFactor": 1.1249001194174069,
+        "exitReasons": {
+          "SL": 39,
+          "TP": 66,
+          "TIME": 2,
+          "BE": 3
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 137,
+        "wins": 95,
+        "losses": 42,
+        "ties": 0,
+        "winRatePct": 69.34306569343066,
+        "wilsonLower95Pct": 61.182443080002535,
+        "meanNetPct": 0.16741673366115953,
+        "meanGrossPct": 0.2674167336611592,
+        "totalNetPct": 22.936092511578856,
+        "maxDrawdownPct": 19.609935632559555,
+        "profitFactor": 1.2786263285644694,
+        "exitReasons": {
+          "SL": 42,
+          "TP": 70,
+          "TIME": 1,
+          "BE": 24
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 50,
+        "wins": 33,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 66,
+        "wilsonLower95Pct": 52.15356854148286,
+        "meanNetPct": 0.33728457409051854,
+        "meanGrossPct": 0.4372845740905187,
+        "totalNetPct": 16.864228704525928,
+        "maxDrawdownPct": 8.088124508966226,
+        "profitFactor": 1.3932707230772603,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 26,
+          "TIME": 2,
+          "BE": 5
+        },
+        "ignoredSignals": 13,
+        "purgedTrades": 0,
+        "expiredOrders": 8,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r5",
+      "lockedAt": "2026-11-17T19:11:27.924Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:11:27.935Z",
+      "selectionLockSha256": "3cefded7cb4b0c3aaf1546618ce1eb98441258b0f848b93fc443a3f5ac8dba8b",
+      "winnerId": "HtfTrapSqKc:N20:K3:Sq14:rv1:KC2:d1Maxnone:cr5:off0.08|s3|m1.2|rr0.85|h96|be0.55",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 47,
+        "wins": 21,
+        "losses": 26,
+        "ties": 0,
+        "winRatePct": 44.680851063829785,
+        "wilsonLower95Pct": 31.41074747491131,
+        "meanNetPct": -0.46669334197821133,
+        "meanGrossPct": -0.36669334197821135,
+        "totalNetPct": -21.934587072975933,
+        "maxDrawdownPct": 25.633686283606863,
+        "profitFactor": 0.5008796572432197,
+        "exitReasons": {
+          "SL": 25,
+          "TP": 19,
+          "TIME": 1,
+          "BE": 2
+        },
+        "ignoredSignals": 100,
+        "purgedTrades": 0,
+        "expiredOrders": 11,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 61,
+        "wins": 32,
+        "losses": 29,
+        "ties": 0,
+        "winRatePct": 52.459016393442624,
+        "wilsonLower95Pct": 40.156941715311014,
+        "meanNetPct": -0.2333486105495413,
+        "meanGrossPct": -0.13334861054954136,
+        "totalNetPct": -14.234265243522021,
+        "maxDrawdownPct": 25.633686283606863,
+        "profitFactor": 0.7093414670158814,
+        "exitReasons": {
+          "SL": 28,
+          "TP": 27,
+          "TIME": 1,
+          "BE": 5
+        },
+        "ignoredSignals": 36,
+        "purgedTrades": 0,
+        "expiredOrders": 3,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 127,
+        "wins": 80,
+        "losses": 47,
+        "ties": 0,
+        "winRatePct": 62.99212598425197,
+        "wilsonLower95Pct": 54.328682076235744,
+        "meanNetPct": 0.01471560940119771,
+        "meanGrossPct": 0.11471560940119774,
+        "totalNetPct": 1.868882393952109,
+        "maxDrawdownPct": 22.907252482281216,
+        "profitFactor": 1.0199463065866354,
+        "exitReasons": {
+          "SL": 47,
+          "TP": 71,
+          "TIME": 2,
+          "BE": 7
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 187,
+        "wins": 125,
+        "losses": 62,
+        "ties": 0,
+        "winRatePct": 66.84491978609626,
+        "wilsonLower95Pct": 59.81796683409485,
+        "meanNetPct": 0.17310071490463683,
+        "meanGrossPct": 0.2731007149046372,
+        "totalNetPct": 32.36983368716709,
+        "maxDrawdownPct": 25.63368628360688,
+        "profitFactor": 1.2843100180576676,
+        "exitReasons": {
+          "SL": 61,
+          "TP": 100,
+          "TIME": 2,
+          "BE": 24
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 73,
+        "wins": 48,
+        "losses": 25,
+        "ties": 0,
+        "winRatePct": 65.75342465753424,
+        "wilsonLower95Pct": 54.32641175004693,
+        "meanNetPct": 0.3962681595249269,
+        "meanGrossPct": 0.49626815952492664,
+        "totalNetPct": 28.927575645319664,
+        "maxDrawdownPct": 9.06108001969763,
+        "profitFactor": 1.482220647864727,
+        "exitReasons": {
+          "SL": 25,
+          "TP": 42,
+          "TIME": 1,
+          "BE": 5
+        },
+        "ignoredSignals": 40,
+        "purgedTrades": 0,
+        "expiredOrders": 5,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r6",
+      "lockedAt": "2026-11-17T19:21:09.301Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:21:09.311Z",
+      "selectionLockSha256": "22f3fb3e181745461171cbc989a5ab0dccb3c64bf6c1a2b0014d7f10f521af5f",
+      "winnerId": "HtfSmcMultiTrap:P4_10:N20:K4:pd0:d1Maxnone:cr6:s20_0:off0.15|s3.5|m1.2|rr0.75|h96|be0.5",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 34,
+        "wins": 17,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 50,
+        "wilsonLower95Pct": 34.06906262804899,
+        "meanNetPct": -0.49778264145398493,
+        "meanGrossPct": -0.39778264145398473,
+        "totalNetPct": -16.924609809435488,
+        "maxDrawdownPct": 20.525047035080203,
+        "profitFactor": 0.5214409386299433,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 14,
+          "TIME": 0,
+          "BE": 3
+        },
+        "ignoredSignals": 86,
+        "purgedTrades": 0,
+        "expiredOrders": 14,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 46,
+        "wins": 28,
+        "losses": 18,
+        "ties": 0,
+        "winRatePct": 60.86956521739131,
+        "wilsonLower95Pct": 46.456583717644925,
+        "meanNetPct": -0.07000586659109727,
+        "meanGrossPct": 0.029994133408902696,
+        "totalNetPct": -3.2202698631904743,
+        "maxDrawdownPct": 20.5250470350802,
+        "profitFactor": 0.9137414167236521,
+        "exitReasons": {
+          "SL": 18,
+          "TP": 24,
+          "TIME": 0,
+          "BE": 4
+        },
+        "ignoredSignals": 27,
+        "purgedTrades": 0,
+        "expiredOrders": 4,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 94,
+        "wins": 60,
+        "losses": 34,
+        "ties": 0,
+        "winRatePct": 63.829787234042556,
+        "wilsonLower95Pct": 53.750332718400585,
+        "meanNetPct": -0.018515872054797947,
+        "meanGrossPct": 0.08148412794520218,
+        "totalNetPct": -1.740491973151007,
+        "maxDrawdownPct": 21.14938450050966,
+        "profitFactor": 0.9765316901839105,
+        "exitReasons": {
+          "SL": 33,
+          "TP": 49,
+          "TIME": 3,
+          "BE": 9
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 139,
+        "wins": 98,
+        "losses": 41,
+        "ties": 0,
+        "winRatePct": 70.50359712230215,
+        "wilsonLower95Pct": 62.45329334938796,
+        "meanNetPct": 0.2502287245157295,
+        "meanGrossPct": 0.3502287245157296,
+        "totalNetPct": 34.7817927076864,
+        "maxDrawdownPct": 20.525047035080192,
+        "profitFactor": 1.3946881043927328,
+        "exitReasons": {
+          "SL": 40,
+          "TP": 78,
+          "TIME": 3,
+          "BE": 18
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 60,
+        "wins": 40,
+        "losses": 20,
+        "ties": 0,
+        "winRatePct": 66.66666666666666,
+        "wilsonLower95Pct": 54.0566298666634,
+        "meanNetPct": 0.4139140904579767,
+        "meanGrossPct": 0.5139140904579766,
+        "totalNetPct": 24.834845427478605,
+        "maxDrawdownPct": 9.394478593793924,
+        "profitFactor": 1.439838727130109,
+        "exitReasons": {
+          "SL": 18,
+          "TP": 35,
+          "TIME": 3,
+          "BE": 4
+        },
+        "ignoredSignals": 31,
+        "purgedTrades": 0,
+        "expiredOrders": 7,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r7",
+      "lockedAt": "2026-11-17T19:25:13.613Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:25:13.623Z",
+      "selectionLockSha256": "784721f9924e9aee29c77f1e2e895dce294067a7363e347067d7fdfa6ea75317",
+      "winnerId": "HtfSmcMultiTrap:P4_10:N20:K3:pd0:d1Max2.2:cr6:s20_0:off0.15|s3.5|m1.5|rr0.75|h120|be0.5",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 28,
+        "wins": 14,
+        "losses": 14,
+        "ties": 0,
+        "winRatePct": 50,
+        "wilsonLower95Pct": 32.63284683244635,
+        "meanNetPct": -0.47095214306870886,
+        "meanGrossPct": -0.3709521430687089,
+        "totalNetPct": -13.186660005923848,
+        "maxDrawdownPct": 16.387833751812522,
+        "profitFactor": 0.5280047542174496,
+        "exitReasons": {
+          "SL": 14,
+          "TP": 12,
+          "TIME": 0,
+          "BE": 2
+        },
+        "ignoredSignals": 65,
+        "purgedTrades": 0,
+        "expiredOrders": 12,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 40,
+        "wins": 25,
+        "losses": 15,
+        "ties": 0,
+        "winRatePct": 62.5,
+        "wilsonLower95Pct": 47.03216005453191,
+        "meanNetPct": 0.01856840475802901,
+        "meanGrossPct": 0.11856840475802906,
+        "totalNetPct": 0.7427361903211604,
+        "maxDrawdownPct": 16.387833751812526,
+        "profitFactor": 1.0248364413279627,
+        "exitReasons": {
+          "SL": 15,
+          "TP": 22,
+          "TIME": 0,
+          "BE": 3
+        },
+        "ignoredSignals": 22,
+        "purgedTrades": 0,
+        "expiredOrders": 2,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 109,
+        "wins": 71,
+        "losses": 38,
+        "ties": 0,
+        "winRatePct": 65.13761467889908,
+        "wilsonLower95Pct": 55.81460530797037,
+        "meanNetPct": 0.06925473394947274,
+        "meanGrossPct": 0.16925473394947296,
+        "totalNetPct": 7.548766000492527,
+        "maxDrawdownPct": 16.800940126500343,
+        "profitFactor": 1.0933656684326405,
+        "exitReasons": {
+          "SL": 37,
+          "TP": 57,
+          "TIME": 1,
+          "BE": 14
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 121,
+        "wins": 89,
+        "losses": 32,
+        "ties": 0,
+        "winRatePct": 73.55371900826447,
+        "wilsonLower95Pct": 65.058259516978,
+        "meanNetPct": 0.32506336149771814,
+        "meanGrossPct": 0.42506336149771834,
+        "totalNetPct": 39.332666741223896,
+        "maxDrawdownPct": 16.387833751812522,
+        "profitFactor": 1.557464444842448,
+        "exitReasons": {
+          "SL": 32,
+          "TP": 69,
+          "TIME": 1,
+          "BE": 19
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 53,
+        "wins": 37,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 69.81132075471697,
+        "wilsonLower95Pct": 56.46291313003242,
+        "meanNetPct": 0.48634280302684674,
+        "meanGrossPct": 0.5863428030268466,
+        "totalNetPct": 25.776168560422878,
+        "maxDrawdownPct": 9.394478593793924,
+        "profitFactor": 1.5786085824522202,
+        "exitReasons": {
+          "SL": 15,
+          "TP": 34,
+          "TIME": 1,
+          "BE": 3
+        },
+        "ignoredSignals": 25,
+        "purgedTrades": 0,
+        "expiredOrders": 6,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r8",
+      "lockedAt": "2026-11-17T19:31:26.577Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:31:26.588Z",
+      "selectionLockSha256": "b554b45c23b835d3212dea7ce771ec98cefe9835b595189cd4c0093061e16a23",
+      "winnerId": "HtfTrapReclaim:N20:K4:D1_20_and_H4_50:off0.15|s3.5|m1.5|rr1.15|h120|be0.38_0.32",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 35,
+        "wins": 19,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 54.285714285714285,
+        "wilsonLower95Pct": 38.18945134013752,
+        "meanNetPct": -0.5952944942855878,
+        "meanGrossPct": -0.495294494285588,
+        "totalNetPct": -20.835307299995574,
+        "maxDrawdownPct": 23.832701267621264,
+        "profitFactor": 0.3679841251780087,
+        "exitReasons": {
+          "SL": 16,
+          "TP": 4,
+          "TIME": 0,
+          "BE": 15
+        },
+        "ignoredSignals": 50,
+        "purgedTrades": 0,
+        "expiredOrders": 14,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 47,
+        "wins": 30,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 63.829787234042556,
+        "wilsonLower95Pct": 49.53563457177045,
+        "meanNetPct": -0.2276278713879377,
+        "meanGrossPct": -0.1276278713879376,
+        "totalNetPct": -10.698509955233071,
+        "maxDrawdownPct": 23.832701267621268,
+        "profitFactor": 0.6937455903089143,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 9,
+          "TIME": 0,
+          "BE": 21
+        },
+        "ignoredSignals": 14,
+        "purgedTrades": 0,
+        "expiredOrders": 4,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 124,
+        "wins": 89,
+        "losses": 35,
+        "ties": 0,
+        "winRatePct": 71.7741935483871,
+        "wilsonLower95Pct": 63.29011494920659,
+        "meanNetPct": 0.0018963611231197926,
+        "meanGrossPct": 0.10189636112311984,
+        "totalNetPct": 0.2351487792668543,
+        "maxDrawdownPct": 27.932732575678052,
+        "profitFactor": 1.0030710797799904,
+        "exitReasons": {
+          "SL": 35,
+          "TP": 27,
+          "TIME": 0,
+          "BE": 62
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 138,
+        "wins": 105,
+        "losses": 33,
+        "ties": 0,
+        "winRatePct": 76.08695652173914,
+        "wilsonLower95Pct": 68.3251252154952,
+        "meanNetPct": 0.15886897104270273,
+        "meanGrossPct": 0.2588689710427027,
+        "totalNetPct": 21.923918003892975,
+        "maxDrawdownPct": 23.83270126762127,
+        "profitFactor": 1.2916992797374134,
+        "exitReasons": {
+          "SL": 32,
+          "TP": 33,
+          "TIME": 1,
+          "BE": 72
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 54,
+        "wins": 40,
+        "losses": 14,
+        "ties": 0,
+        "winRatePct": 74.07407407407408,
+        "wilsonLower95Pct": 61.0688551197827,
+        "meanNetPct": 0.47361586152097845,
+        "meanGrossPct": 0.5736158615209784,
+        "totalNetPct": 25.575256522132836,
+        "maxDrawdownPct": 9.394478593793924,
+        "profitFactor": 1.6381260623771536,
+        "exitReasons": {
+          "SL": 13,
+          "TP": 16,
+          "TIME": 2,
+          "BE": 23
+        },
+        "ignoredSignals": 16,
+        "purgedTrades": 0,
+        "expiredOrders": 7,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r9",
+      "lockedAt": "2026-11-17T19:49:01.629Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:49:01.641Z",
+      "selectionLockSha256": "6c23d359d836a595289cb75062a7a6d5565fa1afdf36d5ecaa6450a62ed409b2",
+      "winnerId": "HtfSmcMultiTrap:P4_10:N20:K4:pd1:H4_50:er0.16:off0.28|s4|m2|rr1.05|h144|be0.42_0.38",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 26,
+        "wins": 13,
+        "losses": 13,
+        "ties": 0,
+        "winRatePct": 50,
+        "wilsonLower95Pct": 32.06030631500208,
+        "meanNetPct": -0.793299351684388,
+        "meanGrossPct": -0.6932993516843875,
+        "totalNetPct": -20.625783143794088,
+        "maxDrawdownPct": 25.338300977171567,
+        "profitFactor": 0.35709898655646655,
+        "exitReasons": {
+          "SL": 13,
+          "TP": 4,
+          "TIME": 0,
+          "BE": 9
+        },
+        "ignoredSignals": 126,
+        "purgedTrades": 0,
+        "expiredOrders": 27,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 39,
+        "wins": 24,
+        "losses": 15,
+        "ties": 0,
+        "winRatePct": 61.53846153846154,
+        "wilsonLower95Pct": 45.898781310078476,
+        "meanNetPct": -0.23323700825342902,
+        "meanGrossPct": -0.13323700825342913,
+        "totalNetPct": -9.096243321883732,
+        "maxDrawdownPct": 25.338300977171563,
+        "profitFactor": 0.7503735451878006,
+        "exitReasons": {
+          "SL": 15,
+          "TP": 9,
+          "TIME": 0,
+          "BE": 15
+        },
+        "ignoredSignals": 47,
+        "purgedTrades": 0,
+        "expiredOrders": 12,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 93,
+        "wins": 58,
+        "losses": 35,
+        "ties": 0,
+        "winRatePct": 62.365591397849464,
+        "wilsonLower95Pct": 52.21342705133759,
+        "meanNetPct": -0.04109202967534521,
+        "meanGrossPct": 0.058907970324654974,
+        "totalNetPct": -3.821558759807105,
+        "maxDrawdownPct": 37.6388710201607,
+        "profitFactor": 0.9553139568278256,
+        "exitReasons": {
+          "SL": 34,
+          "TP": 23,
+          "TIME": 2,
+          "BE": 34
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 114,
+        "wins": 78,
+        "losses": 36,
+        "ties": 0,
+        "winRatePct": 68.42105263157895,
+        "wilsonLower95Pct": 59.40639890594854,
+        "meanNetPct": 0.10350380179999895,
+        "meanGrossPct": 0.20350380179999933,
+        "totalNetPct": 11.79943340519988,
+        "maxDrawdownPct": 25.33830097717156,
+        "profitFactor": 1.127285113854254,
+        "exitReasons": {
+          "SL": 35,
+          "TP": 32,
+          "TIME": 2,
+          "BE": 45
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 45,
+        "wins": 32,
+        "losses": 13,
+        "ties": 0,
+        "winRatePct": 71.11111111111111,
+        "wilsonLower95Pct": 56.631182527739774,
+        "meanNetPct": 0.27098375080776266,
+        "meanGrossPct": 0.3709837508077626,
+        "totalNetPct": 12.194268786349319,
+        "maxDrawdownPct": 24.022746861539822,
+        "profitFactor": 1.2548342727184956,
+        "exitReasons": {
+          "SL": 13,
+          "TP": 14,
+          "TIME": 1,
+          "BE": 17
+        },
+        "ignoredSignals": 51,
+        "purgedTrades": 0,
+        "expiredOrders": 15,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r10",
+      "lockedAt": "2026-11-17T19:53:10.563Z",
+      "holdoutScoringStartedAt": "2026-11-17T19:53:10.571Z",
+      "selectionLockSha256": "61a7227228205f50f8ab540721673acef7d53d7f0a3160ee833b2eadb9f31b70",
+      "winnerId": "HtfTrapSqKc:N20:K3:Sq14:rv1.2:KC1.8:d1Max2:cr5:off0|s4|m2|rr0.85|h144|be0.48_0.45|cd4",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 37,
+        "wins": 17,
+        "losses": 20,
+        "ties": 0,
+        "winRatePct": 45.94594594594595,
+        "wilsonLower95Pct": 31.038327828457728,
+        "meanNetPct": -0.6739379215974778,
+        "meanGrossPct": -0.5739379215974778,
+        "totalNetPct": -24.93570309910668,
+        "maxDrawdownPct": 30.247562637939044,
+        "profitFactor": 0.45559467087502886,
+        "exitReasons": {
+          "SL": 20,
+          "TP": 10,
+          "TIME": 0,
+          "BE": 7
+        },
+        "ignoredSignals": 98,
+        "purgedTrades": 0,
+        "expiredOrders": 0,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 50,
+        "wins": 27,
+        "losses": 23,
+        "ties": 0,
+        "winRatePct": 54,
+        "wilsonLower95Pct": 40.398634328388084,
+        "meanNetPct": -0.27848989957516235,
+        "meanGrossPct": -0.17848989957516245,
+        "totalNetPct": -13.924494978758117,
+        "maxDrawdownPct": 30.247562637939037,
+        "profitFactor": 0.7355448865142485,
+        "exitReasons": {
+          "SL": 23,
+          "TP": 18,
+          "TIME": 0,
+          "BE": 9
+        },
+        "ignoredSignals": 33,
+        "purgedTrades": 0,
+        "expiredOrders": 0,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 105,
+        "wins": 64,
+        "losses": 41,
+        "ties": 0,
+        "winRatePct": 60.952380952380956,
+        "wilsonLower95Pct": 51.39226868159833,
+        "meanNetPct": -0.058457974038153636,
+        "meanGrossPct": 0.04154202596184644,
+        "totalNetPct": -6.138087274006132,
+        "maxDrawdownPct": 33.86146139129505,
+        "profitFactor": 0.9369286347562064,
+        "exitReasons": {
+          "SL": 39,
+          "TP": 35,
+          "TIME": 2,
+          "BE": 29
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 146,
+        "wins": 95,
+        "losses": 51,
+        "ties": 0,
+        "winRatePct": 65.06849315068493,
+        "wilsonLower95Pct": 57.038722669291694,
+        "meanNetPct": 0.12244103722505738,
+        "meanGrossPct": 0.22244103722505734,
+        "totalNetPct": 17.876391434858377,
+        "maxDrawdownPct": 30.247562637939055,
+        "profitFactor": 1.1384929325881599,
+        "exitReasons": {
+          "SL": 51,
+          "TP": 67,
+          "TIME": 1,
+          "BE": 27
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 62,
+        "wins": 45,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 72.58064516129032,
+        "wilsonLower95Pct": 60.407224156672754,
+        "meanNetPct": 0.4690798869185177,
+        "meanGrossPct": 0.5690798869185174,
+        "totalNetPct": 29.082952988948097,
+        "maxDrawdownPct": 15.047754313953385,
+        "profitFactor": 1.5376963003861377,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 31,
+          "TIME": 0,
+          "BE": 14
+        },
+        "ignoredSignals": 38,
+        "purgedTrades": 0,
+        "expiredOrders": 0,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r11",
+      "lockedAt": "2026-11-17T20:16:47.911Z",
+      "holdoutScoringStartedAt": "2026-11-17T20:16:47.922Z",
+      "selectionLockSha256": "82c780b0aafc0e69a46e073f44c7c707249eaefd57fcd63c6ffaea361f6dec2f",
+      "winnerId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd0:D1_20_and_H4_50:off0.18:w6_sl3_neg_ps|s3.2|m1.4|rr1.15|h120|be0.43_0.34|cd4",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 38,
+        "wins": 22,
+        "losses": 16,
+        "ties": 0,
+        "winRatePct": 57.89473684210527,
+        "wilsonLower95Pct": 42.19207061312732,
+        "meanNetPct": -0.441764374142378,
+        "meanGrossPct": -0.341764374142378,
+        "totalNetPct": -16.787046217410364,
+        "maxDrawdownPct": 19.17844618158158,
+        "profitFactor": 0.47579276021838124,
+        "exitReasons": {
+          "SL": 16,
+          "TP": 7,
+          "TIME": 0,
+          "BE": 15
+        },
+        "ignoredSignals": 84,
+        "purgedTrades": 0,
+        "expiredOrders": 15,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 52,
+        "wins": 35,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 67.3076923076923,
+        "wilsonLower95Pct": 53.75593513988891,
+        "meanNetPct": -0.05663987069434981,
+        "meanGrossPct": 0.04336012930565032,
+        "totalNetPct": -2.94527327610619,
+        "maxDrawdownPct": 19.178446181581585,
+        "profitFactor": 0.9129468372379426,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 13,
+          "TIME": 0,
+          "BE": 22
+        },
+        "ignoredSignals": 29,
+        "purgedTrades": 0,
+        "expiredOrders": 2,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 131,
+        "wins": 92,
+        "losses": 39,
+        "ties": 0,
+        "winRatePct": 70.22900763358778,
+        "wilsonLower95Pct": 61.91330278710727,
+        "meanNetPct": 0.03745745560033957,
+        "meanGrossPct": 0.13745745560033948,
+        "totalNetPct": 4.906926683644484,
+        "maxDrawdownPct": 18.080068525049672,
+        "profitFactor": 1.0611736036610784,
+        "exitReasons": {
+          "SL": 38,
+          "TP": 32,
+          "TIME": 2,
+          "BE": 59
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 149,
+        "wins": 117,
+        "losses": 32,
+        "ties": 0,
+        "winRatePct": 78.52348993288591,
+        "wilsonLower95Pct": 71.25667289037109,
+        "meanNetPct": 0.29658321880904154,
+        "meanGrossPct": 0.396583218809041,
+        "totalNetPct": 44.19089960254719,
+        "maxDrawdownPct": 19.178446181581585,
+        "profitFactor": 1.6485609517264248,
+        "exitReasons": {
+          "SL": 32,
+          "TP": 41,
+          "TIME": 1,
+          "BE": 75
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 62,
+        "wins": 36,
+        "losses": 26,
+        "ties": 0,
+        "winRatePct": 58.06451612903226,
+        "wilsonLower95Pct": 45.66536173784617,
+        "meanNetPct": -0.20669434255812535,
+        "meanGrossPct": -0.10669434255812535,
+        "totalNetPct": -12.815049238603772,
+        "maxDrawdownPct": 23.51877680690778,
+        "profitFactor": 0.8235013991754404,
+        "exitReasons": {
+          "SL": 26,
+          "TP": 15,
+          "TIME": 1,
+          "BE": 20
+        },
+        "ignoredSignals": 29,
+        "purgedTrades": 0,
+        "expiredOrders": 6,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r12",
+      "lockedAt": "2026-11-17T20:22:39.294Z",
+      "holdoutScoringStartedAt": "2026-11-17T20:22:39.302Z",
+      "selectionLockSha256": "3f8b26ea398b3531b30b9f33891b60bb2ce86cd97845ebf5014c1fac89cf5bc2",
+      "winnerId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd0:H4_20_or_50:off0.18:w4_sl2_neg_ps|s3.2|m1.4|rr1.15|h120|be0.43_0.34|cd4",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": false,
+        "walkForwardAnchoredPass": false,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 43,
+        "wins": 26,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 60.46511627906976,
+        "wilsonLower95Pct": 45.57879659331909,
+        "meanNetPct": -0.40560587114820074,
+        "meanGrossPct": -0.3056058711482007,
+        "totalNetPct": -17.44105245937263,
+        "maxDrawdownPct": 17.65613745937262,
+        "profitFactor": 0.4983926159188782,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 8,
+          "TIME": 0,
+          "BE": 18
+        },
+        "ignoredSignals": 97,
+        "purgedTrades": 0,
+        "expiredOrders": 21,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 60,
+        "wins": 41,
+        "losses": 19,
+        "ties": 0,
+        "winRatePct": 68.33333333333333,
+        "wilsonLower95Pct": 55.76599505698346,
+        "meanNetPct": -0.05648695063705964,
+        "meanGrossPct": 0.04351304936294051,
+        "totalNetPct": -3.3892170382235784,
+        "maxDrawdownPct": 17.656137459372626,
+        "profitFactor": 0.9110559274480388,
+        "exitReasons": {
+          "SL": 19,
+          "TP": 15,
+          "TIME": 0,
+          "BE": 26
+        },
+        "ignoredSignals": 31,
+        "purgedTrades": 0,
+        "expiredOrders": 5,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 146,
+        "wins": 96,
+        "losses": 50,
+        "ties": 0,
+        "winRatePct": 65.75342465753424,
+        "wilsonLower95Pct": 57.74066978637934,
+        "meanNetPct": -0.1573761618906796,
+        "meanGrossPct": -0.05737616189067953,
+        "totalNetPct": -22.976919636039224,
+        "maxDrawdownPct": 30.2658073237355,
+        "profitFactor": 0.7788629982707602,
+        "exitReasons": {
+          "SL": 50,
+          "TP": 32,
+          "TIME": 0,
+          "BE": 64
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 168,
+        "wins": 130,
+        "losses": 38,
+        "ties": 0,
+        "winRatePct": 77.38095238095238,
+        "wilsonLower95Pct": 70.48368947626369,
+        "meanNetPct": 0.2581417781671883,
+        "meanGrossPct": 0.35814177816718806,
+        "totalNetPct": 43.367818732087635,
+        "maxDrawdownPct": 17.656137459372623,
+        "profitFactor": 1.5538174204623179,
+        "exitReasons": {
+          "SL": 38,
+          "TP": 45,
+          "TIME": 1,
+          "BE": 84
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 77,
+        "wins": 50,
+        "losses": 27,
+        "ties": 0,
+        "winRatePct": 64.93506493506493,
+        "wilsonLower95Pct": 53.799215372631096,
+        "meanNetPct": -0.023366967247440914,
+        "meanGrossPct": 0.07663303275255905,
+        "totalNetPct": -1.7992564780529503,
+        "maxDrawdownPct": 14.46379648660621,
+        "profitFactor": 0.9767123023899126,
+        "exitReasons": {
+          "SL": 27,
+          "TP": 22,
+          "TIME": 1,
+          "BE": 27
+        },
+        "ignoredSignals": 37,
+        "purgedTrades": 0,
+        "expiredOrders": 4,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r13",
+      "lockedAt": "2026-11-17T20:34:42.313Z",
+      "holdoutScoringStartedAt": "2026-11-17T20:34:42.325Z",
+      "selectionLockSha256": "428cfed74016fa3963823986a110b444488d745802f11159fa7243b2ca129981",
+      "winnerId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.05|h96|be0.43_0.34|cd4",
+      "allGatesPassed": false,
+      "gates": {
+        "holdoutPass": false,
+        "tv6kPass": true,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 51,
+        "wins": 37,
+        "losses": 14,
+        "ties": 0,
+        "winRatePct": 72.54901960784314,
+        "wilsonLower95Pct": 59.05308805092127,
+        "meanNetPct": 0.09910687418033869,
+        "meanGrossPct": 0.19910687418033893,
+        "totalNetPct": 5.054450583197273,
+        "maxDrawdownPct": 5.682375400024792,
+        "profitFactor": 1.1838686610126048,
+        "exitReasons": {
+          "SL": 14,
+          "TP": 15,
+          "TIME": 1,
+          "BE": 21
+        },
+        "ignoredSignals": 148,
+        "purgedTrades": 0,
+        "expiredOrders": 19,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 68,
+        "wins": 50,
+        "losses": 18,
+        "ties": 0,
+        "winRatePct": 73.52941176470588,
+        "wilsonLower95Pct": 61.99204078287542,
+        "meanNetPct": 0.18771593290286318,
+        "meanGrossPct": 0.287715932902863,
+        "totalNetPct": 12.764683437394696,
+        "maxDrawdownPct": 5.682375400024791,
+        "profitFactor": 1.3692690992756538,
+        "exitReasons": {
+          "SL": 18,
+          "TP": 21,
+          "TIME": 1,
+          "BE": 28
+        },
+        "ignoredSignals": 51,
+        "purgedTrades": 0,
+        "expiredOrders": 2,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 138,
+        "wins": 103,
+        "losses": 35,
+        "ties": 0,
+        "winRatePct": 74.63768115942028,
+        "wilsonLower95Pct": 66.77913148882456,
+        "meanNetPct": 0.15895226353458944,
+        "meanGrossPct": 0.2589522635345895,
+        "totalNetPct": 21.935412367773342,
+        "maxDrawdownPct": 7.800628488255093,
+        "profitFactor": 1.2955785222375333,
+        "exitReasons": {
+          "SL": 35,
+          "TP": 36,
+          "TIME": 3,
+          "BE": 64
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 179,
+        "wins": 141,
+        "losses": 38,
+        "ties": 0,
+        "winRatePct": 78.77094972067039,
+        "wilsonLower95Pct": 72.2082764034753,
+        "meanNetPct": 0.2382154421605041,
+        "meanGrossPct": 0.3382154421605039,
+        "totalNetPct": 42.640564146730235,
+        "maxDrawdownPct": 6.329390960863565,
+        "profitFactor": 1.526927612078376,
+        "exitReasons": {
+          "SL": 38,
+          "TP": 51,
+          "TIME": 2,
+          "BE": 88
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 82,
+        "wins": 54,
+        "losses": 28,
+        "ties": 0,
+        "winRatePct": 65.85365853658537,
+        "wilsonLower95Pct": 55.087537486312165,
+        "meanNetPct": -0.07152716712850589,
+        "meanGrossPct": 0.02847283287149415,
+        "totalNetPct": -5.865227704537483,
+        "maxDrawdownPct": 14.46379648660621,
+        "profitFactor": 0.9271754741192442,
+        "exitReasons": {
+          "SL": 28,
+          "TP": 26,
+          "TIME": 1,
+          "BE": 27
+        },
+        "ignoredSignals": 58,
+        "purgedTrades": 0,
+        "expiredOrders": 5,
+        "cancelledPendingOrders": 0
+      }
+    },
+    {
+      "roundId": "r14",
+      "lockedAt": "2026-11-17T20:37:21.639Z",
+      "holdoutScoringStartedAt": "2026-11-17T20:37:21.649Z",
+      "selectionLockSha256": "1862cf939344d246a39f633d4359a606d668b923f912d84ec129c05a23fce8f1",
+      "winnerId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "allGatesPassed": true,
+      "gates": {
+        "holdoutPass": true,
+        "tv6kPass": true,
+        "walkForwardAnchoredPass": true,
+        "walkForwardFixedQuarterPass": true
+      },
+      "holdout": {
+        "count": 51,
+        "wins": 38,
+        "losses": 13,
+        "ties": 0,
+        "winRatePct": 74.50980392156863,
+        "wilsonLower95Pct": 61.131455893851296,
+        "meanNetPct": 0.1994473947545209,
+        "meanGrossPct": 0.2994473947545208,
+        "totalNetPct": 10.171817132480566,
+        "maxDrawdownPct": 5.682375400024792,
+        "profitFactor": 1.3959693523144738,
+        "exitReasons": {
+          "SL": 13,
+          "TP": 15,
+          "TIME": 1,
+          "BE": 22
+        },
+        "ignoredSignals": 149,
+        "purgedTrades": 0,
+        "expiredOrders": 18,
+        "cancelledPendingOrders": 0
+      },
+      "tv6k": {
+        "count": 68,
+        "wins": 51,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 75,
+        "wilsonLower95Pct": 63.56122186609707,
+        "meanNetPct": 0.2569803609181896,
+        "meanGrossPct": 0.35698036091818947,
+        "totalNetPct": 17.474664542436894,
+        "maxDrawdownPct": 5.682375400024792,
+        "profitFactor": 1.5333110975864788,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 20,
+          "TIME": 1,
+          "BE": 30
+        },
+        "ignoredSignals": 51,
+        "purgedTrades": 0,
+        "expiredOrders": 2,
+        "cancelledPendingOrders": 0
+      },
+      "walkForwardAnchoredAggregate": {
+        "count": 138,
+        "wins": 103,
+        "losses": 35,
+        "ties": 0,
+        "winRatePct": 74.63768115942028,
+        "wilsonLower95Pct": 66.77913148882456,
+        "meanNetPct": 0.15895226353458944,
+        "meanGrossPct": 0.2589522635345895,
+        "totalNetPct": 21.935412367773342,
+        "maxDrawdownPct": 7.800628488255093,
+        "profitFactor": 1.2955785222375333,
+        "exitReasons": {
+          "SL": 35,
+          "TP": 36,
+          "TIME": 3,
+          "BE": 64
+        }
+      },
+      "walkForwardFixedQuarterAggregate": {
+        "count": 179,
+        "wins": 141,
+        "losses": 38,
+        "ties": 0,
+        "winRatePct": 78.77094972067039,
+        "wilsonLower95Pct": 72.2082764034753,
+        "meanNetPct": 0.2897011514108957,
+        "meanGrossPct": 0.38970115141089573,
+        "totalNetPct": 51.856506102550334,
+        "maxDrawdownPct": 6.329390960863565,
+        "profitFactor": 1.6430037442387782,
+        "exitReasons": {
+          "SL": 38,
+          "TP": 50,
+          "TIME": 2,
+          "BE": 89
+        }
+      },
+      "ethusdt1h12m": {
+        "count": 81,
+        "wins": 56,
+        "losses": 25,
+        "ties": 0,
+        "winRatePct": 69.1358024691358,
+        "wilsonLower95Pct": 58.401742072234356,
+        "meanNetPct": 0.051352822888926154,
+        "meanGrossPct": 0.15135282288892613,
+        "totalNetPct": 4.159578654003019,
+        "maxDrawdownPct": 14.46379648660621,
+        "profitFactor": 1.057406298121618,
+        "exitReasons": {
+          "SL": 25,
+          "TP": 23,
+          "TIME": 2,
+          "BE": 31
+        },
+        "ignoredSignals": 59,
+        "purgedTrades": 0,
+        "expiredOrders": 6,
+        "cancelledPendingOrders": 0
+      }
+    }
+  ]
+}
