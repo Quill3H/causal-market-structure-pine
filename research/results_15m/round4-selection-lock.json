@@ -1,0 +1,422 @@
+{
+  "roundId": "round4-h1-cleandisp-stop3-pull55",
+  "lockedAt": "2026-11-17T19:12:07.691Z",
+  "datasetFile": "data/btcusdt_15m_12m.json",
+  "datasetSha256": "814c65beaa5e8eab99290927053ff6c7eb844b7ca6a341dbc2df5808c7e5d445",
+  "signalsSha256": "2a6606efb31c8813fa28bfc6159a8acf08821e630482ac25868e0d7f0a82eb54",
+  "simEngineSha256": "7faf2bf4a1318a27737775ed53a92f59894b57beb78b74bf15840b247d70a477",
+  "splits": {
+    "totalBars": 35040,
+    "calRange": [
+      0,
+      17520
+    ],
+    "valRange": [
+      17520,
+      26280
+    ],
+    "holdoutRange": [
+      26280,
+      35040
+    ]
+  },
+  "rankingRule": "eligible on Q1,Q2,Q3(count>=55,WR>=66,PF>=1.25,mean>0) & noBE(calVal PF>=1.25, minQ PF>=1.15) & min6k>=46 & Buy/Sell>=62%; rank by wilsonLower95 + 25*minQ(PF-1) + 40*meanNet + 15*(noBE_PF-1) + 0.3*minQ_WR",
+  "totalCandidatesEvaluated": 46,
+  "eligibleCount": 15,
+  "winner": {
+    "id": "H1_CleanDisp_AtrExh:CP0.65:R72:P0.52:S3:RR1.05:BE0.42",
+    "family": "H1_CleanDisp_AtrExh",
+    "params": {
+      "family": "H1_CleanDisp_AtrExh",
+      "h1BodyAtrMin": 1,
+      "h1ClosePosMin": 0.65,
+      "minAtrPct": 0.18,
+      "h1RsiExh": 72,
+      "emaExhAtr": 1.8,
+      "pullAtr": 0.52,
+      "emaLen": 50,
+      "atrLen": 14,
+      "warmup": 250,
+      "h1RsiMax": null,
+      "emaCapAtr": null
+    },
+    "simOptions": {
+      "warmup": 250,
+      "cooldown": 8,
+      "entryMode": "LIMIT_PULLBACK",
+      "limitExpiryBars": 6,
+      "pendingPolicy": "ignore",
+      "limitSameBarTp": "close",
+      "stopAtr": 3,
+      "minStopPct": 0.75,
+      "rewardRisk": 1.05,
+      "maxHoldBars": 120,
+      "beTriggerR": 0.42,
+      "beOffsetPct": 0.22,
+      "costPct": 0.1,
+      "slippagePct": 0.025
+    },
+    "score": 112.93809908886087,
+    "min6kCalVal": 46,
+    "cal": {
+      "count": 153,
+      "wins": 114,
+      "losses": 39,
+      "ties": 0,
+      "winRatePct": 74.50980392156863,
+      "wilsonLower95Pct": 67.0625643310794,
+      "meanNetPct": 0.15850499187692335,
+      "meanGrossPct": 0.2585049918769233,
+      "totalNetPct": 24.251263757169273,
+      "maxDrawdownPct": 9.783518981226639,
+      "profitFactor": 1.4594985135506913,
+      "exitReasons": {
+        "SL": 36,
+        "TP": 57,
+        "TIME": 6,
+        "BE": 54
+      },
+      "purgedTrades": 0,
+      "expiredOrders": 44,
+      "buyCount": 75,
+      "buyWins": 59,
+      "buyWinRatePct": 78.66666666666666,
+      "sellCount": 78,
+      "sellWins": 55,
+      "sellWinRatePct": 70.51282051282051
+    },
+    "val": {
+      "count": 87,
+      "wins": 63,
+      "losses": 24,
+      "ties": 0,
+      "winRatePct": 72.41379310344827,
+      "wilsonLower95Pct": 62.226030746711714,
+      "meanNetPct": 0.13356617828174577,
+      "meanGrossPct": 0.23356617828174583,
+      "totalNetPct": 11.620257510511882,
+      "maxDrawdownPct": 5.108272700776931,
+      "profitFactor": 1.4216204421614285,
+      "exitReasons": {
+        "SL": 23,
+        "TP": 36,
+        "TIME": 1,
+        "BE": 27
+      },
+      "purgedTrades": 1,
+      "expiredOrders": 63,
+      "buyCount": 35,
+      "buyWins": 22,
+      "buyWinRatePct": 62.857142857142854,
+      "sellCount": 52,
+      "sellWins": 41,
+      "sellWinRatePct": 78.84615384615384
+    },
+    "calVal": {
+      "count": 241,
+      "wins": 178,
+      "losses": 63,
+      "ties": 0,
+      "winRatePct": 73.85892116182573,
+      "wilsonLower95Pct": 67.96787720270314,
+      "meanNetPct": 0.14923890567502554,
+      "meanGrossPct": 0.24923890567502544,
+      "totalNetPct": 35.966576267681155,
+      "maxDrawdownPct": 9.783518981226639,
+      "profitFactor": 1.4476872525498907,
+      "exitReasons": {
+        "SL": 59,
+        "TP": 93,
+        "TIME": 7,
+        "BE": 82
+      },
+      "purgedTrades": 0,
+      "expiredOrders": 63,
+      "buyCount": 110,
+      "buyWins": 81,
+      "buyWinRatePct": 73.63636363636363,
+      "sellCount": 131,
+      "sellWins": 97,
+      "sellWinRatePct": 74.04580152671755
+    },
+    "calValNoBe": {
+      "count": 231,
+      "wins": 142,
+      "losses": 89,
+      "ties": 0,
+      "winRatePct": 61.471861471861466,
+      "wilsonLower95Pct": 55.05699850000339,
+      "meanNetPct": 0.21440244208028827,
+      "meanGrossPct": 0.3144024420802883,
+      "totalNetPct": 49.526964120546594,
+      "maxDrawdownPct": 13.845660393976381,
+      "profitFactor": 1.4723436403414,
+      "exitReasons": {
+        "SL": 79,
+        "TP": 138,
+        "TIME": 14,
+        "BE": 0
+      },
+      "purgedTrades": 0,
+      "expiredOrders": 63,
+      "buyCount": 107,
+      "buyWins": 64,
+      "buyWinRatePct": 59.813084112149525,
+      "sellCount": 124,
+      "sellWins": 78,
+      "sellWinRatePct": 62.903225806451616
+    }
+  },
+  "top10CalVal": [
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.65:R72:P0.52:S3:RR1.05:BE0.42",
+      "eligible": true,
+      "score": 112.93809908886087,
+      "min6kCalVal": 46,
+      "cal": {
+        "count": 153,
+        "winRatePct": 74.50980392156863,
+        "profitFactor": 1.4594985135506913,
+        "meanNetPct": 0.15850499187692335
+      },
+      "val": {
+        "count": 87,
+        "winRatePct": 72.41379310344827,
+        "profitFactor": 1.4216204421614285,
+        "meanNetPct": 0.13356617828174577
+      },
+      "calVal": {
+        "count": 241,
+        "winRatePct": 73.85892116182573,
+        "wilsonLower95Pct": 67.96787720270314,
+        "profitFactor": 1.4476872525498907,
+        "meanNetPct": 0.14923890567502554
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.65:R72:P0.52:S3:RR1.15:BE0.42",
+      "eligible": true,
+      "score": 110.79923858241511,
+      "min6kCalVal": 46,
+      "cal": {
+        "count": 152,
+        "winRatePct": 74.3421052631579,
+        "profitFactor": 1.3812856193956682,
+        "meanNetPct": 0.1323905852349215
+      },
+      "val": {
+        "count": 84,
+        "winRatePct": 72.61904761904762,
+        "profitFactor": 1.4659198385172119,
+        "meanNetPct": 0.14561781122463408
+      },
+      "calVal": {
+        "count": 237,
+        "winRatePct": 73.83966244725738,
+        "wilsonLower95Pct": 67.89557655849495,
+        "profitFactor": 1.4106029610950879,
+        "meanNetPct": 0.1369211818505372
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.52:S3:RR1.05:BE0.42",
+      "eligible": true,
+      "score": 108.7926873028397,
+      "min6kCalVal": 52,
+      "cal": {
+        "count": 164,
+        "winRatePct": 73.78048780487805,
+        "profitFactor": 1.4274650909836235,
+        "meanNetPct": 0.15086838658546686
+      },
+      "val": {
+        "count": 91,
+        "winRatePct": 71.42857142857143,
+        "profitFactor": 1.3653636446027428,
+        "meanNetPct": 0.11928151246860073
+      },
+      "calVal": {
+        "count": 256,
+        "winRatePct": 73.046875,
+        "wilsonLower95Pct": 67.30019753620341,
+        "profitFactor": 1.4074867166188925,
+        "meanNetPct": 0.1394222188853876
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.65:R72:P0.52:S2.8:RR1.15:BE0.45",
+      "eligible": true,
+      "score": 108.03084929928832,
+      "min6kCalVal": 46,
+      "cal": {
+        "count": 151,
+        "winRatePct": 73.50993377483444,
+        "profitFactor": 1.3238579810346693,
+        "meanNetPct": 0.11156463329513558
+      },
+      "val": {
+        "count": 85,
+        "winRatePct": 72.94117647058823,
+        "profitFactor": 1.5044062252212564,
+        "meanNetPct": 0.14901030005241991
+      },
+      "calVal": {
+        "count": 237,
+        "winRatePct": 73.41772151898735,
+        "wilsonLower95Pct": 67.45231015908021,
+        "profitFactor": 1.383871359621422,
+        "meanNetPct": 0.12492485287772635
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.52:S3:RR1.05:BE0.45",
+      "eligible": true,
+      "score": 107.88455615144025,
+      "min6kCalVal": 51,
+      "cal": {
+        "count": 164,
+        "winRatePct": 72.5609756097561,
+        "profitFactor": 1.4166068249428383,
+        "meanNetPct": 0.14985771972129827
+      },
+      "val": {
+        "count": 90,
+        "winRatePct": 71.11111111111111,
+        "profitFactor": 1.3906633027502946,
+        "meanNetPct": 0.1286244493003655
+      },
+      "calVal": {
+        "count": 255,
+        "winRatePct": 72.15686274509804,
+        "wilsonLower95Pct": 66.35757188898067,
+        "profitFactor": 1.4089205418803208,
+        "meanNetPct": 0.14211935376227985
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.52:S3:RR1:BE0.42",
+      "eligible": true,
+      "score": 106.82927250605763,
+      "min6kCalVal": 52,
+      "cal": {
+        "count": 164,
+        "winRatePct": 73.78048780487805,
+        "profitFactor": 1.4012770739673819,
+        "meanNetPct": 0.14162565786106546
+      },
+      "val": {
+        "count": 92,
+        "winRatePct": 71.73913043478261,
+        "profitFactor": 1.3408982763764012,
+        "meanNetPct": 0.11027873445260668
+      },
+      "calVal": {
+        "count": 257,
+        "winRatePct": 73.15175097276264,
+        "wilsonLower95Pct": 67.42176796473548,
+        "profitFactor": 1.3818584755295553,
+        "meanNetPct": 0.1302229823301733
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.52:S3:RR1.15:BE0.42",
+      "eligible": true,
+      "score": 106.66125338122401,
+      "min6kCalVal": 51,
+      "cal": {
+        "count": 163,
+        "winRatePct": 73.61963190184049,
+        "profitFactor": 1.355212723219295,
+        "meanNetPct": 0.12613695682486703
+      },
+      "val": {
+        "count": 88,
+        "winRatePct": 71.5909090909091,
+        "profitFactor": 1.4084581056368102,
+        "meanNetPct": 0.1318268629316324
+      },
+      "calVal": {
+        "count": 252,
+        "winRatePct": 73.01587301587301,
+        "wilsonLower95Pct": 67.22013044888905,
+        "profitFactor": 1.373840895678383,
+        "meanNetPct": 0.12800056706522597
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.52:S3:RR1.15:BE0.45",
+      "eligible": true,
+      "score": 106.2483224470148,
+      "min6kCalVal": 51,
+      "cal": {
+        "count": 163,
+        "winRatePct": 72.39263803680981,
+        "profitFactor": 1.3779570076132355,
+        "meanNetPct": 0.1367890662990374
+      },
+      "val": {
+        "count": 87,
+        "winRatePct": 71.26436781609196,
+        "profitFactor": 1.4089266956940125,
+        "meanNetPct": 0.1331335758179633
+      },
+      "calVal": {
+        "count": 251,
+        "winRatePct": 72.11155378486056,
+        "wilsonLower95Pct": 66.26216305486629,
+        "profitFactor": 1.3890060457562274,
+        "meanNetPct": 0.13532592685642003
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.55:S3:RR1.05:BE0.45",
+      "eligible": true,
+      "score": 106.07537265070312,
+      "min6kCalVal": 49,
+      "cal": {
+        "count": 161,
+        "winRatePct": 72.04968944099379,
+        "profitFactor": 1.3742813418846573,
+        "meanNetPct": 0.1394415961095146
+      },
+      "val": {
+        "count": 89,
+        "winRatePct": 70.78651685393258,
+        "profitFactor": 1.349092916339487,
+        "meanNetPct": 0.11612064283157987
+      },
+      "calVal": {
+        "count": 251,
+        "winRatePct": 71.71314741035857,
+        "wilsonLower95Pct": 65.84631429479428,
+        "profitFactor": 1.367053009278732,
+        "meanNetPct": 0.13100783119476456
+      }
+    },
+    {
+      "id": "H1_CleanDisp_AtrExh:CP0.6:R75:P0.55:S3:RR1.15:BE0.45",
+      "eligible": true,
+      "score": 105.8620649358873,
+      "min6kCalVal": 49,
+      "cal": {
+        "count": 159,
+        "winRatePct": 71.69811320754717,
+        "profitFactor": 1.3669294656790782,
+        "meanNetPct": 0.13842212357211675
+      },
+      "val": {
+        "count": 86,
+        "winRatePct": 70.93023255813954,
+        "profitFactor": 1.3606098684076153,
+        "meanNetPct": 0.11865189170703427
+      },
+      "calVal": {
+        "count": 246,
+        "winRatePct": 71.54471544715447,
+        "wilsonLower95Pct": 65.60872126707,
+        "profitFactor": 1.3660154023910314,
+        "meanNetPct": 0.1313467958496543
+      }
+    }
+  ]
+}
