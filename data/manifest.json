@@ -1,0 +1,234 @@
+{
+  "generatedAt": "2026-11-17T18:26:44.747Z",
+  "anchorEndMs": 1794939977451,
+  "htfWarmupBars": 300,
+  "htfAlignmentRule": "htfBar.time + htfIntervalSeconds <= ltfBar.time",
+  "datasets": [
+    {
+      "file": "data/btcusdt_15m_12m.json",
+      "symbol": "BTCUSDT",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 35040,
+      "firstTime": 1763403300,
+      "lastTime": 1794938400,
+      "firstIso": "2025-11-17T18:15:00.000Z",
+      "lastIso": "2026-11-17T18:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 5014467,
+      "sha256": "814c65beaa5e8eab99290927053ff6c7eb844b7ca6a341dbc2df5808c7e5d445",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 9059,
+          "firstTime": 1762326000,
+          "lastTime": 1794934800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 9058
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 2489,
+          "firstTime": 1759089600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 2488
+        }
+      }
+    },
+    {
+      "file": "data/btcusdt_tv_15m_6k.json",
+      "symbol": "BTCUSDT",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 6000,
+      "firstTime": 1789539300,
+      "lastTime": 1794938400,
+      "firstIso": "2026-09-16T06:15:00.000Z",
+      "lastIso": "2026-11-17T18:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 900551,
+      "sha256": "20e327baacef30b7468a0ac44e632b044bc6bac7d71c7dbfb1eaaba2b302b10d",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 1799,
+          "firstTime": 1788462000,
+          "lastTime": 1794934800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1798
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 674,
+          "firstTime": 1785225600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 673
+        }
+      }
+    },
+    {
+      "file": "data/btcusdt_1h_24m.json",
+      "symbol": "BTCUSDT",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 17520,
+      "firstTime": 1731866400,
+      "lastTime": 1794934800,
+      "firstIso": "2024-11-17T18:00:00.000Z",
+      "lastIso": "2026-11-17T17:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 2530160,
+      "sha256": "1550906bcca9655c4397b226b1403078744ee36b4d994c7f577b7af3609beb63",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 4679,
+          "firstTime": 1727553600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 4678
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 1029,
+          "firstTime": 1705968000,
+          "lastTime": 1794787200,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1028
+        }
+      }
+    },
+    {
+      "file": "data/btcusdt_tv_1h_6k.json",
+      "symbol": "BTCUSDT",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 6000,
+      "firstTime": 1773338400,
+      "lastTime": 1794934800,
+      "firstIso": "2026-03-12T18:00:00.000Z",
+      "lastIso": "2026-11-17T17:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 892782,
+      "sha256": "c9813aeec5afb4dea32f80e4df06855f66e036faae72c0de8e027089a8b61ba1",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 1799,
+          "firstTime": 1769025600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1798
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 549,
+          "firstTime": 1747440000,
+          "lastTime": 1794787200,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 548
+        }
+      }
+    },
+    {
+      "file": "data/ethusdt_15m_6m.json",
+      "symbol": "ETHUSDT",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 17520,
+      "firstTime": 1779171300,
+      "lastTime": 1794938400,
+      "firstIso": "2026-05-19T06:15:00.000Z",
+      "lastIso": "2026-11-17T18:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 2473402,
+      "sha256": "a3c99adb8e0492159d1ce14859c295648dc33bc1326ab7b525620cdc6ac69e35",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 4679,
+          "firstTime": 1778094000,
+          "lastTime": 1794934800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 4678
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 1394,
+          "firstTime": 1774857600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1393
+        }
+      }
+    },
+    {
+      "file": "data/ethusdt_1h_12m.json",
+      "symbol": "ETHUSDT",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 8760,
+      "firstTime": 1763402400,
+      "lastTime": 1794934800,
+      "firstIso": "2025-11-17T18:00:00.000Z",
+      "lastIso": "2026-11-17T17:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 1250537,
+      "sha256": "7f738936610896dc6fda73f6d32228fe02f5f8fbb89b4a22389714dbe058c5fb",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 2489,
+          "firstTime": 1759089600,
+          "lastTime": 1794916800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 2488
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 664,
+          "firstTime": 1737504000,
+          "lastTime": 1794787200,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 663
+        }
+      }
+    }
+  ],
+  "tvReferences": [
+    {
+      "file": "data/tv-ref/data-15.json",
+      "symbol": "BINANCE:BTCUSDT",
+      "resolution": "15",
+      "intervalSeconds": 900,
+      "count": 6074,
+      "firstTime": 1789208100,
+      "lastTime": 1794673800,
+      "bytes": 2798099,
+      "sha256": "f6e3fc24f0040a4b8d57f9dd0b0d61f35535f50d77e36eb8922881e4d4f63b6f"
+    },
+    {
+      "file": "data/tv-ref/data-60.json",
+      "symbol": "BINANCE:BTCUSDT",
+      "resolution": "60",
+      "intervalSeconds": 3600,
+      "count": 6019,
+      "firstTime": 1773003600,
+      "lastTime": 1794668400,
+      "bytes": 2775622,
+      "sha256": "6c4756aa46816665c88a47d95ce592dfc5d0281b55de79969c4521a2698361d0"
+    }
+  ],
+  "legacyPineRef": {
+    "file": "legacy/TOOL-2.0.0-ref.pine",
+    "sha256": "edb5b1b400bcdcd534e414fad0f11cb7b762d905ebca60ca6ab5b8f3b9fd6f2c"
+  }
+}
