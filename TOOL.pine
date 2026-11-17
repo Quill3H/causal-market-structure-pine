@@ -2,8 +2,9 @@
 // © BigBeluga
 //
 //@version=6
-// Maintenance revision 2026-11-04: confirmed-bar visual indicator.
-indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [1.4.0]",
+// Maintenance revision 2026-11-18: SMC Confirmed [3.0.0] — causal 15m/1h high-winrate engines,
+// Limit Pullback + conservative SL/TP + confirmed-close BE+ ratchet, universal symbol support.
+indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [3.0.0]",
      overlay = true,
      max_bars_back = 5000,
      max_boxes_count = 500,
@@ -16,6 +17,10 @@ plot(na)
 const int HISTORY_LIMIT = 4500
 const int MAX_ZONES = 100
 const int MAX_MAPPING_POINTS = 1000
+const int MAX_PAPER_VISUALS = 15
+const float EPS_ZERO = 1e-12
+const float V3_SHADOW_FEE_PCT = 0.10
+const float V3_SHADOW_SLIP_PCT = 0.025
 
 //
 MSG = "MARKET STRUCTURE"
@@ -24,10 +29,10 @@ MST = "Limit displayed structure to recent bars. Calculations use bounded histor
 SLT = "Maximum retained structures per direction"
 CST = "Color candle based on trend detection system"
 OBD = "Show Last number of orderblock"
-OBMT = "[Length] Use Length to adjust cordinate of the orderblocks\n[Full] Use the full high-low range of the source candle"
-// Section
+OBMT = "[Length] Use Length to adjust coordinate of the orderblocks\n[Full] Use the full high-low range of the source candle"
+
 bool windowsis      = input.bool(true, "Window", inline="kla", group=MSG)
-int mswindow        = input.int(4500, "", tooltip=MST,group=MSG, inline="kla", minval=1000, maxval=4500)
+int mswindow        = input.int(4500, "", tooltip=MST, group=MSG, inline="kla", minval=1000, maxval=4500)
 
 bool showSwing      = input.bool(true, "Swing", inline="scss", group=MSG)
 int swingLimit      = input.int(100, "", tooltip=SLT, inline="scss", group=MSG, minval=10, maxval=100)
@@ -35,15 +40,12 @@ int swingLimit      = input.int(100, "", tooltip=SLT, inline="scss", group=MSG, 
 color swingcssup    = input.color(#089981, "", inline="scss", group=MSG)
 color swingcssdn    = input.color(#f23645, "", inline="scss", group=MSG)
 
-
 bool showMapping    = input.bool(false, "Mapping Structure", inline="mapping", group=MSG)
 string mappingStyle = input.string("----", "", options=["⎯⎯⎯⎯", "----"], inline="mapping", group=MSG)
 color mappingcss    = input.color(color.silver, "", tooltip="Display Mapping Structure", inline="mapping", group=MSG)
 bool candlecss      = input.bool(false, "Color Candles", tooltip=CST, group=MSG, inline="txt")
-string mstext       = input.string("Tiny", "", options=["Tiny", "Small", "Normal", "Large", "Huge"],
- inline="txt", group=MSG)
-string msmode       = input.string("Adjusted Points", "Algorithmic Logic", options=["Extreme Points", "Adjusted Points"]
- , inline="node", group=MSG)
+string mstext       = input.string("Tiny", "", options=["Tiny", "Small", "Normal", "Large", "Huge"], inline="txt", group=MSG)
+string msmode       = input.string("Adjusted Points", "Algorithmic Logic", options=["Extreme Points", "Adjusted Points"], inline="node", group=MSG)
 
 int mslen           = input.int(5, "", inline="node", group=MSG, minval=2, maxval=100, tooltip="Pivot confirmation needs this many closed candles on the right.")
 bool buildsweep     = input.bool(true, "Build Sweep (x)", "Build sweep on market structure", "znc", MSG)
@@ -51,64 +53,94 @@ bool msbubble       = input.bool(true, "Bubbles", tooltip="Display Circle Bubble
 
 bool obshow         = input.bool(true, "Show Last", tooltip=OBD, group=VBG, inline="obshow")
 int oblast          = input.int(5, "", group=VBG, inline="obshow", minval=0, maxval=20)
-color obupcs       = input.color(color.new(#089981, 90), "", inline="obshow", group=VBG)
-color obdncs       = input.color(color.new(#f23645, 90), "", inline="obshow", group=VBG)
-obshowbb     = input.bool(false, "Show Breakers", inline="bb", group=VBG, tooltip="Display Breakers")
-color bbup         = input.color(color.new(#089981, 100), "", inline="bb", group=VBG)
-color bbdn         = input.color(color.new(#f23645, 100), "", inline="bb", group=VBG)
-obmode       = input.string("Length", "Construction", options=["Length", "Full"], tooltip=OBMT, inline="atr", group=VBG)
-len          = input.int(5, "", inline="atr", group=VBG, minval=1)
-obmiti       = input.string("Close", "Mitigation Method", options=["Close", "Wick", "Avg"],
- tooltip="Mitigation method for when to trigger order blocks", group=VBG)
-obtxt        = input.string("Normal", "Metric Size", options=["Tiny", "Small", "Normal", "Large", "Huge", "Auto"],
- tooltip="Order block Metrics text size", inline="obtxt", group=VBG)
-showmetric   = input.bool(true, "Source candle volume", tooltip="Volume of the source candle only; not buy/sell volume or a probability. Unavailable volume is shown as N/A.", group=VBG)
-showline     = input.bool(true, "Show Mid-Line", group=VBG)
-overlap      = input.bool(true, "Hide Overlap", group=VBG, inline="ov")
-wichlap      = input.string("Recent", "", options=["Recent", "Old"], inline="ov", group=VBG, tooltip="Keep the more recent or older confirmed zone when zones overlap.")
+color obupcs        = input.color(color.new(#089981, 90), "", inline="obshow", group=VBG)
+color obdncs        = input.color(color.new(#f23645, 90), "", inline="obshow", group=VBG)
+bool obshowbb       = input.bool(false, "Show Breakers", inline="bb", group=VBG, tooltip="Display Breakers")
+color bbup          = input.color(color.new(#089981, 100), "", inline="bb", group=VBG)
+color bbdn          = input.color(color.new(#f23645, 100), "", inline="bb", group=VBG)
+string obmode       = input.string("Length", "Construction", options=["Length", "Full"], tooltip=OBMT, inline="atr", group=VBG)
+int len             = input.int(5, "", inline="atr", group=VBG, minval=1)
+string obmiti       = input.string("Close", "Mitigation Method", options=["Close", "Wick", "Avg"], tooltip="Mitigation method for when to trigger order blocks", group=VBG)
+string obtxt        = input.string("Normal", "Metric Size", options=["Tiny", "Small", "Normal", "Large", "Huge", "Auto"], tooltip="Order block Metrics text size", inline="obtxt", group=VBG)
+bool showmetric     = input.bool(true, "Source candle volume", tooltip="Volume of the source candle only; not buy/sell volume or a probability. Unavailable volume is shown as N/A.", group=VBG)
+bool showline       = input.bool(true, "Show Mid-Line", group=VBG)
+bool overlap        = input.bool(true, "Hide Overlap", group=VBG, inline="ov")
+string wichlap      = input.string("Recent", "", options=["Recent", "Old"], inline="ov", group=VBG, tooltip="Keep the more recent or older confirmed zone when zones overlap.")
 
-fvg_enable   = input.bool(false, "Enable FVG", inline="1", group="FAIR VALUE GAP", tooltip="Confirm gaps at candle close and draw them from their detection candle")
-what_fvg     = input.string("FVG", "", inline="1", group="FAIR VALUE GAP", tooltip="Display fair value gap",
- options=["FVG", "Breakers"])
-fvg_num      = input.int(5, "Show Last", inline="1a", group="FAIR VALUE GAP", tooltip="Confirmed gaps, drawn from the detection candle", minval=0, maxval=20)
-fvg_upcss    = input.color(color.new(#089981, 80), "", inline="1", group="FAIR VALUE GAP")
-fvg_dncss    = input.color(color.new(#f23645, 80), "", inline="1", group="FAIR VALUE GAP")
-fvgbbup      = input.color(color.new(#089981, 100), "", inline="1", group="FAIR VALUE GAP")
-fvgbbdn      = input.color(color.new(#f23645, 100), "", inline="1", group="FAIR VALUE GAP")
-fvg_src      = input.string("Close", "Mitigation",
- inline="3",
- group="FAIR VALUE GAP",
- tooltip="[Close] Invalidate only beyond the boundary at candle close\n\n[Wick] Use the high or low of the confirmed candle",
- options=["Close", "Wick", "Avg"])
-fvgthresh    = input.float(0, "Threshold", tooltip="Filter out non significative FVG", group="FAIR VALUE GAP",
- inline="asd", minval=0, maxval=2, step=0.1)
-fvgoverlap   = input.bool(true, "Hide Overlap", "Hide overlapping FVG", group="FAIR VALUE GAP")
-fvgline      = input.bool(true, "Show Mid-Line", group="FAIR VALUE GAP")
-fvgextend    = input.bool(false, "Extend FVG", group="FAIR VALUE GAP")
-dispraid     = input.bool(false, "Display Raids", inline="raid", group="FAIR VALUE GAP")
+bool fvg_enable     = input.bool(false, "Enable FVG", inline="1", group="FAIR VALUE GAP", tooltip="Confirm gaps at candle close and draw them from their detection candle")
+string what_fvg     = input.string("FVG", "", inline="1", group="FAIR VALUE GAP", tooltip="Display fair value gap", options=["FVG", "Breakers"])
+int fvg_num         = input.int(5, "Show Last", inline="1a", group="FAIR VALUE GAP", tooltip="Confirmed gaps, drawn from the detection candle", minval=0, maxval=20)
+color fvg_upcss     = input.color(color.new(#089981, 80), "", inline="1", group="FAIR VALUE GAP")
+color fvg_dncss     = input.color(color.new(#f23645, 80), "", inline="1", group="FAIR VALUE GAP")
+color fvgbbup       = input.color(color.new(#089981, 100), "", inline="1", group="FAIR VALUE GAP")
+color fvgbbdn       = input.color(color.new(#f23645, 100), "", inline="1", group="FAIR VALUE GAP")
+string fvg_src      = input.string("Close", "Mitigation", inline="3", group="FAIR VALUE GAP", tooltip="[Close] Invalidate only beyond the boundary at candle close\n\n[Wick] Use the high or low of the confirmed candle", options=["Close", "Wick", "Avg"])
+float fvgthresh     = input.float(0, "Threshold", tooltip="Filter out non significative FVG", group="FAIR VALUE GAP", inline="asd", minval=0, maxval=2, step=0.1)
+bool fvgoverlap     = input.bool(true, "Hide Overlap", "Hide overlapping FVG", group="FAIR VALUE GAP")
+bool fvgline        = input.bool(true, "Show Mid-Line", group="FAIR VALUE GAP")
+bool fvgextend      = input.bool(false, "Extend FVG", group="FAIR VALUE GAP")
+bool dispraid       = input.bool(false, "Display Raids", inline="raid", group="FAIR VALUE GAP")
 
+SIG = "CONFIRMED SIGNALS"
+bool showSignals       = input.bool(true, "Show IN/OUT markers", group = SIG)
+string signalMode      = input.string("SMC High-WinRate [v3.0]", "Signal mode", options = ["SMC High-WinRate [v3.0]", "CHoCH + Source RVOL", "Balanced", "Strict"], group = SIG, tooltip = "SMC High-WinRate [v3.0] automatically selects the causal 15m H1-Clean-Displacement engine (<=15m) or 1h Adaptive-MultiTrap-Polarity engine (>15m) on standard OHLC charts. Legacy modes remain selectable for comparison.")
+float chochSourceRvolMin = input.float(1.2, "CHoCH: minimum OB source RVOL", minval = 0.1, step = 0.1, group = SIG)
+bool signalUseMapping  = input.bool(true, "Legacy: use Mapping agreement", group = SIG)
+bool signalUseFVG      = input.bool(true, "Legacy: use overlapping FVG", group = SIG)
+bool signalUseSweep    = input.bool(true, "Legacy: use recent sweep or FVG raid", group = SIG)
+int signalSweepBars    = input.int(10, "Legacy: sweep/raid lookback", minval = 1, maxval = 100, group = SIG)
+bool signalUseVolume   = input.bool(true, "Legacy: use confirmation volume", group = SIG)
+int signalVolLength    = input.int(20, "Legacy: volume baseline candles", minval = 2, maxval = 200, group = SIG)
+float signalVolumeMin  = input.float(1.2, "Legacy: minimum confirmation RVOL", minval = 0.1, step = 0.1, group = SIG)
+bool signalUseSourceVolume = input.bool(true, "Legacy: use OB source RVOL", group = SIG)
+float signalSourceMin  = input.float(1.0, "Legacy: minimum source RVOL", minval = 0.1, step = 0.1, group = SIG)
+int signalMinEvidence  = input.int(2, "Legacy Balanced: min supporting checks", minval = 1, maxval = 5, group = SIG)
 
-//}
-// Section
+REV = "LEGACY DIRECTION & QUALITY FILTERS"
+string directionMode   = input.string("Past-loss reversal", "Legacy direction handling", options = ["Original", "Reverse all", "Past-loss reversal"], group = REV, tooltip = "Applies only to legacy signal modes (CHoCH/Balanced/Strict). SMC High-WinRate [v3.0] uses its own verified causal polarity rules.")
+int reversalHorizon    = input.int(10, "Legacy outcome horizon (bars)", minval = 1, maxval = 100, group = REV)
+int reversalWindow     = input.int(20, "Legacy settled outcomes/side", minval = 5, maxval = 200, group = REV)
+int reversalMinSamples = input.int(5, "Legacy minimum settled samples", minval = 1, maxval = 200, group = REV)
+float reversalLossMinPct = input.float(60, "Legacy reverse loss rate (%)", minval = 50, maxval = 100, step = 1, group = REV)
+bool qualityUseHTF     = input.bool(false, "Legacy: use closed HTF trend", group = REV)
+string qualityHTF      = input.timeframe("", "Legacy HTF (blank = auto)", group = REV)
+bool qualityUseATR     = input.bool(false, "Legacy: use volatility floor", group = REV)
+float qualityAtrMin    = input.float(0.5, "Legacy: min ATR14 / mean ATR100", minval = 0.1, maxval = 3, step = 0.1, group = REV)
+bool qualityUseVolume  = input.bool(false, "Legacy: use signal volume floor", group = REV)
+float qualityRvolMin   = input.float(1.0, "Legacy: min signal RVOL", minval = 0.1, maxval = 5, step = 0.1, group = REV)
+bool qualityUseCooldown = input.bool(false, "Legacy: use same-side cooldown", group = REV)
+int qualityCooldownBars = input.int(5, "Legacy: cooldown bars", minval = 1, maxval = 100, group = REV)
 
+PAPER = "PAPER IN / OUT"
+bool showTradeStats    = input.bool(true, "Show compact scoreboard", group = PAPER)
+bool showPaperLines    = input.bool(true, "Show Limit / SL / TP lines", group = PAPER)
+bool paperUseAutoPreset = input.bool(true, "Auto-tune v3.0 profile (15m / 1h)", group = PAPER, tooltip = "Automatically loads verified 15m (<=15m) or 1h (>15m) execution parameters when Signal mode is SMC High-WinRate [v3.0]. Turn off to use custom inputs below.")
+string paperEntryModeInput = input.string("LIMIT_PULLBACK", "Custom entry mode", options = ["LIMIT_PULLBACK", "MARKET_NEXT_OPEN"], group = PAPER)
+int paperLimitExpiryInput  = input.int(6, "Custom limit expiry bars", minval = 1, maxval = 50, group = PAPER)
+float paperStopAtr         = input.float(3.0, "Custom stop distance (ATR14)", minval = 0.1, maxval = 10, step = 0.1, group = PAPER)
+float paperMinStopPctInput = input.float(1.0, "Custom min stop distance (%)", minval = 0, maxval = 10, step = 0.1, group = PAPER)
+float paperRewardRisk      = input.float(1.15, "Custom target / stop RR", minval = 0.75, maxval = 5, step = 0.05, group = PAPER)
+int paperMaxBars           = input.int(120, "Custom max holding bars", minval = 1, maxval = 500, group = PAPER)
+int paperCooldownBars      = input.int(8, "Custom cooldown bars", minval = 1, maxval = 100, group = PAPER)
+float paperBeTriggerRInput = input.float(0.43, "Custom BE+ trigger (R, 0=off)", minval = 0, maxval = 5, step = 0.01, group = PAPER)
+float paperBeOffsetPctInput = input.float(0.28, "Custom BE+ lock offset (%)", minval = 0, maxval = 5, step = 0.01, group = PAPER)
+float paperFeePct          = input.float(0.10, "Total entry + exit fees (%)", minval = 0, maxval = 1, step = 0.01, group = PAPER)
+float paperSlippagePct     = input.float(0.025, "Adverse slippage per fill (%)", minval = 0, maxval = 1, step = 0.005, group = PAPER, tooltip = "Conservative paper assumptions: adverse slippage on entry and exit, SL/BE always beats TP if both touch in one bar, gap through SL fills at open, and same-bar non-gap limit fills require close past TP. Only closed trades enter statistics.")
 
-// Closed-candle directional opportunities; thresholds are heuristics, not probabilities.
-SIG = "CONFIRMED ARROWS"
-showSignals = input.bool(true, "Show buy/sell arrows", group = SIG)
-signalUseMapping = input.bool(true, "Use Mapping agreement", group = SIG)
-signalUseFVG = input.bool(true, "Use overlapping FVG", group = SIG, tooltip = "The candle must reject the common price area of an older active OB and a same-direction FVG. FVG calculation works even when its drawing is hidden.")
-signalUseSweep = input.bool(true, "Use recent sweep or FVG raid", group = SIG)
-signalSweepBars = input.int(10, "Sweep/raid lookback", minval = 1, maxval = 100, group = SIG)
-signalUseVolume = input.bool(true, "Use confirmation volume", group = SIG)
-signalVolLength = input.int(20, "Balanced/Strict: volume baseline candles", minval = 2, maxval = 200, group = SIG, tooltip = "Used only by the legacy Balanced/Strict volume checks. The CHoCH mode always compares its OB source candle with the preceding 20-candle baseline.")
-signalVolumeMin = input.float(1.2, "Minimum confirmation RVOL", minval = 0.1, step = 0.1, group = SIG)
-signalUseSourceVolume = input.bool(true, "Use OB source relative volume", group = SIG)
-signalSourceMin = input.float(1.0, "Minimum source RVOL", minval = 0.1, step = 0.1, group = SIG)
-
-signalMode = input.string("CHoCH + Source RVOL", "Signal mode", options = ["CHoCH + Source RVOL", "Balanced", "Strict"], group = SIG, tooltip = "CHoCH mode signals on the closed structure-change candle when the OB source RVOL clears its threshold. Balanced and Strict retain the prior OB-rejection rules. None of these modes is a probability.")
-chochSourceRvolMin = input.float(1.2, "CHoCH: minimum OB source RVOL", minval = 0.1, step = 0.1, group = SIG)
-signalMinEvidence = input.int(2, "Balanced: minimum supporting checks", minval = 1, maxval = 5, group = SIG)
-showSignalStatus = input.bool(true, "Show signal status", group = SIG)
+HEAT = "LIQUIDATION PRESSURE HEATMAP (OPTIONAL)"
+bool showHeatmap       = input.bool(false, "Show automatic heatmap", group = HEAT, tooltip = "Optional visual estimate of liquidation-pressure zones from public OI/volume.")
+string heatmapOiExchange = input.string("BINANCE", "OI exchange", options = ["BINANCE", "BYBIT"], group = HEAT)
+string heatmapOiOverride = input.string("", "OI symbol override (optional)", group = HEAT)
+int heatmapLookback    = input.int(100, "Activity baseline", minval = 30, maxval = 500, group = HEAT)
+float heatmapZMin      = input.float(2.0, "Minimum activity Z-score", minval = 0.5, maxval = 6.0, step = 0.1, group = HEAT)
+int heatmapCooldown    = input.int(8, "Minimum bars between events", minval = 1, maxval = 100, group = HEAT)
+int heatmapMaxZones    = input.int(36, "Maximum retained zones", minval = 6, maxval = 80, group = HEAT)
+float heatmapBinAtr    = input.float(0.12, "Zone thickness (ATR)", minval = 0.02, maxval = 1.0, step = 0.01, group = HEAT)
+int heatmapMaxAge      = input.int(600, "Maximum zone age (bars)", minval = 50, maxval = 4500, group = HEAT)
+color heatmapHighColor = input.color(#ffb300, "High density", group = HEAT)
+color heatmapLowColor  = input.color(#1565c0, "Low density", group = HEAT)
+bool signalUseHeatmap  = input.bool(false, "Legacy: filter BUY/SELL with heatmap", group = HEAT)
+float signalHeatmapRatio = input.float(1.2, "Legacy: minimum heatmap pressure ratio", minval = 1.0, maxval = 5.0, step = 0.1, group = HEAT)
 
 type store
     line    [] ln
@@ -166,16 +198,32 @@ type FVG
     bool  active  = false
     color raidcs  = na
 
-//}
-// Section
+type liqZone
+    float price
+    float weight
+    int   side
+    int   born
+    int   updated
+    bool  touched = false
+    int   touchedBar = na
+
+type paperVisual
+    int   side
+    int   xStart
+    int   xEnd
+    float entryPrice
+    float stopPrice
+    float initialStop
+    float targetPrice
+    bool  beArmed
+    int   outReason
 
 var store bin = store.new(
-                   array.new<  line  >()
-                 , array.new<  label >()
-                 , array.new<   box  >()
-                 , array.new<linefill>()
-                 )
-
+     array.new<line>(),
+     array.new<label>(),
+     array.new<box>(),
+     array.new<linefill>()
+     )
 
 if barstate.islast
     for obj in bin.ln
@@ -186,21 +234,78 @@ if barstate.islast
         obj.delete()
     for obj in bin.lf
         obj.delete()
-
     bin.ln.clear()
     bin.lb.clear()
     bin.bx.clear()
     bin.lf.clear()
 
-
 invcol = #ffffff00
 
+// ============================================================================
+// TOP-LEVEL UNCONDITIONAL INDICATORS & HTF REQUESTS (zero conditional ta.*/security)
+// ============================================================================
+float chartSeconds = timeframe.in_seconds()
+bool is15mProfile = chartSeconds <= 900
+bool useV3Mode = signalMode == "SMC High-WinRate [v3.0]"
 
-float     atr =              (ta.atr(200) / (5/len))
+float atr200 = ta.atr(200)
+float atr = atr200 / (5 / len)
+float phRaw = ta.pivothigh(high, mslen, mslen)
+float plRaw = ta.pivotlow(low, mslen, mslen)
+float signalVolumeBase = ta.sma(volume, signalVolLength)[1]
+float chochVolumeBase = ta.sma(volume, 20)[1]
 
-//}
-// Section
+// v3.0.0 Core LTF series
+float qualityAtr = ta.atr(14)
+float qualityAtrBaseline = ta.sma(qualityAtr, 100)[1]
+float qualityVolumeBaseline = ta.sma(volume, 20)[1]
+float ltfEma20 = ta.ema(close, 20)
+float ltfEma50 = ta.ema(close, 50)
+float ltfPrevHigh20 = ta.highest(high, 20)[1]
+float ltfPrevLow20 = ta.lowest(low, 20)[1]
 
+// v3.0.0 HTF non-lookahead feeds (safe on any chart timeframe)
+string v3HtfTf = chartSeconds <= 900 ? "60" : chartSeconds < 14400 ? "240" : timeframe.period
+string v3D1Tf = chartSeconds < 86400 ? "1D" : timeframe.period
+
+[rawHtfO, rawHtfH, rawHtfL, rawHtfC, rawHtfEma50, rawHtfAtr14, rawHtfRsi14, rawHtfPrevH10, rawHtfPrevL10, rawHtfV3CloseTime] = request.security(
+     syminfo.tickerid, v3HtfTf,
+     [open, high, low, close, ta.ema(close, 50), ta.atr(14), ta.rsi(close, 14), ta.highest(high, 10)[1], ta.lowest(low, 10)[1], time_close],
+     gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+
+[rawD1High, rawD1Low, rawD1CloseTime] = request.security(
+     syminfo.tickerid, v3D1Tf,
+     [high, low, time_close],
+     gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+
+// Legacy optional HTF feed
+string autoHTF = chartSeconds <= 300 ? "15" : chartSeconds <= 900 ? "60" : chartSeconds <= 3600 ? "240" : chartSeconds <= 14400 ? "1D" : chartSeconds <= 86400 ? "1W" : "1M"
+string trendHTF = qualityHTF == "" ? autoHTF : qualityHTF
+bool validHTF = timeframe.in_seconds(trendHTF) > chartSeconds
+[rawHtfClose, rawHtfAverage, rawHtfCloseTime] = request.security(
+     syminfo.tickerid, trendHTF,
+     [close, ta.ema(close, 50), time_close],
+     gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+
+// Optional Heatmap OI/Volume proxy
+string heatmapAutoOiSymbol = heatmapOiExchange + ":" + syminfo.basecurrency + "USDT.P_OI"
+string heatmapOiSymbol = str.length(heatmapOiOverride) > 0 ? heatmapOiOverride : heatmapAutoOiSymbol
+float heatmapOi = request.security(heatmapOiSymbol, timeframe.period, close, gaps = barmerge.gaps_on, lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true, calc_bars_count = 5000)
+float heatmapOiDelta = ta.change(heatmapOi)
+float heatmapOiAbsDelta = math.abs(heatmapOiDelta)
+float heatmapOiMean = ta.sma(heatmapOiAbsDelta, heatmapLookback)
+float heatmapOiDev = ta.stdev(heatmapOiAbsDelta, heatmapLookback)
+float heatmapVolMean = ta.sma(volume, heatmapLookback)
+float heatmapVolDev = ta.stdev(volume, heatmapLookback)
+float heatmapAtr = ta.atr(50)
+
+bool v3HtfBoundary = timeframe.change(v3HtfTf)
+bool d1Boundary = timeframe.change(v3D1Tf)
+bool htfBoundary = timeframe.change(trendHTF)
+
+// ============================================================================
+// HELPER METHODS & PURE FUNCTIONS
+// ============================================================================
 method txSz(string s) =>
     out = switch s
         "Tiny"   => size.tiny
@@ -211,19 +316,11 @@ method txSz(string s) =>
         "Auto"   => size.auto
     out
 
-
 method lstyle(string style) =>
     out = switch style
         '⎯⎯⎯⎯'  => line.style_solid
         '----'  => line.style_dashed
         '····'  => line.style_dotted
-
-
-ghl() => [high[2], low[2], close[1], open[1], close, open, high, low, high[1], low[1], ta.atr(200)]
-
-
-float signalVolumeBase = ta.sma(volume, signalVolLength)[1]
-float chochVolumeBase = ta.sma(volume, 20)[1]
 
 historyOffset(int loc) =>
     math.min(math.max(bar_index - nz(loc, bar_index), 0), math.min(bar_index, HISTORY_LIMIT))
@@ -256,8 +353,127 @@ method find(structure ms, bool use_max, bool sweep, bool useob) =>
 relativeVolume(float measured, float baseline) =>
     not na(measured) and not na(baseline) and baseline > 0 ? measured / baseline : na
 
+heatmapAddZone(liqZone[] zones, float level, float weight, int side, float binSize) =>
+    if not na(level) and not na(weight) and weight > 0 and binSize > 0
+        float snapped = math.round(level / binSize) * binSize
+        int match = -1
+        if zones.size() > 0
+            for i = 0 to zones.size() - 1
+                zone = zones.get(i)
+                if not zone.touched and zone.side == side and math.abs(zone.price - snapped) <= binSize * 0.5
+                    match := i
+                    break
+        if match >= 0
+            zone = zones.get(match)
+            float combined = zone.weight + weight
+            zone.price := (zone.price * zone.weight + snapped * weight) / combined
+            zone.weight := combined
+            zone.updated := bar_index
+        else
+            zones.unshift(liqZone.new(price = snapped, weight = weight, side = side, born = bar_index, updated = bar_index))
+    true
+
+heatmapNearest(liqZone[] zones, int side, float currentPrice) =>
+    int found = -1
+    float distance = na
+    float weight = na
+    if zones.size() > 0
+        for i = 0 to zones.size() - 1
+            zone = zones.get(i)
+            bool locatedCorrectly = side == -1 ? zone.price < currentPrice : zone.price > currentPrice
+            if not zone.touched and zone.side == side and locatedCorrectly
+                float candidate = math.abs(zone.price - currentPrice)
+                if na(distance) or candidate < distance
+                    found := i
+                    distance := candidate
+                    weight := zone.weight
+    [found, distance, weight]
+
 chochSourceSignal(bool confirmed, bool event, float sourceRvol, float minimum) =>
     confirmed and event and not na(sourceRvol) and sourceRvol >= minimum
+
+heatmapSignalGate(bool enabled, bool ready, float targetPressure, float oppositePressure, float minimumRatio) =>
+    not enabled or (ready and not na(targetPressure) and not na(oppositePressure) and targetPressure > 0 and oppositePressure > 0 and targetPressure >= oppositePressure * minimumRatio)
+
+lossReversalDecision(int samples, int losses, int minimumSamples, float minimumLossPct) =>
+    samples > 0 and samples >= minimumSamples and losses * 100 >= minimumLossPct * samples
+
+recordSettledOutcome(int[] history, bool lost, int maximum) =>
+    history.push(lost ? 1 : 0)
+    if history.size() > maximum
+        history.shift()
+    true
+
+minimumGate(bool enabled, float value, float minimum) =>
+    not enabled or (not na(value) and value >= minimum)
+
+directionGate(bool enabled, int direction, int htfDirection) =>
+    not enabled or (htfDirection != 0 and direction == htfDirection)
+
+cooldownGate(bool enabled, int lastEmittedBar, int currentBar, int spacing) =>
+    not enabled or na(lastEmittedBar) or currentBar - lastEmittedBar >= spacing
+
+closedHtfSnapshotValid(bool higher, int sourceCloseTime, int chartCloseTime, int boundaryTime, float price, float average) =>
+    higher and not na(sourceCloseTime) and sourceCloseTime == boundaryTime and chartCloseTime == boundaryTime and not na(price) and not na(average)
+
+adverseFill(float price, int side, bool isEntry, float slipPct) =>
+    price * (1.0 + (isEntry ? side : -side) * slipPct / 100.0)
+
+resolvePaperLevels(int side, float refEntry, float atrVal, float stopAtrVal, float minStopPctVal, float rrVal) =>
+    float baseDist = atrVal * stopAtrVal
+    float minDist = minStopPctVal > 0 ? refEntry * minStopPctVal / 100.0 : 0.0
+    float dist = math.max(baseDist, minDist)
+    float stop = refEntry - side * dist
+    float target = refEntry + side * dist * rrVal
+    bool ok = math.abs(side) == 1 and not na(refEntry) and refEntry > 0 and not na(atrVal) and atrVal > 0 and stopAtrVal > 0 and rrVal >= 0.75 and not na(dist) and dist > 0 and stop > 0 and target > 0 and side * (refEntry - stop) > 0 and side * (target - refEntry) > 0
+    [ok, stop, target, dist]
+
+paperExitConservative(int side, string entryMode, bool isEntryBar, bool filledAtOpen, bool beArmed, float o, float h, float l, float c, float stop, float target, int age, int maximum) =>
+    float price = na
+    int reason = 0
+    bool bull = side == 1
+    if math.abs(side) == 1
+        bool canUseGapAndHighLowTp = entryMode == "MARKET_NEXT_OPEN" or not isEntryBar or filledAtOpen
+        bool gapStop = bull ? o <= stop : o >= stop
+        bool gapTarget = canUseGapAndHighLowTp and (bull ? o >= target : o <= target)
+        bool hitStop = bull ? l <= stop : h >= stop
+        bool hitTarget = canUseGapAndHighLowTp ? (bull ? h >= target : l <= target) : (bull ? c >= target : c <= target)
+        int stopCode = beArmed ? 4 : 1
+        if gapStop
+            price := o
+            reason := stopCode
+        else if gapTarget
+            price := target
+            reason := 2
+        else if hitStop
+            price := stop
+            reason := stopCode
+        else if hitTarget
+            price := target
+            reason := 2
+        else if age >= maximum
+            price := c
+            reason := 3
+    [price, reason]
+
+recordShadowOutcome(int[] slHist, float[] netHist, bool isSl, float netPct, int maxLen) =>
+    slHist.push(isSl ? 1 : 0)
+    netHist.push(netPct)
+    if slHist.size() > maxLen
+        slHist.shift()
+    if netHist.size() > maxLen
+        netHist.shift()
+    true
+
+adaptivePolarityFlip(int[] slHist, float[] netHist, int winLen, int slThresh) =>
+    int n = slHist.size()
+    int minLen = math.min(slThresh, winLen)
+    bool flip = false
+    if n >= minLen and n > 0
+        int slCount = slHist.sum()
+        float netSum = netHist.sum()
+        flip := slCount >= slThresh and netSum < 0.0
+    flip
 
 structureEventDirection(string eventType, int direction) =>
     eventType == "choch" and math.abs(direction) == 1 ? direction : 0
@@ -265,7 +481,6 @@ structureEventDirection(string eventType, int direction) =>
 method fnOB(ob[] block, bool bull, float cords, int idx, float sourceRvol, float chochSourceRvol) =>
     float top = bull ? cords : high[idx]
     float bottom = bull ? low[idx] : cords
-    // ATR is unavailable during warm-up; do not create an invalid price zone.
     if not na(top) and not na(bottom) and top > bottom
         block.unshift(ob.new(bull = bull, top = top, btm = bottom, avg = math.avg(top, bottom), loc = time, css = bull ? obupcs : obdncs, vol = volume[idx], sourceRvol = sourceRvol, chochSourceRvol = chochSourceRvol))
         if block.size() > MAX_ZONES
@@ -320,18 +535,6 @@ signalCandidate(ob[] zones, FVG[] gaps, int direction, int structureTrend, int m
                     break
     found
 
-signalProgress(ob[] zones, FVG[] gaps, int direction, int mappingTrend, bool sweepOK, float confirmationRvol) =>
-    int best = -1
-    bool dataOK = false
-    for zone in zones
-        if zoneRejection(zone, direction, time, high, low, close)
-            bool gapOK = gapConfirmation(gaps, zone, direction, time, high, low, close)
-            [score, enabled, available] = signalEvidence(direction, mappingTrend, gapOK, sweepOK, confirmationRvol, zone.sourceRvol)
-            if score > best or (score == best and available)
-                best := score
-                dataOK := available
-    [best, dataOK]
-
 preferFirst(int firstTime, int secondTime, string policy) =>
     policy == "Recent" ? firstTime >= secondTime : firstTime <= secondTime
 
@@ -354,7 +557,6 @@ method mitigated(ob[] block) =>
     true
 
 overlap(ob[] bull, ob[] bear) =>
-    // Resolve actual pairs. Removing index 0 for a different pair loses valid zones.
     for side = 0 to 1
         zones = side == 0 ? bull : bear
         int i = 0
@@ -445,152 +647,106 @@ method mitigateFVG(FVG[] zones, bool bull) =>
 
 method display(ob id, ob[] full, int i) =>
     if not id.isbb
-        bin.bx.unshift(box.new    (top = id.top, bottom = id.btm, left = id.loc, right    = time      , border_color = na    , bgcolor = id.css, xloc = xloc.bar_time))
-        bin.bx.unshift(box.new    (top = id.top, bottom = id.btm, left = time   , right   = time + 1  , border_color = na    , bgcolor = id.css, xloc = xloc.bar_time, extend = extend.right))
-
+        bin.bx.unshift(box.new(top = id.top, bottom = id.btm, left = id.loc, right = time, border_color = na, bgcolor = id.css, xloc = xloc.bar_time, extend = extend.right))
     else
-        bin.bx.unshift(box.new    (top = id.top, bottom = id.btm, left = id.loc   , right = id.bbloc , border_color = na     , bgcolor = id.css                , xloc = xloc.bar_time))
-        bin.bx.unshift(box.new    (top = id.top, bottom = id.btm, left = id.bbloc , right = time     , border_color = id.css , bgcolor = id.bull ? bbup : bbdn , xloc = xloc.bar_time, border_width = 2))
-        bin.bx.unshift(box.new    (top = id.top, bottom = id.btm, left = time     , right = time + 1 , border_color = id.css , bgcolor = id.bull ? bbup : bbdn , xloc = xloc.bar_time, extend = extend.right))
+        bin.bx.unshift(box.new(top = id.top, bottom = id.btm, left = id.loc, right = id.bbloc, border_color = na, bgcolor = id.css, xloc = xloc.bar_time))
+        bin.bx.unshift(box.new(top = id.top, bottom = id.btm, left = id.bbloc, right = time, border_color = id.css, bgcolor = id.bull ? bbup : bbdn, xloc = xloc.bar_time, border_width = 2))
+        bin.bx.unshift(box.new(top = id.top, bottom = id.btm, left = time, right = time + 1, border_color = id.css, bgcolor = id.bull ? bbup : bbdn, xloc = xloc.bar_time, extend = extend.right))
 
     if showline
-        bin.ln.unshift(line.new(
-               x1    = id.loc
-             , x2    = time
-             , y1    = id.avg
-             , y2    = id.avg
-             , color = color.new(id.css, 0)
-             , xloc  = xloc.bar_time
-             , style = line.style_dashed
-              )
-             )
+        bin.ln.unshift(line.new(x1 = id.loc, x2 = time, y1 = id.avg, y2 = id.avg, color = color.new(id.css, 0), xloc = xloc.bar_time, style = line.style_dashed))
 
     if showmetric
         string sourceVolumeText = na(id.vol) ? "N/A" : str.tostring(id.vol, format.volume)
         float displayedSourceRvol = signalMode == "CHoCH + Source RVOL" ? id.chochSourceRvol : id.sourceRvol
         string sourceRvolText = na(displayedSourceRvol) ? "N/A" : str.tostring(displayedSourceRvol, "#.##") + "x"
         string metricText = "OB Source Vol: " + sourceVolumeText + " | RVOL: " + sourceRvolText
-        bin.lb.unshift(label.new(bar_index, id.avg, text = metricText, textcolor = color.new(id.css, 0), style = label.style_label_left, size = obtxt.txSz(), color = #ffffff00, tooltip = "Volume of the OB source candle and its RVOL. CHoCH mode uses the preceding 20-candle baseline; legacy modes use their configured baseline. This is not measured buy/sell volume or a probability."))
+        bin.lb.unshift(label.new(bar_index, id.avg, text = metricText, textcolor = color.new(id.css, 0), style = label.style_label_left, size = obtxt.txSz(), color = #ffffff00, tooltip = "Volume of the OB source candle and its RVOL. Not measured buy/sell volume or a probability."))
 
 method dispFVG(FVG fvg, int i, bool bull) =>
     ext = fvgextend ? extend.right : extend.none
     if not fvg.isbb
-        bin.bx.unshift(box .new(top = fvg.top, bottom = fvg.btm, left = fvg.loc                 , right = time                   , border_color = na   , bgcolor = bull ? fvg_upcss : fvg_dncss            , xloc = xloc.bar_time, extend = ext))
+        bin.bx.unshift(box.new(top = fvg.top, bottom = fvg.btm, left = fvg.loc, right = time, border_color = na, bgcolor = bull ? fvg_upcss : fvg_dncss, xloc = xloc.bar_time, extend = ext))
         if fvgline
-            bin.ln.unshift(line.new(x1  = fvg.loc, x2 = time       , y1 = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), xloc = xloc.bar_time, color = color.new(bull ? fvg_upcss : fvg_dncss, 0)                      , extend = ext))
-        if dispraid
-            bin.ln.unshift(line.new(x1  = fvg.raidloc, x2 = fvg.raidx2, y1 = fvg.raidy, y2 = fvg.raidy, xloc = xloc.bar_time, color = fvg.raidcs))
+            bin.ln.unshift(line.new(x1 = fvg.loc, x2 = time, y1 = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), xloc = xloc.bar_time, color = color.new(bull ? fvg_upcss : fvg_dncss, 0), extend = ext))
+        if dispraid and fvg.israid
+            bin.ln.unshift(line.new(x1 = fvg.raidloc, x2 = fvg.raidx2, y1 = fvg.raidy, y2 = fvg.raidy, xloc = xloc.bar_time, color = fvg.raidcs))
             bin.lb.unshift(label.new(x = int(math.avg(fvg.raidloc, fvg.raidx2)), y = fvg.raidy, text = "x", xloc = xloc.bar_time, textcolor = fvg.raidcs, style = bull ? label.style_label_up : label.style_label_down, size = size.small, color = #ffffff00))
-
     else
-        bin.bx.unshift(box .new(top = fvg.top  , bottom = fvg.btm, left = fvg.loc                   , right = fvg.bbloc              , border_color = na                                 , bgcolor = bull ? fvg_upcss : fvg_dncss, xloc = xloc.bar_time))
-        bin.bx.unshift(box .new(top = fvg.top  , bottom = fvg.btm, left = fvg.bbloc                 , right = time                   , border_color = bull ? fvg_dncss : fvg_upcss       , bgcolor = bull ? fvg_dncss : fvg_upcss, xloc = xloc.bar_time, extend = ext))
+        bin.bx.unshift(box.new(top = fvg.top, bottom = fvg.btm, left = fvg.loc, right = fvg.bbloc, border_color = na, bgcolor = bull ? fvg_upcss : fvg_dncss, xloc = xloc.bar_time))
+        bin.bx.unshift(box.new(top = fvg.top, bottom = fvg.btm, left = fvg.bbloc, right = time, border_color = bull ? fvg_dncss : fvg_upcss, bgcolor = bull ? fvg_dncss : fvg_upcss, xloc = xloc.bar_time, extend = ext))
         if fvgline
-            bin.ln.unshift(line.new(x1  = fvg.loc  , x2 = fvg.bbloc  , y1   = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), color = color.new(bull ? fvg_upcss : fvg_dncss, 0)                                        , xloc = xloc.bar_time))
-            bin.ln.unshift(line.new(x1  = fvg.bbloc, x2 = time       , y1   = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), color = color.new(bull ? fvg_dncss : fvg_upcss, 0)                                        , xloc = xloc.bar_time, extend = ext, style = line.style_dashed))
-//}
-// Section
+            bin.ln.unshift(line.new(x1 = fvg.loc, x2 = fvg.bbloc, y1 = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), color = color.new(bull ? fvg_upcss : fvg_dncss, 0), xloc = xloc.bar_time))
+            bin.ln.unshift(line.new(x1 = fvg.bbloc, x2 = time, y1 = math.avg(fvg.top, fvg.btm), y2 = math.avg(fvg.top, fvg.btm), color = color.new(bull ? fvg_dncss : fvg_upcss, 0), xloc = xloc.bar_time, extend = ext, style = line.style_dashed))
 
 mapping(bool draw) =>
-    var float    up          = na
-    var float    dn          = na
-    var float point          = na
-    var int   trend          = 0
-    var int     idx          = na
-    var int     sum          = na
-    var int project          = na
+    var float up = na
+    var float dn = na
+    var float point = na
+    var int trend = 0
+    var int idx = na
+    var int sum = na
+    var int project = na
     var chart.point[] charts = array.new<chart.point>()
 
     if barstate.isconfirmed
         if na(up)
             up := high
             idx := bar_index
-
         if na(dn)
             dn := low
             idx := bar_index
-
         if high > up
             if trend == -1
                 id = IDMIDX(false, idx)
-                charts.unshift(
-                     chart.point.from_time(
-                           time[id]
-                         , low [id]
-                          )
-                         )
-                idx   := bar_index
-                point := low [id]
-                sum   := time[id]
-
-            up      := high
-            dn      := low
+                charts.unshift(chart.point.from_time(time[id], low[id]))
+                idx := bar_index
+                point := low[id]
+                sum := time[id]
+            up := high
+            dn := low
             project := time
-            trend   := 1
-
+            trend := 1
         if low < dn
             if trend == 1
                 id = IDMIDX(true, idx)
-                charts.unshift(
-                     chart.point.from_time(
-                           time[id]
-                         , high[id]
-                          )
-                         )
-                idx   := bar_index
+                charts.unshift(chart.point.from_time(time[id], high[id]))
+                idx := bar_index
                 point := high[id]
-                sum   := time[id]
-
-            up      := high
-            dn      := low
+                sum := time[id]
+            up := high
+            dn := low
             project := time
             trend := -1
-
         while charts.size() > MAX_MAPPING_POINTS
             charts.pop()
 
     if barstate.islast and draw
-        var line     ln = na
+        var line ln = na
         var polyline pl = na
         ln.delete()
         pl.delete()
-        ln := na
-        pl := na
-        ln := line.new(
-               x1 = sum
-             , x2 = project
-             , y1 = point
-             , y2 = trend == 1 ? up : dn
-             , xloc = xloc.bar_time
-             , color = color.red
-             )
-        pl := polyline.new(
-               charts
-             , line_color = mappingcss
-             , xloc = xloc.bar_time
-             , line_style = mappingStyle.lstyle()
-             )
+        ln := line.new(x1 = sum, x2 = project, y1 = point, y2 = trend == 1 ? up : dn, xloc = xloc.bar_time, color = color.red)
+        pl := polyline.new(charts, line_color = mappingcss, xloc = xloc.bar_time, line_style = mappingStyle.lstyle())
     trend
 
-
-dFVG() =>
-    [h2, l2, c1, o1, c, o, h, l, h1, l1, fvatr] = ghl()
+dFVG(float fvatr) =>
     var FVG[] blFVG = array.new<FVG>()
     var FVG[] brFVG = array.new<FVG>()
     var int lastBullRaid = na
     var int lastBearRaid = na
-    bool      upfvg = false
-    bool      dnfvg = false
-    float     blth  = l1 + (fvatr[1] * fvgthresh)
-    float     brth  = h1 - (fvatr[1] * fvgthresh)
+    bool upfvg = false
+    bool dnfvg = false
+    float blth = low[1] + (fvatr[1] * fvgthresh)
+    float brth = high[1] - (fvatr[1] * fvgthresh)
 
     if barstate.isconfirmed
-        upfvg := l > h2 and c1 > blth
-        dnfvg := l2 > h and c1 < brth
+        upfvg := low > high[2] and close[1] > blth
+        dnfvg := low[2] > high and close[1] < brth
         if upfvg
-            blFVG.unshift(FVG.new(top = l, btm = h2, loc = time))
+            blFVG.unshift(FVG.new(top = low, btm = high[2], loc = time))
         if dnfvg
-            brFVG.unshift(FVG.new(top = l2, btm = h, loc = time))
+            brFVG.unshift(FVG.new(top = low[2], btm = high, loc = time))
         if blFVG.size() > MAX_ZONES
             blFVG.pop()
         if brFVG.size() > MAX_ZONES
@@ -604,128 +760,107 @@ dFVG() =>
         for [i, fvg] in blFVG
             if not fvg.israid and not fvg.isbb
                 if low < fvg.top and close > fvg.top
-                    fvg.israid  := true
+                    fvg.israid := true
                     fvg.raidloc := time
-                    fvg.raidx2  := time
-                    fvg.raidy   := low
-                    fvg.raidcs  := chart.fg_color
+                    fvg.raidx2 := time
+                    fvg.raidy := low
+                    fvg.raidcs := chart.fg_color
                     lastBullRaid := bar_index
             else
                 if low <= fvg.raidy and fvg.active == false and not fvg.isbb
-
                     fvg.active := true
                     fvg.raidx2 := time
-                else
-                    if fvg.active == false and not fvg.isbb
-                        fvg.raidx2 := time
+                else if fvg.active == false and not fvg.isbb
+                    fvg.raidx2 := time
 
         for [i, fvg] in brFVG
             if not fvg.israid and not fvg.isbb
                 if high > fvg.btm and close < fvg.btm and not fvg.isbb
-                    fvg.israid  := true
+                    fvg.israid := true
                     fvg.raidloc := time
-                    fvg.raidy   := high
-                    fvg.raidx2  := time
-                    fvg.raidcs  := chart.fg_color
+                    fvg.raidy := high
+                    fvg.raidx2 := time
+                    fvg.raidcs := chart.fg_color
                     lastBearRaid := bar_index
             else
                 if high >= fvg.raidy and fvg.active == false and not fvg.isbb
-
                     fvg.active := true
                     fvg.raidx2 := time
-                else
-                    if fvg.active == false and not fvg.isbb
-                        fvg.raidx2 := time
-
+                else if fvg.active == false and not fvg.isbb
+                    fvg.raidx2 := time
 
     if barstate.islast and fvg_enable
         if blFVG.size() > 0 and fvg_num > 0
             for i = 0 to math.min(fvg_num - 1, blFVG.size() - 1)
-                fvg = blFVG.get(i)
-                dispFVG(fvg, i, true)
-
+                dispFVG(blFVG.get(i), i, true)
         if brFVG.size() > 0 and fvg_num > 0
             for i = 0 to math.min(fvg_num - 1, brFVG.size() - 1)
-                fvg = brFVG.get(i)
-                dispFVG(fvg, i, false)
+                dispFVG(brFVG.get(i), i, false)
     [blFVG, brFVG, lastBullRaid, lastBearRaid]
 
-
-structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
-    var structure ms  = structure.new(start = 0)
-    var     ob     [] blob     = array.new<     ob    >()
-    var     ob     [] brob     = array.new<     ob    >()
-    var drawms     [] bldw     = array.new<  drawms   >()
-    var drawms     [] brdw     = array.new<  drawms   >()
-    bool      crossup =     false
-    bool      crossdn =     false
-    string    structureEventType = ""
-    int       structureEventSide = 0
-    var float up      =     na
-    var float dn      =     na
-    idbull            =  ms.find(false, false, true)
-    idbear            =  ms.find(true , false, true)
+structure(color upcss, color dncss, bool draw, bool internal, int limit, float ph, float pl) =>
+    var structure ms = structure.new(start = 0)
+    var ob[] blob = array.new<ob>()
+    var ob[] brob = array.new<ob>()
+    var drawms[] bldw = array.new<drawms>()
+    var drawms[] brdw = array.new<drawms>()
+    bool crossup = false
+    bool crossdn = false
+    string structureEventType = ""
+    int structureEventSide = 0
+    var float up = na
+    var float dn = na
+    int idbull = ms.find(false, false, true)
+    int idbear = ms.find(true, false, true)
     float sourceBullRvol = relativeVolume(volume[idbull], signalVolumeBase[idbull])
     float sourceBearRvol = relativeVolume(volume[idbear], signalVolumeBase[idbear])
     float sourceBullChochRvol = relativeVolume(volume[idbull], chochVolumeBase[idbull])
     float sourceBearChochRvol = relativeVolume(volume[idbear], chochVolumeBase[idbear])
-    btmP              =  obmode == "Length" ? (high[idbear] - 1 * atr[idbear]) < low [idbear] ? low [idbear] : (high[idbear] - 1 * atr[idbear]) : low [idbear]
-    topP              =  obmode == "Length" ? (low [idbull] + 1 * atr[idbull]) > high[idbull] ? high[idbull] : (low [idbull] + 1 * atr[idbull]) : high[idbull]
-    ph                = ta.pivothigh(high, mslen, mslen)
-    pl                = ta.pivotlow (low , mslen, mslen)
-    var int  [] phn   = array.new< int >()
-    var int  [] pln   = array.new< int >()
-    var float[] php   = array.new<float>()
-    var float[] plp   = array.new<float>()
+    float btmP = obmode == "Length" ? (high[idbear] - 1 * atr[idbear]) < low[idbear] ? low[idbear] : (high[idbear] - 1 * atr[idbear]) : low[idbear]
+    float topP = obmode == "Length" ? (low[idbull] + 1 * atr[idbull]) > high[idbull] ? high[idbull] : (low[idbull] + 1 * atr[idbull]) : high[idbull]
+    var int[] phn = array.new<int>()
+    var int[] pln = array.new<int>()
+    var float[] php = array.new<float>()
+    var float[] plp = array.new<float>()
 
     if barstate.isconfirmed
         if internal
             blob.clear()
             brob.clear()
-
         if not na(ph)
             phn.clear()
             php.clear()
             phn.unshift(bar_index[mslen])
             php.unshift(high[mslen])
-
         if not na(pl)
             pln.clear()
             plp.clear()
             pln.unshift(bar_index[mslen])
             plp.unshift(low[mslen])
-
-        if php.size() > 0
-            if high > php.get(0)
-                php.clear()
-                phn.clear()
-
-        if plp.size() > 0
-            if low < plp.get(0)
-                plp.clear()
-                pln.clear()
-
+        if php.size() > 0 and high > php.get(0)
+            php.clear()
+            phn.clear()
+        if plp.size() > 0 and low < plp.get(0)
+            plp.clear()
+            pln.clear()
         if na(up)
-            up      := high
-
+            up := high
         if na(dn)
-            dn      := low
-
+            dn := low
         if high > up
-            up      := high
-            dn      := low
+            up := high
+            dn := low
             crossup := true
-
         if low < dn
-            up      := high
-            dn      := low
+            up := high
+            dn := low
             crossdn := true
 
         if ms.start == 0
-            ms         := structure.new(bar_index, na, high, low , bar_index, bar_index, 0, 1, na, bar_index)
+            ms := structure.new(bar_index, na, high, low, bar_index, bar_index, 0, 1, na, bar_index)
             if draw
-                bldw.unshift(drawms.new(time, time, high     , "CHoCH"  , upcss, line.style_dashed))
-                brdw.unshift(drawms.new(time, time, low      , "CHoCH"  , dncss, line.style_dashed))
+                bldw.unshift(drawms.new(time, time, high, "CHoCH", upcss, line.style_dashed))
+                brdw.unshift(drawms.new(time, time, low, "CHoCH", dncss, line.style_dashed))
 
         ms.upsweep := false
         ms.dnsweep := false
@@ -733,411 +868,266 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
         if ms.start == 1
             switch
                 low <= ms.choch and close >= ms.choch and buildsweep =>
-
-                    ms.dnsweep   := true
-                    ms.choch     := low
-                    ms.xloc      := bar_index
+                    ms.dnsweep := true
+                    ms.choch := low
+                    ms.xloc := bar_index
                     if draw
-                        dw        = brdw.get(0)
-                        dw.x2    := time
+                        dw = brdw.get(0)
+                        dw.x2 := time
                         dw.style := line.style_dotted
-                        dw.txt   := "x"
-                        brdw.unshift(
-                             drawms.new(
-                                   time
-                                 , time
-                                 , low
-                                 , "CHoCH"
-                                 , dncss
-                                 , line.style_dashed
-                                  )
-                                 )
-
-
+                        dw.txt := "x"
+                        brdw.unshift(drawms.new(time, time, low, "CHoCH", dncss, line.style_dashed))
                 high >= ms.bos and close <= ms.bos and buildsweep =>
-
-                    ms.upsweep   := true
-                    ms.bos       := high
-                    ms.xloc      := bar_index
+                    ms.upsweep := true
+                    ms.bos := high
+                    ms.xloc := bar_index
                     if draw
-                        dw        = bldw.get(0)
-                        dw.x2    := time
+                        dw = bldw.get(0)
+                        dw.x2 := time
                         dw.style := line.style_dotted
-                        dw.txt   := "x"
-                        bldw.unshift(
-                             drawms.new(
-                                   time
-                                 , time
-                                 , high
-                                 , "CHoCH"
-                                 , upcss
-                                 , line.style_dashed
-                                  )
-                                 )
-
-
+                        dw.txt := "x"
+                        bldw.unshift(drawms.new(time, time, high, "CHoCH", upcss, line.style_dashed))
                 close <= ms.choch =>
-
-                    ms.txt       := "choch"
+                    ms.txt := "choch"
                     structureEventType := "choch"
                     structureEventSide := -1
                     brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
-                    ms.trend     := -1
-                    ms.choch     := ms.bos
-                    ms.bos       := na
-                    ms.start     := 2
-                    ms.loc       := bar_index
-                    ms.main      := low
-                    ms.temp      := ms.loc
-                    ms.xloc      := bar_index
+                    ms.trend := -1
+                    ms.choch := ms.bos
+                    ms.bos := na
+                    ms.start := 2
+                    ms.loc := bar_index
+                    ms.main := low
+                    ms.temp := ms.loc
+                    ms.xloc := bar_index
                     if draw
-                        dw        = brdw.get(0)
-                        dw.x2    := time
+                        dw = brdw.get(0)
+                        dw.x2 := time
                         dw.style := internal ? line.style_dashed : line.style_solid
-
-
                 close >= ms.bos =>
-
-                    ms.txt       := "choch"
+                    ms.txt := "choch"
                     structureEventType := "choch"
                     structureEventSide := 1
                     blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
-                    ms.trend     := 1
-                    ms.choch     := ms.choch
-                    ms.bos       := na
-                    ms.start     := 2
-                    ms.loc       := bar_index
-                    ms.main      := high
-                    ms.temp      := ms.loc
-                    ms.xloc      := bar_index
+                    ms.trend := 1
+                    ms.bos := na
+                    ms.start := 2
+                    ms.loc := bar_index
+                    ms.main := high
+                    ms.temp := ms.loc
+                    ms.xloc := bar_index
                     if draw
-                        dw        = bldw.get(0)
-                        dw.x2    := time
+                        dw = bldw.get(0)
+                        dw.x2 := time
                         dw.style := internal ? line.style_dashed : line.style_solid
-
 
         if ms.start == 2
             switch ms.trend
                 -1 =>
                     if low <= ms.main
-                        ms.main     := low
-                        ms.temp     := bar_index
-
+                        ms.main := low
+                        ms.temp := bar_index
                     if bar_index % mslen * 2 == 0
                         if not na(ms.bos) and msmode == "Adjusted Points" and php.size() > 0
                             if php.get(0) < ms.choch
-                                // ms.xloc  := phn.get(0)
                                 ms.choch := php.get(0)
-                                ms.loc   := phn.get(0)
-                                ms.xloc  := phn.get(0)
-                                ms.temp  := phn.get(0)
+                                ms.loc := phn.get(0)
+                                ms.xloc := phn.get(0)
+                                ms.temp := phn.get(0)
                                 if draw
-                                    choch     = bldw.get(0)
-                                    choch.x1 := time [historyOffset(phn.get(0))]
+                                    choch = bldw.get(0)
+                                    choch.x1 := time[historyOffset(phn.get(0))]
                                     choch.x2 := time
-                                    choch.y  := php.get(0)
-
+                                    choch.y := php.get(0)
                     if na(ms.bos)
                         if crossup and close > open and close[1] > open[1]
-                            ms.bos  := ms.main
-                            ms.loc  := ms.temp
+                            ms.bos := ms.main
+                            ms.loc := ms.temp
                             ms.xloc := ms.loc
                             if draw
-                                brdw.unshift(
-                                     drawms.new(
-                                           time[historyOffset(ms.loc)]
-                                         , time
-                                         , low [historyOffset(ms.loc)]
-                                         , "BOS"
-                                         , dncss
-                                         , line.style_dashed
-                                          )
-                                         )
-
+                                brdw.unshift(drawms.new(time[historyOffset(ms.loc)], time, low[historyOffset(ms.loc)], "BOS", dncss, line.style_dashed))
                     if not na(ms.bos) and draw
-                        dw        = brdw.get(0)
-                        dw.x2    := time
-
+                        dw = brdw.get(0)
+                        dw.x2 := time
                     if draw
-                        choch     = bldw.get(0)
+                        choch = bldw.get(0)
                         choch.x2 := time
-
                     switch
                         low <= ms.bos and close >= ms.bos and not na(ms.bos) and buildsweep =>
-
-                            ms.dnsweep   := true
-                            ms.bos       := low
+                            ms.dnsweep := true
+                            ms.bos := low
                             if draw
-                                dw        = brdw.get(0)
-                                dw.x2    := time
+                                dw = brdw.get(0)
+                                dw.x2 := time
                                 dw.style := line.style_dotted
-                                dw.txt   := "x"
-                                brdw.unshift(
-                                     drawms.new(
-                                           time
-                                         , time
-                                         , low
-                                         , "BOS"
-                                         , dncss
-                                         , line.style_dashed
-                                          )
-                                         )
-
-
-                            ms.xloc      := bar_index
-
+                                dw.txt := "x"
+                                brdw.unshift(drawms.new(time, time, low, "BOS", dncss, line.style_dashed))
+                            ms.xloc := bar_index
                         close <= ms.bos and not na(ms.bos) =>
-
-                            ms.txt       := "bos"
-                            ms.zz        := ms.bos
-                            ms.zn        := bar_index
+                            ms.txt := "bos"
+                            ms.zz := ms.bos
+                            ms.zn := bar_index
                             structureEventType := "bos"
                             structureEventSide := -1
                             brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
-                            id        = ms.find(true, false, false)
-                            ms.xloc  := bar_index
-                            ms.bos   := na
-                            ms.choch := high     [id]
-                            ms.loc   := bar_index[id]
+                            id = ms.find(true, false, false)
+                            ms.xloc := bar_index
+                            ms.bos := na
+                            ms.choch := high[id]
+                            ms.loc := bar_index[id]
                             if draw
-                                dw        = brdw.get(0)
-                                dw.x2    := time
+                                dw = brdw.get(0)
+                                dw.x2 := time
                                 dw.style := internal ? line.style_dashed : line.style_solid
-                                choch     = bldw.get(0)
-                                choch.x1 := time [id]
+                                choch = bldw.get(0)
+                                choch.x1 := time[id]
                                 choch.x2 := time
-                                choch.y  := high [id]
-
-
+                                choch.y := high[id]
                     switch
                         high >= ms.choch and close <= ms.choch and buildsweep =>
-
-                            ms.upsweep   := true
-                            ms.choch     := high
-                            ms.xloc      := bar_index
+                            ms.upsweep := true
+                            ms.choch := high
+                            ms.xloc := bar_index
                             if draw
-                                dw        = bldw.get(0)
-                                dw.x2    := time
+                                dw = bldw.get(0)
+                                dw.x2 := time
                                 dw.style := line.style_dotted
-                                dw.txt   := "x"
-                                bldw.unshift(
-                                     drawms.new(
-                                           time
-                                         , time
-                                         , high
-                                         , "CHoCH"
-                                         , upcss
-                                         , line.style_dashed
-                                          )
-                                         )
-
-
+                                dw.txt := "x"
+                                bldw.unshift(drawms.new(time, time, high, "CHoCH", upcss, line.style_dashed))
                         close >= ms.choch =>
-
-                            ms.txt       := "choch"
+                            ms.txt := "choch"
                             structureEventType := "choch"
                             structureEventSide := 1
-                            ms.zz        := ms.choch
-                            ms.zn        := bar_index
+                            ms.zz := ms.choch
+                            ms.zn := bar_index
                             blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
-                            id        = ms.find(false, false, false)
+                            id = ms.find(false, false, false)
                             switch
                                 na(ms.bos) =>
                                     ms.choch := low[id]
                                     if draw
-                                        brdw.unshift(
-                                             drawms.new(
-                                                  time
-                                                 , time
-                                                 , low
-                                                 , "BOS"
-                                                 , dncss
-                                                 , line.style_dashed
-                                                 )
-                                                 )
+                                        brdw.unshift(drawms.new(time, time, low, "BOS", dncss, line.style_dashed))
                                         choch = brdw.get(0)
                                         choch.x1 := time[historyOffset(ms.temp)]
-                                => ms.choch := ms.bos//low[id + 1] < low[id] ? low[id + 1] : low[id]
-                            ms.bos   := na
-                            ms.main  := high
+                                => ms.choch := ms.bos
+                            ms.bos := na
+                            ms.main := high
                             ms.trend := 1
-                            ms.loc   := bar_index
-                            ms.xloc  := bar_index
-                            ms.temp  := ms.loc
+                            ms.loc := bar_index
+                            ms.xloc := bar_index
+                            ms.temp := ms.loc
                             if draw
-                                dw         = bldw.get(0)
-                                dw.x2     := time
-                                dw.txt    := "CHoCH"
-                                dw.style  := internal ? line.style_dashed : line.style_solid
-                                choch      = brdw.get(0)
-                                choch.x2  := time
-                                choch.y   := ms.choch
+                                dw = bldw.get(0)
+                                dw.x2 := time
+                                dw.txt := "CHoCH"
+                                dw.style := internal ? line.style_dashed : line.style_solid
+                                choch = brdw.get(0)
+                                choch.x2 := time
+                                choch.y := ms.choch
                                 choch.txt := "CHoCH"
-
-
-                            ms.xloc       := bar_index
-
-
+                            ms.xloc := bar_index
                 1 =>
                     if high >= ms.main
-                        ms.main     := high
-                        ms.temp     := bar_index
-
+                        ms.main := high
+                        ms.temp := bar_index
                     if na(ms.bos)
                         if crossdn and close < open and close[1] < open[1]
-                            ms.bos  := ms.main
-                            ms.loc  := ms.temp
+                            ms.bos := ms.main
+                            ms.loc := ms.temp
                             ms.xloc := ms.loc
                             if draw
-                                bldw.unshift(
-                                     drawms.new(
-                                           time[historyOffset(ms.loc)]
-                                         , time
-                                         , high[historyOffset(ms.loc)]
-                                         , "BOS"
-                                         , upcss
-                                         , line.style_dashed
-                                          )
-                                         )
-
+                                bldw.unshift(drawms.new(time[historyOffset(ms.loc)], time, high[historyOffset(ms.loc)], "BOS", upcss, line.style_dashed))
                     if bar_index % mslen * 2 == 0
                         if not na(ms.bos) and msmode == "Adjusted Points" and plp.size() > 0
                             if plp.get(0) > ms.choch
-                                // ms.xloc  := pln.get(0)
                                 ms.choch := plp.get(0)
-                                ms.loc   := pln.get(0)
-                                ms.xloc  := pln.get(0)
-                                ms.temp  := pln.get(0)
-                                // ms.loc   := pln.get(0)
+                                ms.loc := pln.get(0)
+                                ms.xloc := pln.get(0)
+                                ms.temp := pln.get(0)
                                 if draw
-                                    choch     = brdw.get(0)
-                                    choch.x1 := time [historyOffset(pln.get(0))]
+                                    choch = brdw.get(0)
+                                    choch.x1 := time[historyOffset(pln.get(0))]
                                     choch.x2 := time
-                                    choch.y  := plp.get(0)
-
+                                    choch.y := plp.get(0)
                     if not na(ms.bos) and draw
-                        dw         = bldw.get(0)
-                        dw.x2     := time
-
+                        dw = bldw.get(0)
+                        dw.x2 := time
                     if draw
-                        choch      = brdw.get(0)
-                        choch.x2  := time
-
+                        choch = brdw.get(0)
+                        choch.x2 := time
                     switch
                         high >= ms.bos and close <= ms.bos and not na(ms.bos) and buildsweep =>
-
-                            ms.upsweep   := true
-                            ms.bos       := high
+                            ms.upsweep := true
+                            ms.bos := high
                             if draw
-                                dw        = bldw.get(0)
-                                dw.x2    := time
+                                dw = bldw.get(0)
+                                dw.x2 := time
                                 dw.style := line.style_dotted
-                                dw.txt   := "x"
-                                bldw.unshift(
-                                     drawms.new(
-                                           time
-                                         , time
-                                         , high
-                                         , "BOS"
-                                         , upcss
-                                         , line.style_dashed
-                                          )
-                                         )
-
-
-                            ms.xloc      := bar_index
-
-
+                                dw.txt := "x"
+                                bldw.unshift(drawms.new(time, time, high, "BOS", upcss, line.style_dashed))
+                            ms.xloc := bar_index
                         close >= ms.bos and not na(ms.bos) =>
-
-                            ms.txt       := "bos"
-                            ms.zz        := ms.bos
-                            ms.zn        := bar_index
+                            ms.txt := "bos"
+                            ms.zz := ms.bos
+                            ms.zn := bar_index
                             structureEventType := "bos"
                             structureEventSide := 1
                             blob.fnOB(true, topP, idbull, sourceBullRvol, sourceBullChochRvol)
-                            id        = ms.find(false, false, false)
-                            ms.xloc  := bar_index
-                            ms.bos   := na
-                            ms.choch := low      [id]
-                            ms.loc   := bar_index[id]
+                            id = ms.find(false, false, false)
+                            ms.xloc := bar_index
+                            ms.bos := na
+                            ms.choch := low[id]
+                            ms.loc := bar_index[id]
                             if draw
-                                dw        = bldw.get(0)
-                                dw.x2    := time
+                                dw = bldw.get(0)
+                                dw.x2 := time
                                 dw.style := internal ? line.style_dashed : line.style_solid
-                                choch     = brdw.get(0)
-                                choch.x1 := time [id]
+                                choch = brdw.get(0)
+                                choch.x1 := time[id]
                                 choch.x2 := time
-                                choch.y  := low  [id]
-
-
+                                choch.y := low[id]
                     switch
-                        low  <= ms.choch and close >= ms.choch and buildsweep =>
-
-                            ms.dnsweep   := true
-                            ms.choch     := low
-                            ms.xloc      := bar_index
+                        low <= ms.choch and close >= ms.choch and buildsweep =>
+                            ms.dnsweep := true
+                            ms.choch := low
+                            ms.xloc := bar_index
                             if draw
-                                dw        = brdw.get(0)
-                                dw.x2    := time
+                                dw = brdw.get(0)
+                                dw.x2 := time
                                 dw.style := line.style_dotted
-                                dw.txt   := "x"
-                                brdw.unshift(
-                                     drawms.new(
-                                           time
-                                         , time
-                                         , low
-                                         , "CHoCH"
-                                         , dncss
-                                         , line.style_dashed
-                                          )
-                                         )
-
-
+                                dw.txt := "x"
+                                brdw.unshift(drawms.new(time, time, low, "CHoCH", dncss, line.style_dashed))
                         close <= ms.choch =>
-
-                            ms.txt       := "choch"
+                            ms.txt := "choch"
                             structureEventType := "choch"
                             structureEventSide := -1
-                            ms.zz        := ms.choch
-                            ms.zn        := bar_index
+                            ms.zz := ms.choch
+                            ms.zn := bar_index
                             brob.fnOB(false, btmP, idbear, sourceBearRvol, sourceBearChochRvol)
-                            id        = ms.find(true, false, false)
+                            id = ms.find(true, false, false)
                             switch
                                 na(ms.bos) =>
                                     ms.choch := high[id]
                                     if draw
-                                        bldw.unshift(
-                                             drawms.new(
-                                                   time
-                                                 , time
-                                                 , high
-                                                 , "BOS"
-                                                 , upcss
-                                                 , line.style_dashed
-                                                 )
-                                                 )
+                                        bldw.unshift(drawms.new(time, time, high, "BOS", upcss, line.style_dashed))
                                         choch = bldw.get(0)
                                         choch.x1 := time[historyOffset(ms.temp)]
-                                => ms.choch := ms.bos//high[id + 1] > high[id] ? high[id + 1] : high[id]
-                            ms.bos   := na
-                            ms.main  := low
+                                => ms.choch := ms.bos
+                            ms.bos := na
+                            ms.main := low
                             ms.trend := -1
-                            ms.loc   := bar_index
-                            ms.temp  := ms.loc
+                            ms.loc := bar_index
+                            ms.temp := ms.loc
                             if draw
-                                dw         = brdw.get(0)
-                                dw.x2     := time
-                                dw.txt    := "CHoCH"
-                                dw.style  := internal ? line.style_dashed : line.style_solid
-                                choch      = bldw.get(0)
-                                choch.y   := ms.choch
-                                choch.x2  := time
+                                dw = brdw.get(0)
+                                dw.x2 := time
+                                dw.txt := "CHoCH"
+                                dw.style := internal ? line.style_dashed : line.style_solid
+                                choch = bldw.get(0)
+                                choch.y := ms.choch
+                                choch.x2 := time
                                 choch.txt := "CHoCH"
-
-
-                            ms.xloc       := bar_index
-
+                            ms.xloc := bar_index
 
     if barstate.isconfirmed
         blob.mitigated()
@@ -1150,96 +1140,29 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
         while brdw.size() > limit
             brdw.pop()
 
-    if obshow and oblast > 0
-        if barstate.islast
-            if blob.size() > 0
-                for i = 0 to math.min(oblast - 1, blob.size() - 1)
-                    obs = blob.get(i)
-                    display(obs, blob, i)
-
-            if brob.size() > 0
-                for i = 0 to math.min(oblast - 1, brob.size() - 1)
-                    obs = brob.get(i)
-                    display(obs, brob, i)
+    if obshow and oblast > 0 and barstate.islast
+        if blob.size() > 0
+            for i = 0 to math.min(oblast - 1, blob.size() - 1)
+                display(blob.get(i), blob, i)
+        if brob.size() > 0
+            for i = 0 to math.min(oblast - 1, brob.size() - 1)
+                display(brob.get(i), brob, i)
 
     if barstate.islast and draw and bldw.size() > 0 and brdw.size() > 0
         for i = 0 to bldw.size() - 1
             obj = bldw.get(i)
             if i < limit and (not windowsis or obj.x2 >= time[math.min(bar_index, mswindow)])
-                bin.ln.unshift(
-                     line.new(
-                           x1    = obj.x1
-                         , x2    = obj.x2
-                         , y1    = obj.y
-                         , y2    = obj.y
-                         , color = obj.css
-                         , style = obj.style
-                         , xloc  = xloc.bar_time
-                          )
-                         )
-                bin.lb.unshift(
-                     label.new(
-                           x         = int(math.avg(bin.ln.get(0).get_x1(), bin.ln.get(0).get_x2()))
-                         , y         = obj.y
-                         , xloc      = xloc.bar_time
-                         , color     = #ffffff00
-                         , style     = label.style_label_down
-                         , textcolor = obj.css
-                         , size      = mstext.txSz()
-                         , text      = obj.txt
-                          )
-                         )
-
+                bin.ln.unshift(line.new(x1 = obj.x1, x2 = obj.x2, y1 = obj.y, y2 = obj.y, color = obj.css, style = obj.style, xloc = xloc.bar_time))
+                bin.lb.unshift(label.new(x = int(math.avg(bin.ln.get(0).get_x1(), bin.ln.get(0).get_x2())), y = obj.y, xloc = xloc.bar_time, color = #ffffff00, style = label.style_label_down, textcolor = obj.css, size = mstext.txSz(), text = obj.txt))
                 if msbubble
-                    bin.lb.unshift(
-                         label.new(
-                               x     = obj.x1
-                             , y     = obj.y
-                             , xloc  = xloc.bar_time
-                             , color = color.new(obj.css, 80)
-                             , style = label.style_circle
-                             , size  = size.tiny
-                              )
-                             )
-
+                    bin.lb.unshift(label.new(x = obj.x1, y = obj.y, xloc = xloc.bar_time, color = color.new(obj.css, 80), style = label.style_circle, size = size.tiny))
         for i = 0 to brdw.size() - 1
             obj = brdw.get(i)
             if i < limit and (not windowsis or obj.x2 >= time[math.min(bar_index, mswindow)])
-                bin.ln.unshift(
-                     line.new(
-                           x1    = obj.x1
-                         , x2    = obj.x2
-                         , y1    = obj.y
-                         , y2    = obj.y
-                         , color = obj.css
-                         , style = obj.style
-                         , xloc  = xloc.bar_time
-                          )
-                         )
-                bin.lb.unshift(
-                     label.new(
-                           x         = int(math.avg(bin.ln.get(0).get_x1(), bin.ln.get(0).get_x2()))
-                         , y         = obj.y
-                         , xloc      = xloc.bar_time
-                         , color     = #ffffff00
-                         , style     = label.style_label_up
-                         , textcolor = obj.css
-                         , size      = mstext.txSz()
-                         , text      = obj.txt
-                          )
-                         )
-
+                bin.ln.unshift(line.new(x1 = obj.x1, x2 = obj.x2, y1 = obj.y, y2 = obj.y, color = obj.css, style = obj.style, xloc = xloc.bar_time))
+                bin.lb.unshift(label.new(x = int(math.avg(bin.ln.get(0).get_x1(), bin.ln.get(0).get_x2())), y = obj.y, xloc = xloc.bar_time, color = #ffffff00, style = label.style_label_up, textcolor = obj.css, size = mstext.txSz(), text = obj.txt))
                 if msbubble
-                    bin.lb.unshift(
-                             label.new(
-                                   x     = obj.x1
-                                 , y     = obj.y
-                                 , xloc  = xloc.bar_time
-                                 , color = color.new(obj.css, 80)
-                                 , style = label.style_circle
-                                 , size  = size.tiny
-                                  )
-                                 )
+                    bin.lb.unshift(label.new(x = obj.x1, y = obj.y, xloc = xloc.bar_time, color = color.new(obj.css, 80), style = label.style_circle, size = size.tiny))
 
     int chochDirection = structureEventDirection(structureEventType, structureEventSide)
     bool bullChochEvent = chochDirection == 1
@@ -1248,31 +1171,22 @@ structure(color upcss, color dncss, bool draw, bool internal, int limit) =>
     float bearChochSourceRvol = bearChochEvent ? sourceBearChochRvol : na
     [ms, blob, brob, bullChochEvent, bearChochEvent, bullChochSourceRvol, bearChochSourceRvol]
 
-//}
-// Section
-
-// Always call stateful calculations so their history remains consistent.
-[ms, bullOBs, bearOBs, bullChochEvent, bearChochEvent, bullChochSourceRvol, bearChochSourceRvol] = structure(swingcssup, swingcssdn, showSwing, false, swingLimit)
+// ============================================================================
+// SMC STRUCTURE / FVG / MAPPING / HEATMAP EXECUTION
+// ============================================================================
+[ms, bullOBs, bearOBs, bullChochEvent, bearChochEvent, bullChochSourceRvol, bearChochSourceRvol] = structure(swingcssup, swingcssdn, showSwing, false, swingLimit, phRaw, plRaw)
 
 var color css = na
-
-method darkcss(color css, float factor) =>
-
-    blue  = color.b(css) * (1 - factor)
-    red   = color.r(css) * (1 - factor)
-    green = color.g(css) * (1 - factor)
-
-    color.rgb(red, green, blue, 0)
+method darkcss(color c, float factor) =>
+    color.rgb(color.r(c) * (1 - factor), color.g(c) * (1 - factor), color.b(c) * (1 - factor), 0)
 
 if not na(ms) and barstate.isconfirmed and (not windowsis or bar_index > last_bar_index - mswindow)
     css := ms.trend == 1 ? swingcssup : swingcssdn
-    css := (ms.txt == "bos" ? css : css.darkcss(0.3))
-
+    css := ms.txt == "bos" ? css : css.darkcss(0.3)
 
 barcolor(candlecss ? css : na)
 
-// Calculation and signal state remain independent of drawing toggles.
-[bullGaps, bearGaps, bullRaidBar, bearRaidBar] = dFVG()
+[bullGaps, bearGaps, bullRaidBar, bearRaidBar] = dFVG(atr200)
 int mappingTrend = mapping(showMapping)
 var int bullSweepBar = na
 var int bearSweepBar = na
@@ -1291,48 +1205,601 @@ int bearCandidate = signalCandidate(bearOBs, bearGaps, -1, ms.trend, mappingTren
 bool chochBuyArrow = chochSourceSignal(barstate.isconfirmed, bullChochEvent, bullChochSourceRvol, chochSourceRvolMin)
 bool chochSellArrow = chochSourceSignal(barstate.isconfirmed, bearChochEvent, bearChochSourceRvol, chochSourceRvolMin)
 bool useChochMode = signalMode == "CHoCH + Source RVOL"
-bool buyArrow = useChochMode ? chochBuyArrow : legacyBuyArrow
-bool sellArrow = useChochMode ? chochSellArrow : legacySellArrow
-var int buyCount = 0
-var int sellCount = 0
-var string lastSignal = "Chưa có"
-var string waitReason = "Chờ nến đóng"
-if barstate.isconfirmed
-    if useChochMode
-        bool chochEvent = bullChochEvent or bearChochEvent
-        float eventRvol = bullChochEvent ? bullChochSourceRvol : bearChochSourceRvol
-        waitReason := not chochEvent ? "Chờ CHoCH" : na(eventRvol) ? "CHoCH: thiếu RVOL nguồn OB" : eventRvol < chochSourceRvolMin ? "CHoCH: RVOL nguồn " + str.tostring(eventRvol, "#.##") + "x | cần " + str.tostring(chochSourceRvolMin, "#.##") + "x" : "CHoCH + RVOL nguồn đạt"
-    else
-        int direction = ms.trend == 1 ? 1 : -1
-        zones = direction == 1 ? bullOBs : bearOBs
-        gaps = direction == 1 ? bullGaps : bearGaps
-        [best, available] = signalProgress(zones, gaps, direction, mappingTrend, direction == 1 ? bullSweepOK : bearSweepOK, confirmationRvol)
-        [unused, enabled, ignored] = signalEvidence(direction, mappingTrend, false, false, confirmationRvol, na)
-        int required = signalMode == "Strict" ? enabled : math.min(signalMinEvidence, enabled)
-        waitReason := ms.trend == 0 ? "Chờ cấu trúc" : best < 0 ? "Chờ nến từ chối OB" : not available ? "Thiếu dữ liệu volume" : "Đồng thuận " + str.tostring(best) + "/" + str.tostring(enabled) + " | cần " + str.tostring(required)
-    if buyArrow or sellArrow
-        buyCount += buyArrow ? 1 : 0
-        sellCount += sellArrow ? 1 : 0
-        lastSignal := (buyArrow ? "BUY " : "SELL ") + str.format_time(time_close, "dd/MM HH:mm", syminfo.timezone)
+bool baseBuyArrow = useChochMode ? chochBuyArrow : legacyBuyArrow
+bool baseSellArrow = useChochMode ? chochSellArrow : legacySellArrow
 
-var table signalPanel = table.new(position.top_right, 1, 4, bgcolor = color.new(color.black, 15))
-if barstate.islast
-    if showSignalStatus
-        table.cell(signalPanel, 0, 0, "SMC 1.4.0 | " + signalMode, text_color = color.white)
-        table.cell(signalPanel, 0, 1, "Lịch sử đã tính: BUY " + str.tostring(buyCount) + " | SELL " + str.tostring(sellCount), text_color = color.white)
-        table.cell(signalPanel, 0, 2, "Gần nhất (giờ sàn): " + lastSignal, text_color = color.white)
-        table.cell(signalPanel, 0, 3, waitReason, text_color = color.yellow)
-    else
-        table.clear(signalPanel, 0, 0, 0, 3)
-if legacyBuyArrow and not useChochMode
+// Optional Heatmap state
+bool heatmapHasOi = not na(heatmapOiDelta)
+float heatmapActivity = heatmapHasOi ? heatmapOiAbsDelta : volume
+float heatmapActivityMean = heatmapHasOi ? heatmapOiMean : heatmapVolMean
+float heatmapActivityDev = heatmapHasOi ? heatmapOiDev : heatmapVolDev
+float heatmapZ = not na(heatmapActivityDev) and heatmapActivityDev > 0 ? (heatmapActivity - heatmapActivityMean) / heatmapActivityDev : na
+float heatmapBinSize = math.max(syminfo.mintick * 10, nz(heatmapAtr, syminfo.mintick * 100) * heatmapBinAtr)
+var liqZone[] heatmapZones = array.new<liqZone>()
+var int heatmapLastEventBar = na
+var float filterUpsidePressure = na
+var float filterDownsidePressure = na
+var bool heatmapFilterReady = false
+
+if barstate.isconfirmed
+    if heatmapZones.size() > 0
+        for i = heatmapZones.size() - 1 to 0
+            zone = heatmapZones.get(i)
+            if bar_index - zone.updated > heatmapMaxAge
+                heatmapZones.remove(i)
+            else if not zone.touched and zone.born < bar_index
+                bool touched = zone.side == -1 ? low <= zone.price : high >= zone.price
+                if touched
+                    zone.touched := true
+                    zone.touchedBar := bar_index
+
+    [filterLongIndex, filterLongDistance, filterLongWeight] = heatmapNearest(heatmapZones, -1, close)
+    [filterShortIndex, filterShortDistance, filterShortWeight] = heatmapNearest(heatmapZones, 1, close)
+    heatmapFilterReady := filterLongIndex >= 0 and filterShortIndex >= 0
+    filterDownsidePressure := filterLongIndex >= 0 and filterLongDistance > 0 and close > 0 ? filterLongWeight / (filterLongDistance / close * 100) : na
+    filterUpsidePressure := filterShortIndex >= 0 and filterShortDistance > 0 and close > 0 ? filterShortWeight / (filterShortDistance / close * 100) : na
+
+    bool cooldownOK = na(heatmapLastEventBar) or bar_index - heatmapLastEventBar >= heatmapCooldown
+    bool expansionOK = not heatmapHasOi or heatmapOiDelta > 0
+    bool heatmapEvent = (showHeatmap or signalUseHeatmap) and cooldownOK and expansionOK and not na(heatmapZ) and heatmapZ >= heatmapZMin
+    if heatmapEvent
+        float directionChange = close - close[1]
+        float baseWeight = math.max(heatmapZ, 0.1)
+        float longWeight = baseWeight * (directionChange >= 0 ? 1.0 : 0.65)
+        float shortWeight = baseWeight * (directionChange < 0 ? 1.0 : 0.65)
+        heatmapAddZone(heatmapZones, close * (1.0 - 1.0 / 25.0), longWeight * 0.75, -1, heatmapBinSize)
+        heatmapAddZone(heatmapZones, close * (1.0 + 1.0 / 25.0), shortWeight * 0.75, 1, heatmapBinSize)
+        heatmapAddZone(heatmapZones, close * (1.0 - 1.0 / 50.0), longWeight, -1, heatmapBinSize)
+        heatmapAddZone(heatmapZones, close * (1.0 + 1.0 / 50.0), shortWeight, 1, heatmapBinSize)
+        heatmapAddZone(heatmapZones, close * (1.0 - 1.0 / 100.0), longWeight * 0.65, -1, heatmapBinSize)
+        heatmapAddZone(heatmapZones, close * (1.0 + 1.0 / 100.0), shortWeight * 0.65, 1, heatmapBinSize)
+        heatmapLastEventBar := bar_index
+    while heatmapZones.size() > heatmapMaxZones
+        int oldest = 0
+        for i = 1 to heatmapZones.size() - 1
+            if heatmapZones.get(i).updated < heatmapZones.get(oldest).updated
+                oldest := i
+        heatmapZones.remove(oldest)
+
+if barstate.islast and showHeatmap and heatmapZones.size() > 0
+    float heatmapMaxWeight = 0.0
+    for zone in heatmapZones
+        if not zone.touched
+            heatmapMaxWeight := math.max(heatmapMaxWeight, zone.weight)
+    for zone in heatmapZones
+        float density = heatmapMaxWeight > 0 ? zone.weight / heatmapMaxWeight : 0
+        color zoneColor = color.from_gradient(density, 0, 1, heatmapLowColor, heatmapHighColor)
+        int zoneAlpha = zone.touched ? 92 : int(math.round(82 - density * 42))
+        float halfHeight = heatmapBinSize * 0.5
+        int endTime = zone.touched ? time[historyOffset(zone.touchedBar)] : time
+        bin.bx.unshift(box.new(left = time[historyOffset(zone.born)], right = endTime, top = zone.price + halfHeight, bottom = zone.price - halfHeight, xloc = xloc.bar_time, extend = zone.touched ? extend.none : extend.right, border_color = na, bgcolor = color.new(zoneColor, zoneAlpha)))
+
+// Legacy mode gating
+bool buyHeatmapOK = heatmapSignalGate(signalUseHeatmap, heatmapFilterReady, filterUpsidePressure, filterDownsidePressure, signalHeatmapRatio)
+bool sellHeatmapOK = heatmapSignalGate(signalUseHeatmap, heatmapFilterReady, filterDownsidePressure, filterUpsidePressure, signalHeatmapRatio)
+bool qualifiedBuyArrow = baseBuyArrow and buyHeatmapOK
+bool qualifiedSellArrow = baseSellArrow and sellHeatmapOK
+var int[] originalBuyLosses = array.new<int>()
+var int[] originalSellLosses = array.new<int>()
+if barstate.isconfirmed and not na(close[reversalHorizon])
+    if qualifiedBuyArrow[reversalHorizon]
+        recordSettledOutcome(originalBuyLosses, close < close[reversalHorizon], reversalWindow)
+    if qualifiedSellArrow[reversalHorizon]
+        recordSettledOutcome(originalSellLosses, close > close[reversalHorizon], reversalWindow)
+int buyHistorySamples = originalBuyLosses.size()
+int sellHistorySamples = originalSellLosses.size()
+int buyHistoryLosses = buyHistorySamples > 0 ? originalBuyLosses.sum() : 0
+int sellHistoryLosses = sellHistorySamples > 0 ? originalSellLosses.sum() : 0
+bool reverseBuySide = directionMode == "Reverse all" or (directionMode == "Past-loss reversal" and lossReversalDecision(buyHistorySamples, buyHistoryLosses, reversalMinSamples, reversalLossMinPct))
+bool reverseSellSide = directionMode == "Reverse all" or (directionMode == "Past-loss reversal" and lossReversalDecision(sellHistorySamples, sellHistoryLosses, reversalMinSamples, reversalLossMinPct))
+bool beforeQualityBuy = (qualifiedBuyArrow and not reverseBuySide) or (qualifiedSellArrow and reverseSellSide)
+bool beforeQualitySell = (qualifiedSellArrow and not reverseSellSide) or (qualifiedBuyArrow and reverseBuySide)
+
+var int confirmedHtfDirection = 0
+if barstate.isconfirmed and htfBoundary
+    bool ready = closedHtfSnapshotValid(validHTF, rawHtfCloseTime[1], time_close[1], time(trendHTF), rawHtfClose[1], rawHtfAverage[1])
+    confirmedHtfDirection := ready ? (rawHtfClose[1] > rawHtfAverage[1] ? 1 : rawHtfClose[1] < rawHtfAverage[1] ? -1 : 0) : 0
+
+float qualityAtrRatio = relativeVolume(qualityAtr, qualityAtrBaseline)
+float qualityRvol = relativeVolume(volume, qualityVolumeBaseline)
+var int lastEmittedBuy = na
+var int lastEmittedSell = na
+bool commonQualityOK = minimumGate(qualityUseATR, qualityAtrRatio, qualityAtrMin) and minimumGate(qualityUseVolume, qualityRvol, qualityRvolMin)
+bool buyQualityOK = commonQualityOK and directionGate(qualityUseHTF, 1, confirmedHtfDirection) and cooldownGate(qualityUseCooldown, lastEmittedBuy, bar_index, qualityCooldownBars)
+bool sellQualityOK = commonQualityOK and directionGate(qualityUseHTF, -1, confirmedHtfDirection) and cooldownGate(qualityUseCooldown, lastEmittedSell, bar_index, qualityCooldownBars)
+bool legacyFinalBuy = beforeQualityBuy and buyQualityOK
+bool legacyFinalSell = beforeQualitySell and sellQualityOK
+
+// ============================================================================
+// V3.0.0 CAUSAL CLOSED-HTF LATCHES & SIGNAL ENGINES (15m & 1h)
+// ============================================================================
+var float h1Open = na
+var float h1High = na
+var float h1Low = na
+var float h1Close = na
+var float h1Ema50 = na
+var float h1Atr14 = na
+var float h1Rsi14 = na
+
+var float h4Close = na
+var float h4Ema50 = na
+var float h4PrevHigh10 = na
+var float h4PrevLow10 = na
+
+var float d1High = na
+var float d1Low = na
+
+if barstate.isconfirmed
+    if v3HtfBoundary and not na(rawHtfV3CloseTime[1]) and rawHtfV3CloseTime[1] <= time
+        h1Open := rawHtfO[1]
+        h1High := rawHtfH[1]
+        h1Low := rawHtfL[1]
+        h1Close := rawHtfC[1]
+        h1Ema50 := rawHtfEma50[1]
+        h1Atr14 := rawHtfAtr14[1]
+        h1Rsi14 := rawHtfRsi14[1]
+        h4Close := rawHtfC[1]
+        h4Ema50 := rawHtfEma50[1]
+        h4PrevHigh10 := rawHtfPrevH10[1]
+        h4PrevLow10 := rawHtfPrevL10[1]
+    if d1Boundary and not na(rawD1CloseTime[1]) and rawD1CloseTime[1] <= time
+        d1High := rawD1High[1]
+        d1Low := rawD1Low[1]
+
+// --- 15m Engine: H1_CleanDisp_AtrExh ---
+int v3_15m_side = 0
+float v3_15m_limit = na
+if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qualityAtr) and qualityAtr > 0 and not na(ltfEma50) and not na(h1Atr14) and h1Atr14 > 0 and not na(h1Ema50)
+    float atrPct = (qualityAtr / close) * 100.0
+    float h1Range = h1High - h1Low
+    if atrPct >= 0.18 and h1Range > 0
+        bool h1Bull = (h1Close - h1Open) >= 1.0 * h1Atr14 and (h1Close - h1Low) / h1Range >= 0.65 and h1Close > h1Ema50 and close > ltfEma50
+        bool h1Bear = (h1Open - h1Close) >= 1.0 * h1Atr14 and (h1High - h1Close) / h1Range >= 0.65 and h1Close < h1Ema50 and close < ltfEma50
+        int cand15 = h1Bull and not h1Bear ? 1 : h1Bear and not h1Bull ? -1 : 0
+        if cand15 != 0 and not na(h1Rsi14) and not na(ltfEma20)
+            float dirH1Rsi = cand15 == 1 ? h1Rsi14 : 100.0 - h1Rsi14
+            float ltfEmaDistAtr = (cand15 * (close - ltfEma20)) / qualityAtr
+            if dirH1Rsi >= 72.0 and ltfEmaDistAtr > 1.8
+                cand15 := 0
+        if cand15 != 0
+            float lim15 = close - cand15 * 0.55 * qualityAtr
+            if lim15 > 0
+                v3_15m_side := cand15
+                v3_15m_limit := lim15
+
+// --- 1h Engine: HtfSmcMultiTrap + Virtual Shadow Ledger (AdaptiveTrapPolarity) ---
+int v3_1h_rawSide = 0
+float v3_1h_rawLimit = na
+if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qualityAtr) and qualityAtr > 0 and not na(h4Close) and not na(h4Ema50)
+    bool htfBull = h4Close > h4Ema50
+    bool htfBear = h4Close < h4Ema50
+    bool b1h = false
+    bool s1h = false
+    bool b4h = false
+    bool s4h = false
+    bool bPd = false
+    bool sPd = false
+    for k = 1 to 4
+        float lvL1 = ltfPrevLow20[k]
+        float lvH1 = ltfPrevHigh20[k]
+        if not na(lvL1) and not na(lvH1)
+            bool allB1 = true
+            bool allA1 = true
+            for m = 1 to k
+                if not (close[m] < lvL1)
+                    allB1 := false
+                if not (close[m] > lvH1)
+                    allA1 := false
+            if allB1 and close > lvL1 and close > open
+                b1h := true
+            if allA1 and close < lvH1 and close < open
+                s1h := true
+
+        float lvL4 = h4PrevLow10[k]
+        float lvH4 = h4PrevHigh10[k]
+        if not na(lvL4) and not na(lvH4)
+            bool allB4 = true
+            bool allA4 = true
+            for m = 1 to k
+                if not (close[m] < lvL4)
+                    allB4 := false
+                if not (close[m] > lvH4)
+                    allA4 := false
+            if allB4 and close > lvL4 and close > open
+                b4h := true
+            if allA4 and close < lvH4 and close < open
+                s4h := true
+
+        if k <= 2
+            float lvLD = d1Low[k]
+            float lvHD = d1High[k]
+            if not na(lvLD) and not na(lvHD)
+                bool allBD = true
+                bool allAD = true
+                for m = 1 to k
+                    if not (close[m] < lvLD)
+                        allBD := false
+                    if not (close[m] > lvHD)
+                        allAD := false
+                if allBD and close > lvLD and close > open
+                    bPd := true
+                if allAD and close < lvHD and close < open
+                    sPd := true
+
+    bool rawBull = (b1h or b4h or bPd) and htfBull
+    bool rawBear = (s1h or s4h or sPd) and htfBear
+    if rawBull != rawBear
+        int rSide = rawBull ? 1 : -1
+        float rLim = close - rSide * 0.18 * qualityAtr
+        if rLim > 0
+            v3_1h_rawSide := rSide
+            v3_1h_rawLimit := rLim
+
+// Virtual shadow ledger for 1h AdaptiveTrapPolarity (always runs causally on confirmed bars)
+var int   vSide = 0
+var int   vPendingSide = 0
+var float vPendingAtr = na
+var float vPendingLimit = na
+var int   vPendingExpiryBar = na
+var int   vLastAccepted = na
+var int   vEntryBar = na
+var bool  vFilledAtOpen = false
+var float vEntry = na
+var float vStop = na
+var float vTarget = na
+var float vInitialDist = na
+var bool  vBeArmed = false
+var int[]   vLongSlHist = array.new<int>()
+var float[] vLongNetHist = array.new<float>()
+var int[]   vShortSlHist = array.new<int>()
+var float[] vShortNetHist = array.new<float>()
+
+int v3_1h_side = 0
+float v3_1h_limit = na
+
+if barstate.isconfirmed and chart.is_standard
+    // 1) Shadow pending limit fill / expiry
+    if vSide == 0 and vPendingSide != 0
+        bool vBullPend = vPendingSide == 1
+        bool vTouched = vBullPend ? low <= vPendingLimit : high >= vPendingLimit
+        if vTouched
+            bool vFillAtOpen = vBullPend ? open <= vPendingLimit : open >= vPendingLimit
+            float vRawFill = vBullPend ? math.min(open, vPendingLimit) : math.max(open, vPendingLimit)
+            float vFill = adverseFill(vRawFill, vPendingSide, true, V3_SHADOW_SLIP_PCT)
+            [vOk, vS, vT, vD] = resolvePaperLevels(vPendingSide, vFill, vPendingAtr, 3.2, 1.4, 1.15)
+            if vOk
+                vSide := vPendingSide
+                vEntry := vFill
+                vStop := vS
+                vTarget := vT
+                vInitialDist := vD
+                vEntryBar := bar_index
+                vFilledAtOpen := vFillAtOpen
+                vBeArmed := false
+            vPendingSide := 0
+            vPendingAtr := na
+            vPendingLimit := na
+            vPendingExpiryBar := na
+        else if bar_index >= vPendingExpiryBar
+            vPendingSide := 0
+            vPendingAtr := na
+            vPendingLimit := na
+            vPendingExpiryBar := na
+
+    // 2) Shadow intra-bar exit + push settled outcome BEFORE adaptive polarity decision on bar i
+    if vSide != 0
+        [vExitRaw, vExitReason] = paperExitConservative(vSide, "LIMIT_PULLBACK", bar_index == vEntryBar, vFilledAtOpen, vBeArmed, open, high, low, close, vStop, vTarget, bar_index - vEntryBar + 1, 96)
+        if vExitReason != 0
+            float vOutPrice = adverseFill(vExitRaw, vSide, false, V3_SHADOW_SLIP_PCT)
+            float vNet = vSide * (vOutPrice - vEntry) / vEntry * 100.0 - V3_SHADOW_FEE_PCT
+            vNet := math.abs(vNet) < EPS_ZERO ? 0.0 : vNet
+            bool isPureSl = vExitReason == 1 and not vBeArmed
+            if vSide == 1
+                recordShadowOutcome(vLongSlHist, vLongNetHist, isPureSl, vNet, 6)
+            else
+                recordShadowOutcome(vShortSlHist, vShortNetHist, isPureSl, vNet, 6)
+            vSide := 0
+
+    // 3) Shadow confirmed-close BE+ ratchet (active from bar i + 1)
+    if vSide != 0 and not vBeArmed
+        if vSide * (close - vEntry) >= 0.43 * vInitialDist
+            float vRaisedStop = vEntry * (1.0 + vSide * 0.34 / 100.0)
+            if vSide * (vRaisedStop - vStop) > 0 and vSide * (vTarget - vRaisedStop) > 0
+                vStop := vRaisedStop
+                vBeArmed := true
+
+    // 4) Live adaptive polarity decision (reading history AFTER settled exits on bar i)
+    if v3_1h_rawSide != 0
+        bool shouldFlip = v3_1h_rawSide == 1
+             ? adaptivePolarityFlip(vLongSlHist, vLongNetHist, 6, 2)
+             : adaptivePolarityFlip(vShortSlHist, vShortNetHist, 6, 2)
+        int adaptSide = shouldFlip ? -v3_1h_rawSide : v3_1h_rawSide
+        float adaptLimit = close - adaptSide * 0.18 * qualityAtr
+        if adaptLimit > 0
+            v3_1h_side := adaptSide
+            v3_1h_limit := adaptLimit
+
+    // 5) Queue new shadow pending limit on raw signal
+    if vSide == 0 and vPendingSide == 0 and v3_1h_rawSide != 0 and bar_index >= 250 and cooldownGate(true, vLastAccepted, bar_index, 4)
+        [vPreOk, _vs, _vt, _vd] = resolvePaperLevels(v3_1h_rawSide, v3_1h_rawLimit, qualityAtr, 3.2, 1.4, 1.15)
+        if vPreOk
+            vPendingSide := v3_1h_rawSide
+            vPendingAtr := qualityAtr
+            vPendingLimit := v3_1h_rawLimit
+            vPendingExpiryBar := bar_index + 6
+            vLastAccepted := bar_index
+
+// ============================================================================
+// EFFECTIVE EXECUTION PROFILE & LIVE PAPER ENGINE (100% sim_engine.mjs parity)
+// ============================================================================
+bool applyV3Auto = useV3Mode and paperUseAutoPreset
+string effEntryMode   = applyV3Auto ? "LIMIT_PULLBACK" : (useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : (not useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : "MARKET_NEXT_OPEN"))
+int    effExpiryBars  = applyV3Auto ? 6 : paperLimitExpiryInput
+float  effStopAtr     = applyV3Auto ? (is15mProfile ? 3.0 : 3.2) : paperStopAtr
+float  effMinStopPct  = applyV3Auto ? (is15mProfile ? 1.0 : 1.4) : paperMinStopPctInput
+float  effRewardRisk  = applyV3Auto ? 1.15 : paperRewardRisk
+int    effMaxHoldBars = applyV3Auto ? (is15mProfile ? 120 : 96) : paperMaxBars
+int    effCooldown    = applyV3Auto ? (is15mProfile ? 8 : 4) : paperCooldownBars
+float  effBeTriggerR  = applyV3Auto ? 0.43 : paperBeTriggerRInput
+float  effBeOffsetPct = applyV3Auto ? (is15mProfile ? 0.28 : 0.34) : paperBeOffsetPctInput
+
+int candSide = useV3Mode
+     ? (is15mProfile ? v3_15m_side : v3_1h_side)
+     : (legacyFinalBuy ? 1 : legacyFinalSell ? -1 : 0)
+float candLimit = useV3Mode
+     ? (is15mProfile ? v3_15m_limit : v3_1h_limit)
+     : (effEntryMode == "LIMIT_PULLBACK" ? close : na)
+
+var int   paperSide = 0
+var int   paperPendingSide = 0
+var float paperPendingAtr = na
+var float paperPendingLimit = na
+var string paperPendingEntryMode = "LIMIT_PULLBACK"
+var int   paperSignalBar = na
+var int   paperPendingExpiryBar = na
+var int   paperSignalTime = na
+var int   paperEntryBar = na
+var int   paperEntryTime = na
+var bool  paperFilledAtOpen = false
+var string paperActiveEntryMode = "LIMIT_PULLBACK"
+var int   lastPaperSignal = na
+var float paperEntry = na
+var float paperStop = na
+var float paperInitialStop = na
+var float paperTarget = na
+var float paperInitialDist = na
+var bool  paperBeArmed = false
+
+var int   paperWins = 0
+var int   paperLosses = 0
+var int   paperTies = 0
+var float paperGains = 0.0
+var float paperLossSum = 0.0
+var float paperTotalNet = 0.0
+var paperVisual[] paperHistory = array.new<paperVisual>()
+
+bool  paperInLong = false
+bool  paperInShort = false
+int   paperOutReason = 0
+float paperInPrice = na
+float paperOutPrice = na
+float paperClosedNet = na
+int   paperClosedSide = 0
+float paperClosedEntry = na
+
+// Live realtime preview for pending orders without mutating confirmed state
+if not barstate.isconfirmed and chart.is_standard and paperSide == 0 and paperPendingSide != 0
+    if paperPendingEntryMode == "MARKET_NEXT_OPEN" and paperSignalBar == bar_index - 1
+        float liveFill = adverseFill(open, paperPendingSide, true, paperSlippagePct)
+        [ok, _s, _t, _d] = resolvePaperLevels(paperPendingSide, liveFill, paperPendingAtr, effStopAtr, effMinStopPct, effRewardRisk)
+        if ok
+            paperInLong := paperPendingSide == 1
+            paperInShort := paperPendingSide == -1
+            paperInPrice := liveFill
+    else if paperPendingEntryMode == "LIMIT_PULLBACK" and bar_index <= paperPendingExpiryBar
+        bool bullPend = paperPendingSide == 1
+        bool touchedLive = bullPend ? low <= paperPendingLimit : high >= paperPendingLimit
+        if touchedLive
+            float rawLive = bullPend ? math.min(open, paperPendingLimit) : math.max(open, paperPendingLimit)
+            float liveFill = adverseFill(rawLive, paperPendingSide, true, paperSlippagePct)
+            [ok, _s, _t, _d] = resolvePaperLevels(paperPendingSide, liveFill, paperPendingAtr, effStopAtr, effMinStopPct, effRewardRisk)
+            if ok
+                paperInLong := paperPendingSide == 1
+                paperInShort := paperPendingSide == -1
+                paperInPrice := liveFill
+
+if barstate.isconfirmed and chart.is_standard
+    // 1) Pending entry fill or expiry
+    if paperSide == 0 and paperPendingSide != 0
+        if paperPendingEntryMode == "MARKET_NEXT_OPEN"
+            if paperSignalBar == bar_index - 1
+                float fill = adverseFill(open, paperPendingSide, true, paperSlippagePct)
+                [ok, s, t, d] = resolvePaperLevels(paperPendingSide, fill, paperPendingAtr, effStopAtr, effMinStopPct, effRewardRisk)
+                if ok
+                    paperSide := paperPendingSide
+                    paperEntry := fill
+                    paperStop := s
+                    paperInitialStop := s
+                    paperTarget := t
+                    paperInitialDist := d
+                    paperEntryBar := bar_index
+                    paperEntryTime := time
+                    paperFilledAtOpen := true
+                    paperActiveEntryMode := paperPendingEntryMode
+                    paperBeArmed := false
+                    paperInLong := paperSide == 1
+                    paperInShort := paperSide == -1
+                    paperInPrice := fill
+            paperPendingSide := 0
+            paperPendingAtr := na
+            paperPendingLimit := na
+            paperPendingExpiryBar := na
+        else if paperPendingEntryMode == "LIMIT_PULLBACK"
+            bool bullPend = paperPendingSide == 1
+            bool touched = bullPend ? low <= paperPendingLimit : high >= paperPendingLimit
+            if touched
+                bool fillAtOpen = bullPend ? open <= paperPendingLimit : open >= paperPendingLimit
+                float rawFill = bullPend ? math.min(open, paperPendingLimit) : math.max(open, paperPendingLimit)
+                float fill = adverseFill(rawFill, paperPendingSide, true, paperSlippagePct)
+                [ok, s, t, d] = resolvePaperLevels(paperPendingSide, fill, paperPendingAtr, effStopAtr, effMinStopPct, effRewardRisk)
+                if ok
+                    paperSide := paperPendingSide
+                    paperEntry := fill
+                    paperStop := s
+                    paperInitialStop := s
+                    paperTarget := t
+                    paperInitialDist := d
+                    paperEntryBar := bar_index
+                    paperEntryTime := time
+                    paperFilledAtOpen := fillAtOpen
+                    paperActiveEntryMode := paperPendingEntryMode
+                    paperBeArmed := false
+                    paperInLong := paperSide == 1
+                    paperInShort := paperSide == -1
+                    paperInPrice := fill
+                paperPendingSide := 0
+                paperPendingAtr := na
+                paperPendingLimit := na
+                paperPendingExpiryBar := na
+            else if bar_index >= paperPendingExpiryBar
+                paperPendingSide := 0
+                paperPendingAtr := na
+                paperPendingLimit := na
+                paperPendingExpiryBar := na
+
+    // 2) Conservative intra-bar exit check (including fill bar)
+    if paperSide != 0
+        [exitRaw, exitReason] = paperExitConservative(paperSide, paperActiveEntryMode, bar_index == paperEntryBar, paperFilledAtOpen, paperBeArmed, open, high, low, close, paperStop, paperTarget, bar_index - paperEntryBar + 1, effMaxHoldBars)
+        if exitReason != 0
+            paperOutPrice := adverseFill(exitRaw, paperSide, false, paperSlippagePct)
+            paperClosedNet := paperSide * (paperOutPrice - paperEntry) / paperEntry * 100.0 - paperFeePct
+            paperClosedNet := math.abs(paperClosedNet) < EPS_ZERO ? 0.0 : paperClosedNet
+            paperOutReason := exitReason
+            paperClosedSide := paperSide
+            paperClosedEntry := paperEntry
+            if paperClosedNet > EPS_ZERO
+                paperWins += 1
+                paperGains += paperClosedNet
+            else if paperClosedNet < -EPS_ZERO
+                paperLosses += 1
+                paperLossSum -= paperClosedNet
+            else
+                paperTies += 1
+            paperTotalNet += paperClosedNet
+            paperHistory.unshift(paperVisual.new(side = paperSide, xStart = paperEntryTime, xEnd = time, entryPrice = paperEntry, stopPrice = paperStop, initialStop = paperInitialStop, targetPrice = paperTarget, beArmed = paperBeArmed, outReason = exitReason))
+            if paperHistory.size() > MAX_PAPER_VISUALS
+                paperHistory.pop()
+            paperSide := 0
+
+    // 3) Confirmed-close Breakeven-Plus-Cost Ratchet (active starting bar i + 1)
+    if paperSide != 0 and effBeTriggerR > 0 and not paperBeArmed
+        if paperSide * (close - paperEntry) >= effBeTriggerR * paperInitialDist
+            float raisedStop = paperEntry * (1.0 + paperSide * effBeOffsetPct / 100.0)
+            if paperSide * (raisedStop - paperStop) > 0 and paperSide * (paperTarget - raisedStop) > 0
+                paperStop := raisedStop
+                paperBeArmed := true
+
+    // 4) Queue new pending order if flat & not pending & cooldown satisfied
+    if paperSide == 0 and paperPendingSide == 0 and candSide != 0 and bar_index >= 250 and cooldownGate(true, lastPaperSignal, bar_index, effCooldown)
+        float refEntry = effEntryMode == "LIMIT_PULLBACK" ? candLimit : close
+        [preOk, _ps, _pt, _pd] = resolvePaperLevels(candSide, refEntry, qualityAtr, effStopAtr, effMinStopPct, effRewardRisk)
+        if preOk
+            paperPendingSide := candSide
+            paperPendingAtr := qualityAtr
+            paperPendingLimit := effEntryMode == "LIMIT_PULLBACK" ? candLimit : na
+            paperPendingEntryMode := effEntryMode
+            paperSignalBar := bar_index
+            paperPendingExpiryBar := bar_index + effExpiryBars
+            paperSignalTime := time
+            lastPaperSignal := bar_index
+            if candSide == 1
+                lastEmittedBuy := bar_index
+            else
+                lastEmittedSell := bar_index
+
+if qualifiedBuyArrow and not useChochMode and not useV3Mode and bullCandidate >= 0
     chosen = bullOBs.get(bullCandidate)
     chosen.signaled := true
-if legacySellArrow and not useChochMode
+if qualifiedSellArrow and not useChochMode and not useV3Mode and bearCandidate >= 0
     chosen = bearOBs.get(bearCandidate)
     chosen.signaled := true
 
-plotshape(showSignals and buyArrow, title = "Confirmed bullish opportunity", style = shape.arrowup, location = location.belowbar, color = #089981, text = "BUY", textcolor = #089981, size = size.normal)
-plotshape(showSignals and sellArrow, title = "Confirmed bearish opportunity", style = shape.arrowdown, location = location.abovebar, color = #f23645, text = "SELL", textcolor = #f23645, size = size.normal)
+// ============================================================================
+// PAPER VISUALS: LIMIT PULLBACK LINE, SL / BE+ / TP LINES, SCOREBOARD
+// ============================================================================
+if barstate.islast and showPaperLines and chart.is_standard
+    if paperSide == 0 and paperPendingSide != 0 and paperPendingEntryMode == "LIMIT_PULLBACK" and not na(paperPendingLimit)
+        int barsLeft = math.max(0, paperPendingExpiryBar - bar_index)
+        color pendCol = paperPendingSide == 1 ? #2196f3 : #ff9800
+        bin.ln.unshift(line.new(x1 = paperSignalTime, x2 = time, y1 = paperPendingLimit, y2 = paperPendingLimit, xloc = xloc.bar_time, color = pendCol, style = line.style_dotted, width = 2))
+        bin.lb.unshift(label.new(x = time, y = paperPendingLimit, xloc = xloc.bar_time, text = (paperPendingSide == 1 ? "LMT L " : "LMT S ") + str.tostring(paperPendingLimit, format.mintick) + " (" + str.tostring(barsLeft) + "b)", color = color.new(pendCol, 85), textcolor = pendCol, style = label.style_label_left, size = size.tiny))
+    if paperSide != 0
+        color slCol = paperBeArmed ? #26a69a : #ff9800
+        string slPrefix = paperBeArmed ? "BE+ " : "SL "
+        bin.ln.unshift(line.new(x1 = paperEntryTime, x2 = time, y1 = paperStop, y2 = paperStop, xloc = xloc.bar_time, extend = extend.right, color = slCol, style = line.style_dashed, width = 2))
+        bin.ln.unshift(line.new(x1 = paperEntryTime, x2 = time, y1 = paperTarget, y2 = paperTarget, xloc = xloc.bar_time, extend = extend.right, color = color.aqua, style = line.style_dashed, width = 2))
+        bin.lb.unshift(label.new(x = time, y = paperStop, xloc = xloc.bar_time, text = slPrefix + str.tostring(paperStop, format.mintick), color = color.new(slCol, 85), textcolor = slCol, style = label.style_label_left, size = size.tiny))
+        bin.lb.unshift(label.new(x = time, y = paperTarget, xloc = xloc.bar_time, text = "TP " + str.tostring(paperTarget, format.mintick), color = color.new(color.aqua, 85), textcolor = color.aqua, style = label.style_label_left, size = size.tiny))
+    if paperHistory.size() > 0
+        for item in paperHistory
+            color histSlCol = item.beArmed ? #26a69a : #ff9800
+            bin.ln.unshift(line.new(x1 = item.xStart, x2 = item.xEnd, y1 = item.stopPrice, y2 = item.stopPrice, xloc = xloc.bar_time, color = color.new(histSlCol, 35), style = line.style_dotted))
+            bin.ln.unshift(line.new(x1 = item.xStart, x2 = item.xEnd, y1 = item.targetPrice, y2 = item.targetPrice, xloc = xloc.bar_time, color = color.new(color.aqua, 35), style = line.style_dotted))
 
-alertcondition(buyArrow, "Closed-candle BUY", "Closed-candle BUY: {{ticker}} {{interval}} at {{close}}")
-alertcondition(sellArrow, "Closed-candle SELL", "Closed-candle SELL: {{ticker}} {{interval}} at {{close}}")
+int paperClosedCount = paperWins + paperLosses + paperTies
+float paperPF = paperLossSum > 0 ? paperGains / paperLossSum : na
+var table winLoss = table.new(position.top_right, 1, 1, bgcolor = color.new(color.black, 25))
+if barstate.islast
+    if showTradeStats
+        string winText = paperClosedCount > 0 ? str.tostring(paperWins * 100.0 / paperClosedCount, "0.0") + "% (" + str.tostring(paperWins) + ")" : "N/A"
+        string lossText = paperClosedCount > 0 ? str.tostring(paperLosses * 100.0 / paperClosedCount, "0.0") + "% (" + str.tostring(paperLosses) + ")" : "N/A"
+        string pfText = paperClosedCount > 0 ? (not na(paperPF) ? str.tostring(paperPF, "0.00") : "∞") : "N/A"
+        string netSign = paperTotalNet >= 0 ? "+" : ""
+        string netText = paperClosedCount > 0 ? netSign + str.tostring(paperTotalNet, "0.00") + "%" : "N/A"
+        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | PF=" + pfText + " | Net " + netText
+        table.cell(winLoss, 0, 0, boardText, text_color = color.white, text_size = size.small, tooltip = "Chỉ tính lệnh mô phỏng đã OUT trong lịch sử đang tải, sau phí (" + str.tostring(paperFeePct, "0.00") + "%) và trượt giá (" + str.tostring(paperSlippagePct, "0.000") + "%/chiều). Engine v3.0: " + (is15mProfile ? "15m H1-CleanDisp" : "1h Adaptive-MultiTrap") + ".")
+    else
+        table.clear(winLoss, 0, 0, 0, 0)
+
+// ============================================================================
+// PLOTS & ALERTS (28 total plot calls <= 55 budget & 64 TV limit)
+// ============================================================================
+plotshape(showSignals and paperInLong, title = "Paper IN LONG", style = shape.triangleup, location = location.belowbar, color = #089981, text = "IN L", textcolor = #089981, size = size.small)
+plotshape(showSignals and paperInShort, title = "Paper IN SHORT", style = shape.triangledown, location = location.abovebar, color = #f23645, text = "IN S", textcolor = #f23645, size = size.small)
+plotshape(showSignals and paperOutReason == 2 ? paperOutPrice : na, title = "Paper OUT TP", style = shape.xcross, location = location.absolute, color = color.aqua, text = "OUT TP", textcolor = color.aqua, size = size.tiny)
+plotshape(showSignals and paperOutReason == 4 ? paperOutPrice : na, title = "Paper OUT BE", style = shape.xcross, location = location.absolute, color = #26a69a, text = "OUT BE", textcolor = #26a69a, size = size.tiny)
+plotshape(showSignals and paperOutReason == 1 ? paperOutPrice : na, title = "Paper OUT SL", style = shape.xcross, location = location.absolute, color = color.orange, text = "OUT SL", textcolor = color.orange, size = size.tiny)
+plotshape(showSignals and paperOutReason == 3 ? paperOutPrice : na, title = "Paper OUT TIME", style = shape.xcross, location = location.absolute, color = color.silver, text = "OUT T", textcolor = color.silver, size = size.tiny)
+
+alertcondition(barstate.isconfirmed and candSide == 1, "Signal BUY (Pending)", "SMC v3.0 Signal BUY: {{ticker}} {{interval}}")
+alertcondition(barstate.isconfirmed and candSide == -1, "Signal SELL (Pending)", "SMC v3.0 Signal SELL: {{ticker}} {{interval}}")
+alertcondition(paperInLong, "Paper IN LONG", "Paper IN LONG: {{ticker}} {{interval}}")
+alertcondition(paperInShort, "Paper IN SHORT", "Paper IN SHORT: {{ticker}} {{interval}}")
+alertcondition(paperOutReason == 2, "Paper OUT TP", "Paper OUT TP: {{ticker}} {{interval}}")
+alertcondition(paperOutReason == 4, "Paper OUT BE", "Paper OUT BE: {{ticker}} {{interval}}")
+alertcondition(paperOutReason == 1, "Paper OUT SL", "Paper OUT SL: {{ticker}} {{interval}}")
+alertcondition(paperOutReason == 3, "Paper OUT TIME", "Paper OUT TIME: {{ticker}} {{interval}}")
+alertcondition(paperOutReason != 0, "Paper OUT (Any)", "Paper OUT: {{ticker}} {{interval}}")
+
+plot(paperInPrice, "Paper entry price", display = display.data_window)
+plot(paperOutPrice, "Paper exit price", display = display.data_window)
+plot(paperClosedNet, "Paper closed net (%)", display = display.data_window)
+
+// Compact Audit series (17 hidden plots; total plot calls = 28)
+plot(is15mProfile ? v3_15m_side : v3_1h_rawSide, "Audit: raw signal side", display = display.none)
+plot(candSide, "Audit: trade candidate", display = display.none)
+plot(candLimit, "Audit: signal limit price", display = display.none)
+plot(qualityAtr, "Audit: trade ATR14", display = display.none)
+plot(paperPendingSide, "Audit: paper pending side", display = display.none)
+plot(paperSide, "Audit: paper position side", display = display.none)
+plot(paperStop, "Audit: paper active stop", display = display.none)
+plot(paperTarget, "Audit: paper active target", display = display.none)
+plot(paperBeArmed ? 1 : 0, "Audit: paper BE armed", display = display.none)
+plot(paperOutReason, "Audit: paper exit reason", display = display.none)
+plot(paperClosedSide, "Audit: paper closed side", display = display.none)
+plot(paperOutReason != 0 ? paperClosedEntry : na, "Audit: paper closed entry price", display = display.none)
+plot(paperWins, "Audit: paper wins", display = display.none)
+plot(paperLosses, "Audit: paper losses", display = display.none)
+plot(paperTies, "Audit: paper ties", display = display.none)
+plot(paperPF, "Audit: paper profit factor", display = display.none)
+plot(paperTotalNet, "Audit: paper total net percent", display = display.none)

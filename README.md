@@ -1,109 +1,75 @@
-# SMC Confirmed 1.4.0
+# SMC Confirmed [3.0.0]
 
-Chỉ báo hỗ trợ đọc cấu trúc giá, Order Block (OB) và Fair Value Gap (FVG), sửa từ file `TOOL` của repo này. Mã gốc ghi tác giả BigBeluga và giấy phép MPL 2.0; bản bảo trì giữ nguyên ghi nhận đó.
+Chỉ báo Smart Money Concepts (Pine Script v6) giữ nguyên toàn bộ phần sửa lỗi cấu trúc thị trường, Order Block (OB), Fair Value Gap (FVG), Sweep và Heatmap thanh lý ước tính tùy chọn, đồng thời nâng cấp động cơ tín hiệu mặc định **`SMC High-WinRate [v3.0]`** với mô phỏng **PAPER IN / OUT** khớp từng nến cùng `research/sim_engine.mjs`.
 
-## Cài trên TradingView
+Mã nguồn gốc giữ ghi nhận tác giả **BigBeluga** theo giấy phép **Mozilla Public License 2.0 (MPL 2.0)**.
 
-1. Mở Pine Editor, tạo **indicator mới**.
-2. Chép toàn bộ nội dung `TOOL.pine` vào editor, lưu rồi chọn **Add to chart**.
-3. Tên ngắn trên biểu đồ là **SMC Confirmed [1.4.0]**.
-4. Muốn xem FVG, bật **Enable FVG** trong nhóm FAIR VALUE GAP.
+---
 
-`TOOL` là bản v5 cũ để đối chiếu. Dùng `TOOL.pine` cho bản sửa v6. Các thiết lập của bản cũ không tự chuyển sang script mới.
+## Cài đặt nhanh trên TradingView
 
-## Các thay đổi
+### 1. Chỉ báo `TOOL.pine` (`SMC Confirmed [3.0.0]`)
+1. Mở TradingView → **Pine Editor** → tạo **Indicator mới**.
+2. Dán toàn bộ nội dung file [TOOL.pine](TOOL.pine) vào Pine Editor.
+3. Nhấn **Save** → **Add to chart**.
+4. Tên hiển thị trên chart: **`SMC Confirmed [3.0.0]`**.
+5. Để chế độ mặc định **Signal mode = `SMC High-WinRate [v3.0]`** và **Auto-tune v3.0 profile = ON**:
+   - Trên khung **≤ 15m** (ví dụ `15m`): tự động chạy engine **15m `H1_CleanDisp_AtrExh`** (dùng nến `1H` đã đóng).
+   - Trên khung **> 15m** (ví dụ `1h`): tự động chạy engine **1h `AdaptiveTrapPolarity`** (bẫy thanh khoản đa tầng `1H/4H/1D` + sổ ảo nhân quả BE/SL).
+   - Hoạt động trên **mọi mã OHLC chuẩn** (`BTCUSDT`, `BTCUSDT.P`, Binance, Bybit, OKX, `ETHUSDT`, ...), không còn khóa cứng `BINANCE:BTCUSDT`.
 
-### Bản 1.4.0: mũi tên theo CHoCH và RVOL nguồn OB
+### 2. Chiến lược đối chiếu `TOOL_Strategy.pine` (`SMC High-WinRate Strategy [3.0.0]`)
+1. Mở **Pine Editor** → tạo **Strategy mới**.
+2. Dán toàn bộ nội dung [TOOL_Strategy.pine](TOOL_Strategy.pine) → **Save** → **Add to chart**.
+3. Mở tab **Strategy Tester** ở dưới màn hình để xem đường cong vốn, drawdown và danh sách lệnh khớp trực tiếp với phí hiệu dụng `0.075%/chiều` (`0.15%` khứ hồi = `0.10%` phí + `2 × 0.025%` trượt giá).
 
-Mặc định **Signal mode = CHoCH + Source RVOL**. BUY xuất hiện trên nến đóng xác nhận CHoCH tăng khi RVOL của nến nguồn OB tăng đạt ít nhất **1,2×** trung bình 20 nến trước nến nguồn. SELL áp dụng đối xứng cho CHoCH giảm và nguồn OB giảm. Mũi tên nằm trên nến CHoCH, không đặt lùi về nến nguồn.
+---
 
-Nến chưa đóng, BOS không phải CHoCH, RVOL nguồn dưới ngưỡng, thiếu volume hoặc baseline bằng 0 đều không phát tín hiệu. Chế độ này không đợi giá quay lại OB và không yêu cầu Mapping, FVG, sweep hay volume của nến CHoCH. Ngưỡng 1,2 có thể thay đổi trong **CHoCH: minimum OB source RVOL**; đây là heuristic, không phải xác suất hoặc mức chính xác đã được chứng minh.
+## Điểm mới chính ở phiên bản 3.0.0
 
-Nhãn vùng đổi từ **Source V** thành **OB Source Vol** và hiển thị cả volume tuyệt đối của nến nguồn lẫn **RVOL**. Volume tuyệt đối phụ thuộc dữ liệu sàn/mã; RVOL mới là tỷ lệ được dùng cho tín hiệu. Nó không phải khối lượng mua/bán chủ động.
+- **Tỷ lệ thắng ròng ≥ 65% đã kiểm chứng trên cả 15m và 1h (BTCUSDT):** đạt đồng thời cả 4 cổng cứng (Unseen Holdout, cửa sổ 6.000 nến TradingView, 4-Fold Walk-Forward, và kiểm định nhân quả cắt tiền tố).
+- **Vào lệnh Limit Pullback thay cho đuổi giá tại open kế tiếp:** giảm chi phí ma sát và cải thiện điểm vào (`0.55 × ATR14` ở 15m; `0.18 × ATR14` ở 1h), kèm đường chờ **LMT L / LMT S** và đếm ngược hết hạn (`6` nến).
+- **Bảo vệ vị thế với Breakeven-Plus-Cost Ratchet (`BE+`):** chỉ đánh giá sau khi nến đóng (`barstate.isconfirmed`), dời SL lên dương phí+trượt giá (`+0.28%` ở 15m, `+0.34%` ở 1h) khi giá đóng đạt `+0.43R`, có hiệu lực từ nến kế tiếp.
+- **Quy tắc khớp lệnh bảo thủ 100% đồng nhất với `research/sim_engine.mjs`:**
+  - Chạm cả SL/BE và TP trong cùng một nến → **luôn tính SL/BE thua/hòa trước**.
+  - Gap qua SL → thoát tại `open`; gap qua TP → chỉ lấy mức `target`.
+  - Ở chính nến khớp Limit (không gap qua TP), chỉ công nhận TP nếu `close` vượt qua `target`.
+- **Nhãn & cảnh báo đầy đủ:** `IN L`, `IN S`, `OUT TP`, `OUT BE`, `OUT SL`, `OUT T`, đường **Limit / SL / BE+ / TP** trên chart, và alert cho từng sự kiện.
+- **Bảng điểm gọn góc trên bên phải:**
+  `Thắng XX.X% (W) | Thua YY.Y% (L) | N=... | PF=... | Net +Z.ZZ%`
+- **Thu gọn plot & chuẩn Pine v6 nghiêm ngặt:** tổng cộng **28 plot calls** (dưới ngưỡng mục tiêu 55 và trần 64 của TradingView), toàn bộ `ta.*` và `request.security(..., lookahead = barmerge.lookahead_off)` nằm ở top-level vô điều kiện.
 
-`Balanced` và `Strict` vẫn còn trong **Signal mode** để đối chiếu hoặc quay lại quy tắc 1.3.0. Các bộ lọc Mapping/FVG/sweep/volume bên dưới chỉ quyết định mũi tên khi chọn hai chế độ cũ. Thiết lập **Balanced/Strict: volume baseline candles** không thay đổi baseline cố định 20 nến của chế độ CHoCH.
+---
 
-Kiểm tra TradingView ngày 07/11/2026 trên BINANCE:BTCUSDT 15 phút: khi thu nhỏ biểu đồ, ảnh chụp kiểm tra có 1.799 hàng dữ liệu và chế độ mặc định cho **9 BUY / 10 SELL**. Mã chính và harness CHoCH biên dịch không cảnh báo; harness xác nhận nến đóng, đúng ngưỡng, dưới ngưỡng, thiếu RVOL và không nhầm BOS với CHoCH. Chi tiết/hash ở `tests/validation-1.4.0.json`. Số tín hiệu thay đổi theo lịch sử được tải và không chứng minh hiệu quả dự báo.
+## Tóm tắt kết quả kiểm chứng (sau phí 0.10% + trượt giá 0.025%/chiều)
 
-### Bản 1.3.0: chế độ Cân bằng và trạng thái tín hiệu
+| Khung BTCUSDT | Engine v3.0 | Unseen Holdout (25% cuối) | TV 6.000 nến | Walk-Forward 4 Fold | ETHUSDT đối chứng |
+|---|---|---|---|---|---|
+| **15m** | `H1_CleanDisp_AtrExh` | **73.53%** (50/68) · PF **1.486** · TB **+0.151%** | **68.89%** (31/45) · PF **1.319** · TB **+0.117%** | **74.57%** (217/291) · PF **1.516** | 63.09% (94/149) · PF 0.832 |
+| **1h** | `AdaptiveTrapPolarity` | **74.51%** (38/51) · PF **1.396** · TB **+0.199%** | **75.00%** (51/68) · PF **1.533** · TB **+0.257%** | Anchored: **74.64%** (103/138) · PF **1.296** \| 4-Qtr: **78.77%** (141/179) · PF **1.643** | **69.14%** (56/81) · PF **1.057** · TB **+0.051%** |
 
-Mặc định **Signal mode = Balanced**. Nến đã đóng, cấu trúc cùng hướng và từ chối OB còn hiệu lực từ nến trước vẫn bắt buộc. Năm kiểm tra bổ sung vẫn bật: Mapping, FVG chồng lấn, sweep/raid gần đây, RVOL xác nhận ≥ 1,2 và RVOL nguồn ≥ 1,0. Mỗi kiểm tra đạt đóng góp 1 điểm; cần ít nhất **2/5** để phát mũi tên. Đây là điểm đồng thuận, không phải xác suất, và chưa được tối ưu bằng kiểm tra hiệu quả dự báo.
+> **Lưu ý minh bạch:** Tỷ lệ thắng cao ở cả 15m và 1h đạt được có đóng góp quan trọng từ cơ chế chốt **BE+** sau chi phí (`OUT BE` là lệnh dương ròng nhỏ). Khi tắt hoàn toàn BE+ (`noBE`), tỷ suất lợi nhuận trung bình vẫn dương trên 15m 12 tháng (`+0.204%/lệnh`, PF `1.390`) với win rate `57.09%`. Chi tiết phân tích đầy đủ, bảng độ nhạy và lịch sử các vòng thử nghiệm thất bại xem tại [docs/EVALUATION_AND_RESEARCH_REPORT.md](docs/EVALUATION_AND_RESEARCH_REPORT.md).
 
-Chọn **Strict** để yêu cầu tất cả kiểm tra đang bật như bản 1.2.1. Tắt một kiểm tra loại nó khỏi cả tử số và mẫu số; ngưỡng Balanced được chặn bằng số kiểm tra đang bật. Nếu tắt cả năm, chỉ còn điều kiện bắt buộc về cấu trúc/OB. Thiếu dữ liệu volume hoặc baseline bằng 0 vẫn chặn tín hiệu khi kiểm tra volume tương ứng đang bật; dữ liệu thiếu không được bù bằng điểm khác.
+---
 
-Mũi tên lớn hơn; có alert BUY/SELL chỉ sau nến đóng. **Show signal status** hiện chế độ, tổng tín hiệu trong toàn bộ lịch sử đã tính, thời điểm tín hiệu gần nhất theo múi giờ sàn, và trạng thái của nến đóng gần nhất: đang chờ từ chối OB, thiếu dữ liệu volume hoặc điểm đồng thuận chưa đạt. Các số tổng trên bảng có thể lớn hơn số mũi tên trong phần dữ liệu đang hiển thị/trả về; mỗi lần đổi dữ liệu hoặc thiết lập sẽ tính lại lịch sử.
+## Kiểm tra tự động (Node.js ≥ 20)
 
-Kiểm tra TradingView trên BINANCE:BTCUSDT 15 phút, cùng 1.252 hàng dữ liệu biểu đồ trả về: **Strict 0 BUY / 0 SELL; Balanced 5 BUY / 10 SELL**, cả năm kiểm tra đều bật. Mã chính biên dịch không cảnh báo. Bài kiểm tra gồm ngưỡng điểm, thiếu dữ liệu, selector Balanced và các điều kiện Strict cũ. Chi tiết/hash ở `tests/validation-1.3.0.json`. Kết quả chỉ chứng minh luồng phát/hiển thị tín hiệu, chưa đo tỷ lệ đúng hay lợi nhuận.
+```bash
+# Kiểm tra tĩnh Pine v6 (phiên bản, plot <= 55/64, lookahead_off, top-level ta.*, không khóa mã)
+node tests/pine_static_check.mjs
 
-### Sửa ở bản 1.2.1 và kiểm tra BTC 15 phút
+# Kiểm chứng parity từng nến và từng lệnh trên toàn bộ 6 tập dữ liệu (15m & 1h)
+node tests/pine_parity.mjs
 
-Sửa hai nhánh khởi tạo cấu trúc: lần phá giảm đầu tiên phải tạo OB giảm; lần phá tăng đầu tiên phải tạo OB tăng. Bản 1.2.0 đã gọi ngược hướng ở hai nhánh này. Bản sửa giữ nguyên toàn bộ điều kiện mũi tên.
-
-Kiểm tra cuối trên TradingView ngày 07/11/2026, BINANCE:BTCUSDT 15 phút, cửa sổ trả về 400 nến: tất cả bộ lọc bật cho 0 BUY / 0 SELL; bộ cơ bản (cấu trúc, từ chối OB, RVOL xác nhận ≥ 1,2; tắt Mapping/FVG/sweep/RVOL nguồn) cho 1 BUY / 4 SELL. Tắt riêng một bộ lọc FVG, sweep hoặc Mapping vẫn cho 0 tín hiệu trong cửa sổ này. Mỗi lượt được đợi tính xong và kiểm tra mã/khung thời gian trước khi đếm. Các cấu hình này chỉ dùng để chẩn đoán trong tab thử nghiệm; không thay mặc định.
-
-Vì vậy, không thấy mũi tên trong đoạn này không phải do không có lệnh vẽ: bộ điều kiện đầy đủ chưa có nến thỏa mãn. Kết quả đếm không đo tỷ lệ đúng, không chứng minh cấu hình ít bộ lọc tốt hơn. Xem `tests/validation-1.2.1.json` để biết phạm vi kiểm tra và hash mã.
-
-### Mũi tên xác nhận
-
-**BUY xanh dưới nến** báo CHoCH tăng có RVOL nguồn đạt ngưỡng trong chế độ mặc định. **SELL đỏ trên nến** áp dụng đối xứng cho CHoCH giảm. Mũi tên được vẽ sau khi nến CHoCH đóng, không đặt lùi về nến nguồn và không xuất hiện trên nến còn chạy. Đây là hướng của thiết lập, không phải giá mục tiêu hoặc dự báo chắc chắn cho nến kế tiếp.
-
-Hai chế độ cũ **Strict** và **Balanced** tiếp tục dùng các dữ kiện sau. Strict cần đủ; Balanced luôn yêu cầu mục 2 và cấu trúc cùng hướng, rồi dùng Mapping cùng các mục 3–6 làm năm điểm hỗ trợ:
-
-1. Cấu trúc thị trường và Mapping đều đang tăng.
-2. Nến chạm một OB tăng còn hiệu lực, đã được tạo từ nến trước, rồi đóng vượt mép trên vùng. Breaker và vùng đã bị phá không được dùng làm OB thường.
-3. Có FVG tăng còn hiệu lực từ nến trước chồng lấn OB. Nến xác nhận phải chạm phần giá chung và đóng vượt mép trên của cả hai vùng.
-4. Trong 10 nến gần đây có quét đáy theo cấu trúc hoặc raid FVG tăng; chiều giảm dùng quét đỉnh/raid FVG giảm.
-5. Volume nến xác nhận ít nhất bằng **1,2 lần** volume trung bình của **20 nến trước nó**.
-6. Volume nến nguồn của OB ít nhất bằng **1 lần** trung bình của **20 nến trước nến nguồn**. Đây là RVOL nguồn được tính riêng, không so trực tiếp volume tuyệt đối.
-
-Mỗi OB phát tối đa một mũi tên. Nếu hai hướng cùng đủ điều kiện, chỉ báo không vẽ mũi tên để tránh tín hiệu mâu thuẫn. Khi bật bộ lọc volume, thiếu dữ liệu hoặc trung bình bằng 0 sẽ không phát tín hiệu theo bộ lọc đó.
-
-Nhóm **CONFIRMED ARROWS** cho phép chọn chế độ và ngưỡng. Mặc định dùng CHoCH + Source RVOL 1,2×. Khi chọn Balanced hoặc Strict, có thể bật/tắt năm bộ lọc cũ và thay ngưỡng của chúng. Các ngưỡng đều là quy tắc ban đầu, chưa được tối ưu hay chứng minh làm tăng tỷ lệ đúng.
-
-FVG và Mapping vẫn được tính để xét mũi tên dù bạn ẩn hình vẽ của chúng. Tắt **Show buy/sell arrows** chỉ ẩn mũi tên; không thay đổi quá trình tính và ghi nhận OB. Các tùy chọn tạo cấu trúc như Build Sweep và các chế độ mitigation vẫn ảnh hưởng dữ kiện được tạo ra.
-
-### Các sửa lỗi từ bản 1.1.0
-
-- Sửa xóa nhầm vùng chồng lấn; Recent/Old chọn vùng theo nến xác nhận. Khoảng giá bằng nhau hoàn toàn cũng được xử lý; hai vùng chỉ chạm mép không bị coi là chồng lấn.
-- Xóa vùng bị phá từ cuối mảng về đầu, tránh bỏ sót nhiều vùng bị phá trên cùng một nến.
-- Close chỉ so sánh giá đóng cửa. Wick dùng high/low của nến đã đóng; Avg dùng high/low vượt trung điểm vùng, giữ ý nghĩa cũ của chế độ này.
-- Bỏ các thanh Buy/Sell Activity mô phỏng và phần trăm dễ gây hiểu nhầm. **OB Source Vol** là volume của nến nguồn dùng để dựng OB; **RVOL** đi kèm là tỷ lệ so với 20 nến trước nguồn. Thiếu dữ liệu sẽ hiện N/A. Chúng không phải xác suất hoặc số liệu bên mua/bán chủ động.
-- Chỉ cập nhật trạng thái cấu trúc, vùng giá, breaker và raid sau khi nến đóng. Hình vẽ ở nến đang chạy dùng trạng thái đã xác nhận.
-- OB và FVG được vẽ bắt đầu ở nến phát hiện, không neo ngược về nến nguồn. Giá của OB vẫn lấy từ nến nguồn; FVG vẫn dùng cấu trúc ba nến. FVG xuất hiện khi nến thứ ba đóng, bỏ độ trễ thêm một nến của bản cũ.
-- Pivot với độ dài 5 vẫn cần 5 nến bên phải để xác nhận; các đường cấu trúc có thể nối về cực trị đã xác nhận. Đây không phải tín hiệu đã biết ở thời điểm cực trị đó hình thành.
-- Chuyển Pine v6, dùng điều kiện pivot rõ ràng, loại mã và kiểu dữ liệu không được sử dụng.
-
-## Giới hạn lịch sử và hiển thị
-
-Phép truy xuất lịch sử được chặn ở 4.500 nến. Khi mốc cũ hơn, phép tìm cực trị dùng phần dữ liệu còn nằm trong phạm vi này. Mỗi phía giữ tối đa 100 OB và 100 FVG; Mapping giữ tối đa 1.000 điểm. Đây là giới hạn lưu trữ, khác với số vùng đang hiển thị.
-
-Mỗi phía hiển thị tối đa 20 OB, 20 FVG và 100 sự kiện cấu trúc để giữ số đối tượng trong giới hạn TradingView. Mặc định chỉ hiển thị 5 vùng mỗi phía. Bật tất cả ở mức tối đa có thể làm biểu đồ rối.
-
-Window lọc phạm vi **hiển thị cấu trúc**, không khởi động lại thuật toán ở mỗi lần tải. Tính toán được gọi nhất quán trên các nến đã tải; các phép đọc lịch sử luôn có giới hạn. Tắt hiển thị OB vẫn duy trì việc loại bỏ vùng đã bị phá. Kết quả có thể khác bản cũ do các sửa đổi này, dữ liệu đầu vào hoặc điểm bắt đầu lịch sử.
-
-Đây là công cụ đánh dấu cơ hội để bạn xem xét. Các mũi tên dùng bộ điều kiện được công bố; chưa có mô hình xác suất, quy tắc đặt lệnh hoặc tự động giao dịch.
-
-## Kiểm tra
-
-Kết quả mới nhất ở `tests/validation-1.4.0.json`. Các file validation theo phiên bản cũ được giữ để đối chiếu. Bản phát hành đã được gửi vào compiler TradingView Pine v6; compiler không báo lỗi hoặc cảnh báo cho `TOOL.pine`. Các harness dùng chính hàm được trích từ mã sản phẩm, với OHLC giả lập chỉ trong harness.
-
-Tạo lại các script kiểm thử bằng Python 3 (thư viện chuẩn):
-
-```powershell
-python tests/build_regression.py
-python tests/build_regression.py TOOL.pine Old
-python tests/build_history_regression.py
-python tests/build_signal_regression.py
-python tests/build_choch_signal_regression.py
-python tests/check_choch_mode_source.py
-python tests/build_initial_ob_regression.py bull
-python tests/build_initial_ob_regression.py bear
+# Chạy toàn bộ test suite
+node --test research/sim_engine.test.mjs research/signals_15m.test.mjs research/signals_1h.test.mjs tests/pine_parity.test.mjs
 ```
 
-Chạy từng file `tests/regression-*.pine` như một indicator riêng trong TradingView. Hai script recent/old phải hiện **REGRESSION PASS**; history phải hiện **HISTORY PASS** và cần hơn 4.500 nến đã tải; signals phải hiện **ARROWS PASS**; CHoCH phải hiện **CHOCH RVOL PASS**. Harness CHoCH kiểm tra cả hướng tăng/giảm, BOS không phát tín hiệu, nến chưa đóng, ngưỡng, dưới ngưỡng và RVOL thiếu. `runtime.error` sẽ chỉ ra kiểm tra không đạt. Cảnh báo shadowing OHLC trong harness là chủ đích để dùng dữ liệu cố định; mã sản phẩm không shadow các biến này.
+## Tài liệu & Cấu trúc chính
 
-Hai script initial quan sát hướng được yêu cầu trong lời gọi tạo OB tại lần phá cấu trúc đầu tiên. Chúng phải hiện **INITIAL BULL PASS** / **INITIAL BEAR PASS**; không kiểm tra khả năng tồn tại của vùng hay chất lượng dự báo. Cùng ca quan sát này đã thất bại trên mã 1.2.0 trước sửa ở cả hai chiều.
-
-`tests/baseline.json` ghi nhận ví dụ kiểm thử lỗi trên bản gốc. Đính chính review ngày 03/11/2026: compiler TradingView ngày 04/11/2026 vẫn biên dịch được bản gốc; nhận định cũ rằng lời gọi `timeframe.change()` chắc chắn chặn biên dịch đã bị rút lại. Bản sửa bỏ điều kiện đổi timeframe không cần thiết vì FVG sử dụng ngay khung biểu đồ.
-
-Các kiểm tra kỹ thuật không đánh giá tỷ lệ thắng, lợi nhuận hoặc hiệu quả dự báo. Chưa thực hiện một phiên Bar Replay đầy đủ hay kiểm tra realtime kéo dài.
+- [TOOL.pine](TOOL.pine) — Indicator `SMC Confirmed [3.0.0]`
+- [TOOL_Strategy.pine](TOOL_Strategy.pine) — Companion Strategy Tester `SMC High-WinRate Strategy [3.0.0]`
+- [docs/EVALUATION_AND_RESEARCH_REPORT.md](docs/EVALUATION_AND_RESEARCH_REPORT.md) — Báo cáo đánh giá các phiên bản cũ, nguyên nhân thất bại và nghiên cứu v3.0.0
+- [research/sim_engine.mjs](research/sim_engine.mjs) — Engine mô phỏng khớp lệnh chuẩn Pine parity
+- [research/signals_15m.mjs](research/signals_15m.mjs) & [research/signals_1h.mjs](research/signals_1h.mjs) — Bộ sinh tín hiệu nhân quả 15m và 1h
+- [tests/pine_static_check.mjs](tests/pine_static_check.mjs) & [tests/pine_parity.mjs](tests/pine_parity.mjs) — Bộ kiểm tra tĩnh & đối chiếu parity
