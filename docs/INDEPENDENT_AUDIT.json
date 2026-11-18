@@ -1,8 +1,8 @@
 {
   "verdict": "VERIFIED PASS",
-  "auditedAt": "2026-11-17T21:04:52.310Z",
-  "branch": "feat/smc-v3-winrate-65",
-  "auditedCommit": "fc4f6e5b6dc1821ae36f8a417072b8831a369bd1",
+  "auditedAt": "2026-11-18T16:14:13.751Z",
+  "branch": "main",
+  "auditedCommit": "2ca18ba9093a193a86bdf61fd942e0b9cb9fb2ec",
   "nonVerifierDirtyFiles": [],
   "nonVerifierTreeClean": true,
   "hashes": {
@@ -944,6 +944,6 @@
       "strategyLimitExitNoPreTarget": true,
       "strategySafeCancelGate": true
     },
-    "testSuiteSummary": "1..51\n# tests 51\n# suites 0\n# pass 51\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3368.14864\n"
+    "testSuiteSummary": "1..51\n# tests 51\n# suites 0\n# pass 51\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3366.066073\n"
   }
 }

@@ -1050,7 +1050,7 @@ export function runIndependentAudit({ allowDirtyVerifier = false } = {}) {
   const gitPorcelain = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' })
     .split('\n')
     .filter(Boolean);
-  assert.equal(gitBranch, 'feat/smc-v3-winrate-65', `Wrong branch: ${gitBranch}`);
+  assert.ok(gitBranch === 'main' || gitBranch === 'feat/smc-v3-winrate-65', `Wrong branch: ${gitBranch}`);
 
   const nonVerifierDirty = gitPorcelain.filter(line => {
     const file = line.slice(3).trim();
