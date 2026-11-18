@@ -1,3 +1,17 @@
+# SMC Confirmed 3.0.0 — Causal Market-Structure Signals with a Parity-Tested Simulation Harness
+
+> **Research scope (English abstract)**
+> This repository formalizes market-structure primitives (Order Blocks, Fair Value Gaps, sweeps, change of character) as a closed-bar, non-repainting Pine Script v6 indicator (`TOOL.pine`) with a companion Strategy Tester script (`TOOL_Strategy.pine`). It is a research and simulation tool; it does not place orders and makes no claim of live profitability.
+>
+> * **Causality:** `request.security` calls use `lookahead_off`, and signals, pivots and exits are evaluated on confirmed bars only.
+> * **Conservative fill rules:** when a stop and a target are touched in the same bar the stop is counted first; gaps through a stop exit at the open. The same rules are implemented in `research/sim_engine.mjs` and in the Pine strategy.
+> * **Automated verification:** Python generators in `tests/build_*.py` build Pine regression harnesses (`tests/regression-*.pine`), validated against JSON artifacts (`tests/validation-*.json`). Node.js checks (`tests/pine_static_check.mjs`, `tests/pine_parity.mjs`) compare the Pine logic bar by bar and trade by trade with the reference simulator.
+> * **Validation design:** unseen holdout, a 6,000-bar TradingView window, 4-fold walk-forward and a prefix-truncation causality test, after fees and slippage. See `docs/EVALUATION_AND_RESEARCH_REPORT.md` for sensitivity tables and the history of failed iterations.
+> * **Reading the results:** the reported win rate benefits from a breakeven-plus-cost exit (`BE+`); the no-BE sensitivity run is reported alongside it, and these figures are retrospective research results, not evidence of an executable edge.
+> * **Attribution and license:** the original indicator is by **BigBeluga** under the Mozilla Public License 2.0; this repository retains that notice. Documentation below is in Vietnamese.
+
+---
+
 # SMC Confirmed [3.0.0]
 
 Chỉ báo Smart Money Concepts (Pine Script v6) giữ nguyên toàn bộ phần sửa lỗi cấu trúc thị trường, Order Block (OB), Fair Value Gap (FVG), Sweep và Heatmap thanh lý ước tính tùy chọn, đồng thời nâng cấp động cơ tín hiệu mặc định **`SMC High-WinRate [v3.0]`** với mô phỏng **PAPER IN / OUT** khớp từng nến cùng `research/sim_engine.mjs`.
