@@ -41,7 +41,7 @@ Mã nguồn gốc giữ ghi nhận tác giả **BigBeluga** theo giấy phép **
 
 ## Điểm mới chính ở phiên bản 3.0.0
 
-- **Tỷ lệ thắng ròng ≥ 65% đã kiểm chứng trên cả 15m và 1h (BTCUSDT):** đạt đồng thời cả 4 cổng cứng (Unseen Holdout, cửa sổ 6.000 nến TradingView, 4-Fold Walk-Forward, và kiểm định nhân quả cắt tiền tố).
+- **Quy trình kiểm chứng 4 cổng trên 15m và 1h (BTCUSDT):** Unseen Holdout, cửa sổ 6.000 nến TradingView, 4-Fold Walk-Forward và kiểm định nhân quả cắt tiền tố, đều tính sau phí và trượt giá. Đây là kết quả nghiên cứu hồi cứu, không phải bằng chứng lợi nhuận khi giao dịch thật; tỷ lệ thắng phụ thuộc đáng kể vào cơ chế chốt `BE+` (xem lưu ý minh bạch bên dưới).
 - **Vào lệnh Limit Pullback thay cho đuổi giá tại open kế tiếp:** giảm chi phí ma sát và cải thiện điểm vào (`0.55 × ATR14` ở 15m; `0.18 × ATR14` ở 1h), kèm đường chờ **LMT L / LMT S** và đếm ngược hết hạn (`6` nến).
 - **Bảo vệ vị thế với Breakeven-Plus-Cost Ratchet (`BE+`):** chỉ đánh giá sau khi nến đóng (`barstate.isconfirmed`), dời SL lên dương phí+trượt giá (`+0.28%` ở 15m, `+0.34%` ở 1h) khi giá đóng đạt `+0.43R`, có hiệu lực từ nến kế tiếp.
 - **Quy tắc khớp lệnh bảo thủ 100% đồng nhất với `research/sim_engine.mjs`:**
@@ -55,7 +55,7 @@ Mã nguồn gốc giữ ghi nhận tác giả **BigBeluga** theo giấy phép **
 
 ---
 
-## Tóm tắt kết quả kiểm chứng (sau phí 0.10% + trượt giá 0.025%/chiều)
+## Tóm tắt kết quả kiểm chứng hồi cứu (sau phí 0.10% + trượt giá 0.025%/chiều)
 
 | Khung BTCUSDT | Engine v3.0 | Unseen Holdout (25% cuối) | TV 6.000 nến | Walk-Forward 4 Fold | ETHUSDT đối chứng |
 |---|---|---|---|---|---|
