@@ -1,0 +1,1338 @@
+{
+  "schema": "smc-v4-15m-lock-v1",
+  "lockedAt": "2026-11-21T22:31:19.591Z",
+  "selectionScope": "Cal[0..52560] + Val[52560..70080] strictly truncated",
+  "totalEvaluatedCalVal": 1232,
+  "strictEligibleCount": 71,
+  "winner": {
+    "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.6_rr3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+    "sig": {
+      "tag": "M15_H4Disp_0.8_H4Close_adp",
+      "rawFamily": "M15_H4Disp",
+      "h4BodyAtrMin": 0.8,
+      "h4ClosePosMin": 0.58,
+      "onH4CloseOnly": true,
+      "requireLtfConfirm": false,
+      "htfMode": "H4_50",
+      "minAtrPct": 0.15,
+      "pullAtr": 0.35,
+      "adaptive": true,
+      "winLen": 6,
+      "slThresh": 2,
+      "requireNegNet": true
+    },
+    "execOptions": {
+      "entryMode": "LIMIT_PULLBACK",
+      "limitExpiryBars": 12,
+      "pendingPolicy": "ignore",
+      "limitSameBarTp": "close",
+      "warmup": 250,
+      "costPct": 0.1,
+      "slippagePct": 0.025,
+      "stopAtr": 5,
+      "minStopPct": 1.6,
+      "rewardRisk": 3,
+      "maxHoldBars": 224,
+      "beTriggerR": 0.48,
+      "beOffsetPct": 0.45,
+      "lock2TriggerR": 0,
+      "lock2OffsetR": 0,
+      "trailTriggerR": 1,
+      "trailAtrMult": 3.2,
+      "cooldown": 20
+    },
+    "fullSpec": {
+      "tag": "M15_H4Disp_0.8_H4Close_adp",
+      "rawFamily": "M15_H4Disp",
+      "h4BodyAtrMin": 0.8,
+      "h4ClosePosMin": 0.58,
+      "onH4CloseOnly": true,
+      "requireLtfConfirm": false,
+      "htfMode": "H4_50",
+      "minAtrPct": 0.15,
+      "pullAtr": 0.35,
+      "adaptive": true,
+      "winLen": 6,
+      "slThresh": 2,
+      "requireNegNet": true,
+      "virtExec": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 12,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "warmup": 250,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "stopAtr": 5,
+        "minStopPct": 1.6,
+        "rewardRisk": 3,
+        "maxHoldBars": 224,
+        "beTriggerR": 0.48,
+        "beOffsetPct": 0.45,
+        "lock2TriggerR": 0,
+        "lock2OffsetR": 0,
+        "trailTriggerR": 1,
+        "trailAtrMult": 3.2,
+        "cooldown": 20
+      }
+    },
+    "calValMetrics": {
+      "cal": {
+        "range": [
+          0,
+          52560
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2025-05-23T09:45:00.000Z",
+        "count": 246,
+        "wins": 174,
+        "losses": 72,
+        "ties": 0,
+        "winRatePct": 70.7317,
+        "wilsonLower95Pct": 64.762,
+        "profitFactor": 1.7773,
+        "totalNetPct": 126.8738,
+        "compoundedNetPct": 227.9993,
+        "meanNetPct": 0.5157,
+        "meanGrossPct": 0.6157,
+        "maxDrawdownPct": 22.3869,
+        "retToDd": 5.667,
+        "exitReasons": {
+          "SL": 62,
+          "TP": 9,
+          "TIME": 21,
+          "BE": 154
+        },
+        "buyCount": 157,
+        "buyWins": 112,
+        "buyWinRatePct": 71.34,
+        "sellCount": 89,
+        "sellWins": 62,
+        "sellWinRatePct": 69.66
+      },
+      "val": {
+        "range": [
+          52560,
+          70080
+        ],
+        "firstIso": "2025-05-23T10:00:00.000Z",
+        "lastIso": "2025-11-21T21:45:00.000Z",
+        "count": 81,
+        "wins": 56,
+        "losses": 25,
+        "ties": 0,
+        "winRatePct": 69.1358,
+        "wilsonLower95Pct": 58.4017,
+        "profitFactor": 1.5647,
+        "totalNetPct": 25.5047,
+        "compoundedNetPct": 27.1588,
+        "meanNetPct": 0.3149,
+        "meanGrossPct": 0.4149,
+        "maxDrawdownPct": 12.7055,
+        "retToDd": 2.007,
+        "exitReasons": {
+          "SL": 24,
+          "TP": 2,
+          "TIME": 5,
+          "BE": 50
+        },
+        "buyCount": 43,
+        "buyWins": 30,
+        "buyWinRatePct": 69.77,
+        "sellCount": 38,
+        "sellWins": 26,
+        "sellWinRatePct": 68.42
+      },
+      "calVal": {
+        "range": [
+          0,
+          70080
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2025-11-21T21:45:00.000Z",
+        "count": 328,
+        "wins": 231,
+        "losses": 97,
+        "ties": 0,
+        "winRatePct": 70.4268,
+        "wilsonLower95Pct": 65.2744,
+        "profitFactor": 1.7378,
+        "totalNetPct": 153.742,
+        "compoundedNetPct": 322.7668,
+        "meanNetPct": 0.4687,
+        "meanGrossPct": 0.5687,
+        "maxDrawdownPct": 22.3869,
+        "retToDd": 6.868,
+        "exitReasons": {
+          "SL": 86,
+          "TP": 11,
+          "TIME": 26,
+          "BE": 205
+        },
+        "buyCount": 200,
+        "buyWins": 142,
+        "buyWinRatePct": 71,
+        "sellCount": 128,
+        "sellWins": 89,
+        "sellWinRatePct": 69.53
+      },
+      "h1ToH4": [
+        {
+          "label": "H1",
+          "range": [
+            0,
+            17520
+          ],
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-05-23T09:45:00.000Z",
+          "count": 72,
+          "wins": 53,
+          "losses": 19,
+          "ties": 0,
+          "winRatePct": 73.6111,
+          "wilsonLower95Pct": 62.4239,
+          "profitFactor": 1.7251,
+          "totalNetPct": 30.9714,
+          "compoundedNetPct": 33.9044,
+          "meanNetPct": 0.4302,
+          "meanGrossPct": 0.5302,
+          "maxDrawdownPct": 14.0059,
+          "retToDd": 2.211,
+          "exitReasons": {
+            "SL": 15,
+            "TP": 2,
+            "TIME": 9,
+            "BE": 46
+          },
+          "buyCount": 52,
+          "buyWins": 40,
+          "buyWinRatePct": 76.92,
+          "sellCount": 20,
+          "sellWins": 13,
+          "sellWinRatePct": 65
+        },
+        {
+          "label": "H2",
+          "range": [
+            17520,
+            35040
+          ],
+          "firstIso": "2024-05-23T10:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 87,
+          "wins": 54,
+          "losses": 33,
+          "ties": 0,
+          "winRatePct": 62.069,
+          "wilsonLower95Pct": 51.5674,
+          "profitFactor": 1.2483,
+          "totalNetPct": 18.0613,
+          "compoundedNetPct": 16.5394,
+          "meanNetPct": 0.2076,
+          "meanGrossPct": 0.3076,
+          "maxDrawdownPct": 20.4663,
+          "retToDd": 0.882,
+          "exitReasons": {
+            "SL": 27,
+            "TP": 3,
+            "TIME": 7,
+            "BE": 50
+          },
+          "buyCount": 53,
+          "buyWins": 33,
+          "buyWinRatePct": 62.26,
+          "sellCount": 34,
+          "sellWins": 21,
+          "sellWinRatePct": 61.76
+        },
+        {
+          "label": "H3",
+          "range": [
+            35040,
+            52560
+          ],
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-05-23T09:45:00.000Z",
+          "count": 87,
+          "wins": 67,
+          "losses": 20,
+          "ties": 0,
+          "winRatePct": 77.0115,
+          "wilsonLower95Pct": 67.1415,
+          "profitFactor": 2.6293,
+          "totalNetPct": 77.8411,
+          "compoundedNetPct": 110.1867,
+          "meanNetPct": 0.8947,
+          "meanGrossPct": 0.9947,
+          "maxDrawdownPct": 10.0568,
+          "retToDd": 7.74,
+          "exitReasons": {
+            "SL": 20,
+            "TP": 4,
+            "TIME": 5,
+            "BE": 58
+          },
+          "buyCount": 52,
+          "buyWins": 39,
+          "buyWinRatePct": 75,
+          "sellCount": 35,
+          "sellWins": 28,
+          "sellWinRatePct": 80
+        },
+        {
+          "label": "H4",
+          "range": [
+            52560,
+            70080
+          ],
+          "firstIso": "2025-05-23T10:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 81,
+          "wins": 56,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 69.1358,
+          "wilsonLower95Pct": 58.4017,
+          "profitFactor": 1.5647,
+          "totalNetPct": 25.5047,
+          "compoundedNetPct": 27.1588,
+          "meanNetPct": 0.3149,
+          "meanGrossPct": 0.4149,
+          "maxDrawdownPct": 12.7055,
+          "retToDd": 2.007,
+          "exitReasons": {
+            "SL": 24,
+            "TP": 2,
+            "TIME": 5,
+            "BE": 50
+          },
+          "buyCount": 43,
+          "buyWins": 30,
+          "buyWinRatePct": 69.77,
+          "sellCount": 38,
+          "sellWins": 26,
+          "sellWinRatePct": 68.42
+        }
+      ],
+      "noBeCalVal": {
+        "range": [
+          0,
+          70080
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2025-11-21T21:45:00.000Z",
+        "count": 253,
+        "wins": 123,
+        "losses": 130,
+        "ties": 0,
+        "winRatePct": 48.6166,
+        "wilsonLower95Pct": 42.5246,
+        "profitFactor": 1.5058,
+        "totalNetPct": 132.6671,
+        "compoundedNetPct": 231.195,
+        "meanNetPct": 0.5244,
+        "meanGrossPct": 0.6244,
+        "maxDrawdownPct": 29.8775,
+        "retToDd": 4.44,
+        "exitReasons": {
+          "SL": 110,
+          "TP": 32,
+          "TIME": 111,
+          "BE": 0
+        },
+        "buyCount": 151,
+        "buyWins": 78,
+        "buyWinRatePct": 51.66,
+        "sellCount": 102,
+        "sellWins": 45,
+        "sellWinRatePct": 44.12
+      }
+    }
+  },
+  "top10CalVal": [
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.6_rr3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "eligibleStrict": true,
+      "score": 321.483,
+      "cal": {
+        "count": 246,
+        "wr": 70.7317,
+        "pf": 1.7773,
+        "net": 126.8738
+      },
+      "val": {
+        "count": 81,
+        "wr": 69.1358,
+        "pf": 1.5647,
+        "net": 25.5047
+      },
+      "calVal": {
+        "count": 328,
+        "wr": 70.4268,
+        "pf": 1.7378,
+        "net": 153.742,
+        "dd": 22.3869
+      },
+      "noBePF": 1.5058,
+      "minHWr": 62.069,
+      "minHPf": 1.2483
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.8_rr3_be0.48/0.45_l20/0_tr1/3.2_cd16",
+      "eligibleStrict": true,
+      "score": 315.91,
+      "cal": {
+        "count": 252,
+        "wr": 69.8413,
+        "pf": 1.6978,
+        "net": 122.7709
+      },
+      "val": {
+        "count": 77,
+        "wr": 68.8312,
+        "pf": 1.475,
+        "net": 21.9938
+      },
+      "calVal": {
+        "count": 330,
+        "wr": 69.697,
+        "pf": 1.6575,
+        "net": 146.1282,
+        "dd": 18.8502
+      },
+      "noBePF": 1.3629,
+      "minHWr": 62.9213,
+      "minHPf": 1.3564
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.4_rr3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "eligibleStrict": true,
+      "score": 314.458,
+      "cal": {
+        "count": 248,
+        "wr": 70.9677,
+        "pf": 1.8019,
+        "net": 129.2999
+      },
+      "val": {
+        "count": 84,
+        "wr": 67.8571,
+        "pf": 1.4401,
+        "net": 20.1941
+      },
+      "calVal": {
+        "count": 333,
+        "wr": 70.2703,
+        "pf": 1.7283,
+        "net": 150.8574,
+        "dd": 22.6534
+      },
+      "noBePF": 1.4977,
+      "minHWr": 62.5,
+      "minHPf": 1.2363
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.6_rr3_be0.48/0.45_l20/0_tr1/3.2_cd16",
+      "eligibleStrict": true,
+      "score": 303.444,
+      "cal": {
+        "count": 257,
+        "wr": 70.8171,
+        "pf": 1.6999,
+        "net": 120.7768
+      },
+      "val": {
+        "count": 82,
+        "wr": 67.0732,
+        "pf": 1.4775,
+        "net": 22.5848
+      },
+      "calVal": {
+        "count": 340,
+        "wr": 70,
+        "pf": 1.6583,
+        "net": 144.7251,
+        "dd": 21.3845
+      },
+      "noBePF": 1.4181,
+      "minHWr": 63.3333,
+      "minHPf": 1.2797
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.4_rr3_be0.48/0.45_l20/0_tr1/3.2_cd16",
+      "eligibleStrict": true,
+      "score": 293.889,
+      "cal": {
+        "count": 259,
+        "wr": 71.0425,
+        "pf": 1.7222,
+        "net": 123.2029
+      },
+      "val": {
+        "count": 87,
+        "wr": 66.6667,
+        "pf": 1.3114,
+        "net": 15.6597
+      },
+      "calVal": {
+        "count": 347,
+        "wr": 70.0288,
+        "pf": 1.6349,
+        "net": 140.2261,
+        "dd": 21.651
+      },
+      "noBePF": 1.4152,
+      "minHWr": 63.7363,
+      "minHPf": 1.268
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.4_rr3_be0.45/0.45_l20/0_tr1/3.2_cd16",
+      "eligibleStrict": true,
+      "score": 287.511,
+      "cal": {
+        "count": 267,
+        "wr": 72.2846,
+        "pf": 1.6371,
+        "net": 108.2295
+      },
+      "val": {
+        "count": 88,
+        "wr": 70.4545,
+        "pf": 1.6658,
+        "net": 27.8703
+      },
+      "calVal": {
+        "count": 356,
+        "wr": 71.9101,
+        "pf": 1.6492,
+        "net": 137.4633,
+        "dd": 23.3544
+      },
+      "noBePF": 1.4786,
+      "minHWr": 62.3656,
+      "minHPf": 1.0996
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.8_rr3_be0.45/0.45_l20/0_tr1/3.2_cd16",
+      "eligibleStrict": true,
+      "score": 277.837,
+      "cal": {
+        "count": 261,
+        "wr": 70.8812,
+        "pf": 1.561,
+        "net": 100.0821
+      },
+      "val": {
+        "count": 78,
+        "wr": 73.0769,
+        "pf": 1.7376,
+        "net": 30.4865
+      },
+      "calVal": {
+        "count": 340,
+        "wr": 71.4706,
+        "pf": 1.6005,
+        "net": 131.9321,
+        "dd": 22.1928
+      },
+      "noBePF": 1.3919,
+      "minHWr": 62.2222,
+      "minHPf": 1.1859
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w5|s5_m1.6_rr2.6_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "eligibleStrict": true,
+      "score": 260.492,
+      "cal": {
+        "count": 250,
+        "wr": 70,
+        "pf": 1.524,
+        "net": 91.2606
+      },
+      "val": {
+        "count": 78,
+        "wr": 70.5128,
+        "pf": 1.7674,
+        "net": 31.5768
+      },
+      "calVal": {
+        "count": 329,
+        "wr": 70.2128,
+        "pf": 1.5769,
+        "net": 124.201,
+        "dd": 21.4653
+      },
+      "noBePF": 1.2704,
+      "minHWr": 63.2184,
+      "minHPf": 1.2609
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w5|s5_m1.4_rr2.3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "eligibleStrict": true,
+      "score": 259.03,
+      "cal": {
+        "count": 256,
+        "wr": 70.7031,
+        "pf": 1.5714,
+        "net": 99.1909
+      },
+      "val": {
+        "count": 82,
+        "wr": 69.5122,
+        "pf": 1.5411,
+        "net": 23.7981
+      },
+      "calVal": {
+        "count": 339,
+        "wr": 70.5015,
+        "pf": 1.5716,
+        "net": 124.3525,
+        "dd": 22.1446
+      },
+      "noBePF": 1.2804,
+      "minHWr": 64.0449,
+      "minHPf": 1.2379
+    },
+    {
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w5|s5_m1.6_rr2.3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "eligibleStrict": true,
+      "score": 256.311,
+      "cal": {
+        "count": 254,
+        "wr": 70.4724,
+        "pf": 1.5126,
+        "net": 89.8904
+      },
+      "val": {
+        "count": 78,
+        "wr": 70.5128,
+        "pf": 1.7344,
+        "net": 30.2198
+      },
+      "calVal": {
+        "count": 333,
+        "wr": 70.5706,
+        "pf": 1.5611,
+        "net": 121.4737,
+        "dd": 21.4782
+      },
+      "noBePF": 1.2707,
+      "minHWr": 63.6364,
+      "minHPf": 1.2539
+    }
+  ],
+  "unsealedEvaluation": {
+    "okxSpot3y": {
+      "dataset": "data/okx_btcusdt_15m_3y.json",
+      "symbol": "OKX:BTCUSDT",
+      "bars": 105120,
+      "signals": 760,
+      "full": {
+        "range": [
+          0,
+          105120
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 485,
+        "wins": 325,
+        "losses": 160,
+        "ties": 0,
+        "winRatePct": 67.0103,
+        "wilsonLower95Pct": 62.7064,
+        "profitFactor": 1.3392,
+        "totalNetPct": 120.4301,
+        "compoundedNetPct": 190.3685,
+        "meanNetPct": 0.2483,
+        "meanGrossPct": 0.3483,
+        "maxDrawdownPct": 39.5752,
+        "retToDd": 3.043,
+        "exitReasons": {
+          "SL": 145,
+          "TP": 12,
+          "TIME": 38,
+          "BE": 290
+        },
+        "buyCount": 279,
+        "buyWins": 192,
+        "buyWinRatePct": 68.82,
+        "sellCount": 206,
+        "sellWins": 133,
+        "sellWinRatePct": 64.56
+      },
+      "noBe": {
+        "range": [
+          0,
+          105120
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 376,
+        "wins": 175,
+        "losses": 201,
+        "ties": 0,
+        "winRatePct": 46.5426,
+        "wilsonLower95Pct": 41.5611,
+        "profitFactor": 1.3059,
+        "totalNetPct": 129.9317,
+        "compoundedNetPct": 201.5814,
+        "meanNetPct": 0.3456,
+        "meanGrossPct": 0.4456,
+        "maxDrawdownPct": 29.8775,
+        "retToDd": 4.349,
+        "exitReasons": {
+          "SL": 175,
+          "TP": 42,
+          "TIME": 159,
+          "BE": 0
+        },
+        "buyCount": 212,
+        "buyWins": 102,
+        "buyWinRatePct": 48.11,
+        "sellCount": 164,
+        "sellWins": 73,
+        "sellWinRatePct": 44.51
+      },
+      "yearly": [
+        {
+          "year": 1,
+          "range": [
+            0,
+            35040
+          ],
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 159,
+          "wins": 107,
+          "losses": 52,
+          "ties": 0,
+          "winRatePct": 67.2956,
+          "wilsonLower95Pct": 59.6704,
+          "profitFactor": 1.4247,
+          "totalNetPct": 49.0327,
+          "compoundedNetPct": 56.0514,
+          "meanNetPct": 0.3084,
+          "meanGrossPct": 0.4084,
+          "maxDrawdownPct": 22.3869,
+          "retToDd": 2.19,
+          "exitReasons": {
+            "SL": 42,
+            "TP": 5,
+            "TIME": 16,
+            "BE": 96
+          },
+          "buyCount": 105,
+          "buyWins": 73,
+          "buyWinRatePct": 69.52,
+          "sellCount": 54,
+          "sellWins": 34,
+          "sellWinRatePct": 62.96
+        },
+        {
+          "year": 2,
+          "range": [
+            35040,
+            70080
+          ],
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 169,
+          "wins": 124,
+          "losses": 45,
+          "ties": 0,
+          "winRatePct": 73.3728,
+          "wilsonLower95Pct": 66.2432,
+          "profitFactor": 2.1266,
+          "totalNetPct": 104.7093,
+          "compoundedNetPct": 170.9151,
+          "meanNetPct": 0.6196,
+          "meanGrossPct": 0.7196,
+          "maxDrawdownPct": 12.7055,
+          "retToDd": 8.241,
+          "exitReasons": {
+            "SL": 44,
+            "TP": 6,
+            "TIME": 10,
+            "BE": 109
+          },
+          "buyCount": 95,
+          "buyWins": 69,
+          "buyWinRatePct": 72.63,
+          "sellCount": 74,
+          "sellWins": 55,
+          "sellWinRatePct": 74.32
+        },
+        {
+          "year": 3,
+          "range": [
+            70080,
+            105120
+          ],
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 157,
+          "wins": 94,
+          "losses": 63,
+          "ties": 0,
+          "winRatePct": 59.8726,
+          "wilsonLower95Pct": 52.058,
+          "profitFactor": 0.7729,
+          "totalNetPct": -33.3119,
+          "compoundedNetPct": -31.3171,
+          "meanNetPct": -0.2122,
+          "meanGrossPct": -0.1122,
+          "maxDrawdownPct": 39.5752,
+          "retToDd": -0.842,
+          "exitReasons": {
+            "SL": 59,
+            "TP": 1,
+            "TIME": 12,
+            "BE": 85
+          },
+          "buyCount": 79,
+          "buyWins": 50,
+          "buyWinRatePct": 63.29,
+          "sellCount": 78,
+          "sellWins": 44,
+          "sellWinRatePct": 56.41
+        }
+      ]
+    },
+    "okxSwap3y": {
+      "dataset": "data/okx_btcusdt_swap_15m_3y.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "bars": 105120,
+      "signals": 734,
+      "full": {
+        "range": [
+          0,
+          105120
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 470,
+        "wins": 316,
+        "losses": 154,
+        "ties": 0,
+        "winRatePct": 67.234,
+        "wilsonLower95Pct": 62.8659,
+        "profitFactor": 1.2727,
+        "totalNetPct": 95.2331,
+        "compoundedNetPct": 126.6414,
+        "meanNetPct": 0.2026,
+        "meanGrossPct": 0.3026,
+        "maxDrawdownPct": 40.3951,
+        "retToDd": 2.358,
+        "exitReasons": {
+          "SL": 136,
+          "TP": 10,
+          "TIME": 40,
+          "BE": 284
+        },
+        "buyCount": 280,
+        "buyWins": 194,
+        "buyWinRatePct": 69.29,
+        "sellCount": 190,
+        "sellWins": 122,
+        "sellWinRatePct": 64.21
+      },
+      "noBe": {
+        "range": [
+          0,
+          105120
+        ],
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 367,
+        "wins": 166,
+        "losses": 201,
+        "ties": 0,
+        "winRatePct": 45.2316,
+        "wilsonLower95Pct": 40.215,
+        "profitFactor": 1.2416,
+        "totalNetPct": 106.4089,
+        "compoundedNetPct": 137.389,
+        "meanNetPct": 0.2899,
+        "meanGrossPct": 0.3899,
+        "maxDrawdownPct": 43.123,
+        "retToDd": 2.468,
+        "exitReasons": {
+          "SL": 173,
+          "TP": 41,
+          "TIME": 153,
+          "BE": 0
+        },
+        "buyCount": 215,
+        "buyWins": 100,
+        "buyWinRatePct": 46.51,
+        "sellCount": 152,
+        "sellWins": 66,
+        "sellWinRatePct": 43.42
+      },
+      "yearly": [
+        {
+          "year": 1,
+          "range": [
+            0,
+            35040
+          ],
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 152,
+          "wins": 101,
+          "losses": 51,
+          "ties": 0,
+          "winRatePct": 66.4474,
+          "wilsonLower95Pct": 58.6175,
+          "profitFactor": 1.3619,
+          "totalNetPct": 42.5368,
+          "compoundedNetPct": 45.9796,
+          "meanNetPct": 0.2798,
+          "meanGrossPct": 0.3798,
+          "maxDrawdownPct": 20.9497,
+          "retToDd": 2.03,
+          "exitReasons": {
+            "SL": 42,
+            "TP": 6,
+            "TIME": 16,
+            "BE": 88
+          },
+          "buyCount": 101,
+          "buyWins": 71,
+          "buyWinRatePct": 70.3,
+          "sellCount": 51,
+          "sellWins": 30,
+          "sellWinRatePct": 58.82
+        },
+        {
+          "year": 2,
+          "range": [
+            35040,
+            70080
+          ],
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 166,
+          "wins": 124,
+          "losses": 42,
+          "ties": 0,
+          "winRatePct": 74.6988,
+          "wilsonLower95Pct": 67.5781,
+          "profitFactor": 1.9622,
+          "totalNetPct": 87.2699,
+          "compoundedNetPct": 128.5897,
+          "meanNetPct": 0.5257,
+          "meanGrossPct": 0.6257,
+          "maxDrawdownPct": 14.3802,
+          "retToDd": 6.069,
+          "exitReasons": {
+            "SL": 40,
+            "TP": 3,
+            "TIME": 11,
+            "BE": 112
+          },
+          "buyCount": 98,
+          "buyWins": 72,
+          "buyWinRatePct": 73.47,
+          "sellCount": 68,
+          "sellWins": 52,
+          "sellWinRatePct": 76.47
+        },
+        {
+          "year": 3,
+          "range": [
+            70080,
+            105120
+          ],
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 152,
+          "wins": 91,
+          "losses": 61,
+          "ties": 0,
+          "winRatePct": 59.8684,
+          "wilsonLower95Pct": 51.9255,
+          "profitFactor": 0.7547,
+          "totalNetPct": -34.5736,
+          "compoundedNetPct": -32.0812,
+          "meanNetPct": -0.2275,
+          "meanGrossPct": -0.1275,
+          "maxDrawdownPct": 40.3951,
+          "retToDd": -0.856,
+          "exitReasons": {
+            "SL": 54,
+            "TP": 1,
+            "TIME": 13,
+            "BE": 84
+          },
+          "buyCount": 81,
+          "buyWins": 51,
+          "buyWinRatePct": 62.96,
+          "sellCount": 71,
+          "sellWins": 40,
+          "sellWinRatePct": 56.34
+        }
+      ]
+    },
+    "okxSpotTv6k": {
+      "dataset": "data/okx_btcusdt_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT",
+      "bars": 6000,
+      "signals": 40,
+      "full": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 24,
+        "wins": 15,
+        "losses": 9,
+        "ties": 0,
+        "winRatePct": 62.5,
+        "wilsonLower95Pct": 42.7096,
+        "profitFactor": 0.7362,
+        "totalNetPct": -5.7638,
+        "compoundedNetPct": -6.1,
+        "meanNetPct": -0.2402,
+        "meanGrossPct": -0.1402,
+        "maxDrawdownPct": 8.2974,
+        "retToDd": -0.695,
+        "exitReasons": {
+          "SL": 9,
+          "TP": 0,
+          "TIME": 1,
+          "BE": 14
+        },
+        "buyCount": 12,
+        "buyWins": 8,
+        "buyWinRatePct": 66.67,
+        "sellCount": 12,
+        "sellWins": 7,
+        "sellWinRatePct": 58.33
+      },
+      "noBe": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 19,
+        "wins": 8,
+        "losses": 11,
+        "ties": 0,
+        "winRatePct": 42.1053,
+        "wilsonLower95Pct": 23.1416,
+        "profitFactor": 0.814,
+        "totalNetPct": -4.7724,
+        "compoundedNetPct": -5.4689,
+        "meanNetPct": -0.2512,
+        "meanGrossPct": -0.1512,
+        "maxDrawdownPct": 8.8994,
+        "retToDd": -0.536,
+        "exitReasons": {
+          "SL": 10,
+          "TP": 2,
+          "TIME": 7,
+          "BE": 0
+        },
+        "buyCount": 9,
+        "buyWins": 3,
+        "buyWinRatePct": 33.33,
+        "sellCount": 10,
+        "sellWins": 5,
+        "sellWinRatePct": 50
+      }
+    },
+    "okxSwapTv6k": {
+      "dataset": "data/okx_btcusdt_swap_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "bars": 6000,
+      "signals": 38,
+      "full": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 23,
+        "wins": 13,
+        "losses": 10,
+        "ties": 0,
+        "winRatePct": 56.5217,
+        "wilsonLower95Pct": 36.811,
+        "profitFactor": 0.5441,
+        "totalNetPct": -9.4454,
+        "compoundedNetPct": -9.3714,
+        "meanNetPct": -0.4107,
+        "meanGrossPct": -0.3107,
+        "maxDrawdownPct": 10.9317,
+        "retToDd": -0.864,
+        "exitReasons": {
+          "SL": 8,
+          "TP": 0,
+          "TIME": 2,
+          "BE": 13
+        },
+        "buyCount": 17,
+        "buyWins": 10,
+        "buyWinRatePct": 58.82,
+        "sellCount": 6,
+        "sellWins": 3,
+        "sellWinRatePct": 50
+      },
+      "noBe": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 17,
+        "wins": 5,
+        "losses": 12,
+        "ties": 0,
+        "winRatePct": 29.4118,
+        "wilsonLower95Pct": 13.2798,
+        "profitFactor": 0.3947,
+        "totalNetPct": -14.3523,
+        "compoundedNetPct": -13.8532,
+        "meanNetPct": -0.8443,
+        "meanGrossPct": -0.7443,
+        "maxDrawdownPct": 17.1593,
+        "retToDd": -0.836,
+        "exitReasons": {
+          "SL": 8,
+          "TP": 1,
+          "TIME": 8,
+          "BE": 0
+        },
+        "buyCount": 12,
+        "buyWins": 3,
+        "buyWinRatePct": 25,
+        "sellCount": 5,
+        "sellWins": 2,
+        "sellWinRatePct": 40
+      }
+    },
+    "binanceBtc12m": {
+      "dataset": "data/btcusdt_15m_12m.json",
+      "symbol": "BTCUSDT",
+      "bars": 35040,
+      "signals": 234,
+      "full": {
+        "range": [
+          0,
+          35040
+        ],
+        "firstIso": "2025-11-17T18:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 155,
+        "wins": 93,
+        "losses": 62,
+        "ties": 0,
+        "winRatePct": 60,
+        "wilsonLower95Pct": 52.1356,
+        "profitFactor": 0.8874,
+        "totalNetPct": -15.5243,
+        "compoundedNetPct": -18.1377,
+        "meanNetPct": -0.1002,
+        "meanGrossPct": -0.0002,
+        "maxDrawdownPct": 44.2904,
+        "retToDd": -0.351,
+        "exitReasons": {
+          "SL": 56,
+          "TP": 2,
+          "TIME": 15,
+          "BE": 82
+        },
+        "buyCount": 83,
+        "buyWins": 53,
+        "buyWinRatePct": 63.86,
+        "sellCount": 72,
+        "sellWins": 40,
+        "sellWinRatePct": 55.56
+      },
+      "noBe": {
+        "range": [
+          0,
+          35040
+        ],
+        "firstIso": "2025-11-17T18:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 122,
+        "wins": 51,
+        "losses": 71,
+        "ties": 0,
+        "winRatePct": 41.8033,
+        "wilsonLower95Pct": 33.432,
+        "profitFactor": 0.9792,
+        "totalNetPct": -3.2103,
+        "compoundedNetPct": -9.0951,
+        "meanNetPct": -0.0263,
+        "meanGrossPct": 0.0737,
+        "maxDrawdownPct": 36.623,
+        "retToDd": -0.088,
+        "exitReasons": {
+          "SL": 62,
+          "TP": 9,
+          "TIME": 51,
+          "BE": 0
+        },
+        "buyCount": 64,
+        "buyWins": 26,
+        "buyWinRatePct": 40.63,
+        "sellCount": 58,
+        "sellWins": 25,
+        "sellWinRatePct": 43.1
+      }
+    },
+    "binanceBtcTv6k": {
+      "dataset": "data/btcusdt_tv_15m_6k.json",
+      "symbol": "BTCUSDT",
+      "bars": 6000,
+      "signals": 37,
+      "full": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-16T06:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 21,
+        "wins": 13,
+        "losses": 8,
+        "ties": 0,
+        "winRatePct": 61.9048,
+        "wilsonLower95Pct": 40.8783,
+        "profitFactor": 1.2247,
+        "totalNetPct": 3.482,
+        "compoundedNetPct": 2.9477,
+        "meanNetPct": 0.1658,
+        "meanGrossPct": 0.2658,
+        "maxDrawdownPct": 10.457,
+        "retToDd": 0.333,
+        "exitReasons": {
+          "SL": 7,
+          "TP": 1,
+          "TIME": 3,
+          "BE": 10
+        },
+        "buyCount": 14,
+        "buyWins": 9,
+        "buyWinRatePct": 64.29,
+        "sellCount": 7,
+        "sellWins": 4,
+        "sellWinRatePct": 57.14
+      },
+      "noBe": {
+        "range": [
+          0,
+          6000
+        ],
+        "firstIso": "2026-09-16T06:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 17,
+        "wins": 7,
+        "losses": 10,
+        "ties": 0,
+        "winRatePct": 41.1765,
+        "wilsonLower95Pct": 21.6108,
+        "profitFactor": 0.8765,
+        "totalNetPct": -1.9259,
+        "compoundedNetPct": -2.4216,
+        "meanNetPct": -0.1133,
+        "meanGrossPct": -0.0133,
+        "maxDrawdownPct": 13.0622,
+        "retToDd": -0.147,
+        "exitReasons": {
+          "SL": 6,
+          "TP": 1,
+          "TIME": 10,
+          "BE": 0
+        },
+        "buyCount": 11,
+        "buyWins": 4,
+        "buyWinRatePct": 36.36,
+        "sellCount": 6,
+        "sellWins": 3,
+        "sellWinRatePct": 50
+      }
+    },
+    "binanceEth6m": {
+      "dataset": "data/ethusdt_15m_6m.json",
+      "symbol": "ETHUSDT",
+      "bars": 17520,
+      "signals": 120,
+      "full": {
+        "range": [
+          0,
+          17520
+        ],
+        "firstIso": "2026-05-19T06:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 78,
+        "wins": 51,
+        "losses": 27,
+        "ties": 0,
+        "winRatePct": 65.3846,
+        "wilsonLower95Pct": 54.33,
+        "profitFactor": 1.3607,
+        "totalNetPct": 20.0399,
+        "compoundedNetPct": 19.8806,
+        "meanNetPct": 0.2569,
+        "meanGrossPct": 0.3569,
+        "maxDrawdownPct": 17.6078,
+        "retToDd": 1.138,
+        "exitReasons": {
+          "SL": 22,
+          "TP": 2,
+          "TIME": 7,
+          "BE": 47
+        },
+        "buyCount": 59,
+        "buyWins": 37,
+        "buyWinRatePct": 62.71,
+        "sellCount": 19,
+        "sellWins": 14,
+        "sellWinRatePct": 73.68
+      },
+      "noBe": {
+        "range": [
+          0,
+          17520
+        ],
+        "firstIso": "2026-05-19T06:15:00.000Z",
+        "lastIso": "2026-11-17T18:00:00.000Z",
+        "count": 57,
+        "wins": 24,
+        "losses": 33,
+        "ties": 0,
+        "winRatePct": 42.1053,
+        "wilsonLower95Pct": 30.1874,
+        "profitFactor": 1.3135,
+        "totalNetPct": 21.825,
+        "compoundedNetPct": 19.7989,
+        "meanNetPct": 0.3829,
+        "meanGrossPct": 0.4829,
+        "maxDrawdownPct": 32.396,
+        "retToDd": 0.674,
+        "exitReasons": {
+          "SL": 25,
+          "TP": 6,
+          "TIME": 26,
+          "BE": 0
+        },
+        "buyCount": 43,
+        "buyWins": 19,
+        "buyWinRatePct": 44.19,
+        "sellCount": 14,
+        "sellWins": 5,
+        "sellWinRatePct": 35.71
+      }
+    }
+  }
+}

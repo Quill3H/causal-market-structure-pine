@@ -1,0 +1,273 @@
+{
+  "generatedAt": "2026-11-21T22:14:39.571Z",
+  "anchorEndMs": 1795299037935,
+  "source": "https://www.okx.com/api/v5/market/history-candles",
+  "htfWarmupBars": 300,
+  "htfAlignmentRule": "htfBar.time + htfIntervalSeconds <= ltfBar.time",
+  "datasets": [
+    {
+      "file": "data/okx_btcusdt_15m_3y.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 105120,
+      "firstTime": 1700690400,
+      "lastTime": 1795297500,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 14996474,
+      "sha256": "43dab8124b48634bffbd9afafaeb90f615e154cc0b46da63be05402b4de650be",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 26580,
+          "firstTime": 1699610400,
+          "lastTime": 1795294800,
+          "alignedMinIndex": 299,
+          "alignedMaxIndex": 26578
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 6869,
+          "firstTime": 1696377600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 6868
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 6000,
+      "firstTime": 1789898400,
+      "lastTime": 1795297500,
+      "firstIso": "2026-09-20T10:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 899333,
+      "sha256": "2a72d4b71f4a6d12cfe58f1ca7d0bb19ca21a3b486207e2b6c95d848c8dc279e",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 1800,
+          "firstTime": 1788818400,
+          "lastTime": 1795294800,
+          "alignedMinIndex": 299,
+          "alignedMaxIndex": 1798
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 674,
+          "firstTime": 1785585600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 673
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_1h_3y.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 26280,
+      "firstTime": 1700690400,
+      "lastTime": 1795294800,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 3727422,
+      "sha256": "6a687e61a34f877d7a0929f78f9eea5ed64dd9d366c9c372f88324d6be926c88",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 6869,
+          "firstTime": 1696377600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 6868
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 1394,
+          "firstTime": 1674777600,
+          "lastTime": 1795132800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1393
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_tv_1h_6k.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 6000,
+      "firstTime": 1773698400,
+      "lastTime": 1795294800,
+      "firstIso": "2026-03-16T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 890627,
+      "sha256": "70848be8a48583171a77e076112d9894e5304b6277e199df2986b0bceed01ef5",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 1799,
+          "firstTime": 1769385600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1798
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 549,
+          "firstTime": 1747785600,
+          "lastTime": 1795132800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 548
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_swap_15m_3y.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 105120,
+      "firstTime": 1700690400,
+      "lastTime": 1795297500,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 14493436,
+      "sha256": "325bc80c826e366dbe4e618da1c9781c5ba3b85f75496960edb7f3a16e0e6179",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 26580,
+          "firstTime": 1699610400,
+          "lastTime": 1795294800,
+          "alignedMinIndex": 299,
+          "alignedMaxIndex": 26578
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 6869,
+          "firstTime": 1696377600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 6868
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_swap_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "15m",
+      "intervalSeconds": 900,
+      "count": 6000,
+      "firstTime": 1789898400,
+      "lastTime": 1795297500,
+      "firstIso": "2026-09-20T10:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 869898,
+      "sha256": "b2607e6856aefd3ef79fd08891664face1c5ef58dedd5c8f5f3338cf21156875",
+      "htf": {
+        "1h": {
+          "intervalSeconds": 3600,
+          "count": 1800,
+          "firstTime": 1788818400,
+          "lastTime": 1795294800,
+          "alignedMinIndex": 299,
+          "alignedMaxIndex": 1798
+        },
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 674,
+          "firstTime": 1785585600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 673
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_swap_1h_3y.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 26280,
+      "firstTime": 1700690400,
+      "lastTime": 1795294800,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 3600035,
+      "sha256": "2e514dbe5f943b9da84ee71111d9f1946b8795fa053225fa032b332a700a58e1",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 6869,
+          "firstTime": 1696377600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 6868
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 1394,
+          "firstTime": 1674777600,
+          "lastTime": 1795132800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1393
+        }
+      }
+    },
+    {
+      "file": "data/okx_btcusdt_swap_tv_1h_6k.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "1h",
+      "intervalSeconds": 3600,
+      "count": 6000,
+      "firstTime": 1773698400,
+      "lastTime": 1795294800,
+      "firstIso": "2026-03-16T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "contiguousVerified": true,
+      "closedOnlyVerified": true,
+      "bytes": 862947,
+      "sha256": "476cbbbc7a35226bf35113a0c733bc171925666111b5a7f3d7ece3e907c1d4fb",
+      "htf": {
+        "4h": {
+          "intervalSeconds": 14400,
+          "count": 1799,
+          "firstTime": 1769385600,
+          "lastTime": 1795276800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 1798
+        },
+        "1d": {
+          "intervalSeconds": 86400,
+          "count": 549,
+          "firstTime": 1747785600,
+          "lastTime": 1795132800,
+          "alignedMinIndex": 298,
+          "alignedMaxIndex": 548
+        }
+      }
+    }
+  ]
+}

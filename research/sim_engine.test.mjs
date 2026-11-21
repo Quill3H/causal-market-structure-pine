@@ -487,3 +487,63 @@ test('alignHtfIndices strictly aligns only closed HTF bars (htfCloseTime <= ltfO
     assert.ok(htfRows[aligned[i]].time + 3600 <= ltfRows[i].time);
   }
 });
+
+test('lock2TriggerR / lock2OffsetR arms on confirmed close k, activates k+1, respects gap fills', () => {
+  // side 1: atr=2, stopAtr=1 => entry=100, stop=98, target=106 (RR=3)
+  const rows = fixture(6);
+  // Bar 1 closes at 102.2 (>= +1.0R = 102), arming lock2 at 100 + 0.6*2 = 101.2.
+  // Low dips to 99.8 (< 101.2 and < BE 100.2, > SL 98) BEFORE close arming -> MUST NOT exit on bar 1!
+  Object.assign(rows[1], { open: 100, high: 102.5, low: 99.8, close: 102.2 });
+  // Bar 2 hits stop at 101.2 -> exits BE on bar 2.
+  Object.assign(rows[2], { open: 102.0, high: 102.1, low: 101.1, close: 101.5 });
+
+  const longRes = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 2 }], {
+    ...OPTIONS, stopAtr: 1, rewardRisk: 3, beTriggerR: 0.4, beOffsetPct: 0.2, lock2TriggerR: 1.0, lock2OffsetR: 0.6,
+  });
+  assert.equal(longRes.count, 1);
+  const lt = longRes.trades[0];
+  assert.equal(lt.exitIndex, 2);
+  assert.equal(lt.exitReason, 'BE');
+  assert.equal(lt.beArmed, true);
+  assert.equal(lt.lock2Armed, true);
+  near(lt.stop, 101.2);
+  near(lt.exit, 101.2);
+
+  // side -1 gap-stop test with lock2
+  const rowsShort = fixture(5);
+  Object.assign(rowsShort[1], { open: 100, high: 100.2, low: 97.5, close: 97.8 });
+  // Bar 2 gaps above lock2 stop (100 - 0.6*2 = 98.8) to open 99.1 -> fills at open 99.1
+  Object.assign(rowsShort[2], { open: 99.1, high: 99.2, low: 98.5, close: 98.6 });
+  const shortRes = simulateTrades(rowsShort, [{ barIndex: 0, side: -1, atr: 2 }], {
+    ...OPTIONS, stopAtr: 1, rewardRisk: 3, beTriggerR: 0, lock2TriggerR: 1.0, lock2OffsetR: 0.6,
+  });
+  assert.equal(shortRes.count, 1);
+  assert.equal(shortRes.trades[0].exitIndex, 2);
+  assert.equal(shortRes.trades[0].exitReason, 'BE');
+  assert.equal(shortRes.trades[0].lock2Armed, true);
+  near(shortRes.trades[0].exit, 99.1);
+});
+
+test('trailTriggerR / trailAtrMult ratchets monotonically starting k+1 and never loosens', () => {
+  // entry=100, atr=1, stopAtr=2 => initialStop=98 (dist=2), target=108 (RR=4)
+  const rows = fixture(7);
+  // Bar 1 closes at 102.5 (+1.25R >= 1.0R) -> trail arms: candidate = 102.5 - 1.5*1 = 101.0.
+  Object.assign(rows[1], { open: 100, high: 102.6, low: 99.9, close: 102.5 });
+  // Bar 2 closes higher at 104.0 -> candidate = 104.0 - 1.5 = 102.5.
+  Object.assign(rows[2], { open: 102.5, high: 104.2, low: 101.5, close: 104.0 });
+  // Bar 3 dips and closes lower at 103.0 -> candidate = 101.5 < 102.5 -> MUST NOT loosen stop! Stays 102.5.
+  Object.assign(rows[3], { open: 104.0, high: 104.1, low: 102.7, close: 103.0 });
+  // Bar 4 touches 102.5 -> exits BE at 102.5!
+  Object.assign(rows[4], { open: 103.0, high: 103.1, low: 102.4, close: 102.8 });
+
+  const res = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 1, trailTriggerR: 1.0, trailAtrMult: 1.5 }], {
+    ...OPTIONS, stopAtr: 2, rewardRisk: 4, beTriggerR: 0,
+  });
+  assert.equal(res.count, 1);
+  const t = res.trades[0];
+  assert.equal(t.exitIndex, 4);
+  assert.equal(t.exitReason, 'BE');
+  assert.equal(t.trailArmed, true);
+  near(t.stop, 102.5);
+  near(t.exit, 102.5);
+});

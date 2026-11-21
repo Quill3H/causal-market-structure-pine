@@ -17,6 +17,10 @@ export const DEFAULT_SIM_OPTIONS = Object.freeze({
   maxHoldBars: 20,
   beTriggerR: 0,
   beOffsetPct: 0.2,
+  lock2TriggerR: 0,
+  lock2OffsetR: 0,
+  trailTriggerR: 0,
+  trailAtrMult: 0,
   costPct: 0.1,
   slippagePct: 0.025,
 });
@@ -118,6 +122,24 @@ function validateSignalEntrySpec(signal, defaults) {
   assert.ok(Number.isFinite(effBeOffsetPct) && effBeOffsetPct >= 0 && effBeOffsetPct < 100,
     'Invalid signal beOffsetPct');
 
+  const effLock2TriggerR = signal.lock2TriggerR ?? defaults.lock2TriggerR;
+  assert.ok(Number.isFinite(effLock2TriggerR) && effLock2TriggerR >= 0, 'Invalid signal lock2TriggerR');
+
+  const effLock2OffsetR = signal.lock2OffsetR ?? defaults.lock2OffsetR;
+  assert.ok(Number.isFinite(effLock2OffsetR) && effLock2OffsetR >= 0, 'Invalid signal lock2OffsetR');
+  if (effLock2TriggerR > 0) {
+    assert.ok(effLock2OffsetR < effLock2TriggerR, 'Invalid signal lock2OffsetR: must be < lock2TriggerR');
+  }
+
+  const effTrailTriggerR = signal.trailTriggerR ?? defaults.trailTriggerR;
+  assert.ok(Number.isFinite(effTrailTriggerR) && effTrailTriggerR >= 0, 'Invalid signal trailTriggerR');
+
+  const effTrailAtrMult = signal.trailAtrMult ?? defaults.trailAtrMult;
+  assert.ok(Number.isFinite(effTrailAtrMult) && effTrailAtrMult >= 0, 'Invalid signal trailAtrMult');
+  if (effTrailTriggerR > 0) {
+    assert.ok(effTrailAtrMult > 0, 'Invalid signal trailAtrMult: must be > 0 when trailTriggerR > 0');
+  }
+
   let limitPrice = null;
   if (entryMode === 'LIMIT_PULLBACK') {
     if (!Number.isFinite(signal.limitPrice) || signal.limitPrice <= 0) {
@@ -135,6 +157,10 @@ function validateSignalEntrySpec(signal, defaults) {
     maxHoldBars: effMaxHoldBars,
     beTriggerR: effBeTriggerR,
     beOffsetPct: effBeOffsetPct,
+    lock2TriggerR: effLock2TriggerR,
+    lock2OffsetR: effLock2OffsetR,
+    trailTriggerR: effTrailTriggerR,
+    trailAtrMult: effTrailAtrMult,
   };
 }
 
@@ -155,6 +181,10 @@ function validateOptions(rowsLength, options) {
     maxHoldBars = DEFAULT_SIM_OPTIONS.maxHoldBars,
     beTriggerR = DEFAULT_SIM_OPTIONS.beTriggerR,
     beOffsetPct = DEFAULT_SIM_OPTIONS.beOffsetPct,
+    lock2TriggerR = DEFAULT_SIM_OPTIONS.lock2TriggerR,
+    lock2OffsetR = DEFAULT_SIM_OPTIONS.lock2OffsetR,
+    trailTriggerR = DEFAULT_SIM_OPTIONS.trailTriggerR,
+    trailAtrMult = DEFAULT_SIM_OPTIONS.trailAtrMult,
     costPct = DEFAULT_SIM_OPTIONS.costPct,
     slippagePct = DEFAULT_SIM_OPTIONS.slippagePct,
     intervalSeconds,
@@ -178,6 +208,16 @@ function validateOptions(rowsLength, options) {
     `Invalid rewardRisk: must be >= ${MIN_REWARD_RISK}`);
   assert.ok(Number.isFinite(beTriggerR) && beTriggerR >= 0, 'Invalid beTriggerR');
   assert.ok(Number.isFinite(beOffsetPct) && beOffsetPct >= 0 && beOffsetPct < 100, 'Invalid beOffsetPct');
+  assert.ok(Number.isFinite(lock2TriggerR) && lock2TriggerR >= 0, 'Invalid lock2TriggerR');
+  assert.ok(Number.isFinite(lock2OffsetR) && lock2OffsetR >= 0, 'Invalid lock2OffsetR');
+  if (lock2TriggerR > 0) {
+    assert.ok(lock2OffsetR < lock2TriggerR, 'Invalid lock2OffsetR: must be < lock2TriggerR');
+  }
+  assert.ok(Number.isFinite(trailTriggerR) && trailTriggerR >= 0, 'Invalid trailTriggerR');
+  assert.ok(Number.isFinite(trailAtrMult) && trailAtrMult >= 0, 'Invalid trailAtrMult');
+  if (trailTriggerR > 0) {
+    assert.ok(trailAtrMult > 0, 'Invalid trailAtrMult: must be > 0 when trailTriggerR > 0');
+  }
   assert.ok(Number.isFinite(costPct) && costPct >= 0, 'Invalid costPct');
   assert.ok(Number.isFinite(slippagePct) && slippagePct >= 0 && slippagePct < 100, 'Invalid slippagePct');
   assert.ok(intervalSeconds === undefined ||
@@ -185,7 +225,8 @@ function validateOptions(rowsLength, options) {
 
   return {
     start, end, warmup, cooldown, entryMode, limitExpiryBars, pendingPolicy, limitSameBarTp,
-    stopAtr, minStopPct, rewardRisk, maxHoldBars, beTriggerR, beOffsetPct, costPct, slippagePct,
+    stopAtr, minStopPct, rewardRisk, maxHoldBars, beTriggerR, beOffsetPct,
+    lock2TriggerR, lock2OffsetR, trailTriggerR, trailAtrMult, costPct, slippagePct,
     intervalSeconds,
   };
 }
@@ -267,8 +308,16 @@ export function simulateTrades(rows, signals, options = {}) {
               maxHoldBars: pending.maxHoldBars,
               beTriggerR: pending.beTriggerR,
               beOffsetPct: pending.beOffsetPct,
+              lock2TriggerR: pending.lock2TriggerR,
+              lock2OffsetR: pending.lock2OffsetR,
+              trailTriggerR: pending.trailTriggerR,
+              trailAtrMult: pending.trailAtrMult,
               beArmed: false,
               beArmedIndex: null,
+              lock2Armed: false,
+              lock2ArmedIndex: null,
+              trailArmed: false,
+              trailArmedIndex: null,
               meta: pending.meta,
             };
           } else {
@@ -306,8 +355,16 @@ export function simulateTrades(rows, signals, options = {}) {
               maxHoldBars: pending.maxHoldBars,
               beTriggerR: pending.beTriggerR,
               beOffsetPct: pending.beOffsetPct,
+              lock2TriggerR: pending.lock2TriggerR,
+              lock2OffsetR: pending.lock2OffsetR,
+              trailTriggerR: pending.trailTriggerR,
+              trailAtrMult: pending.trailAtrMult,
               beArmed: false,
               beArmedIndex: null,
+              lock2Armed: false,
+              lock2ArmedIndex: null,
+              trailArmed: false,
+              trailArmedIndex: null,
               meta: pending.meta,
             };
           } else {
@@ -340,7 +397,8 @@ export function simulateTrades(rows, signals, options = {}) {
         hitTarget = bull ? row.close >= target : row.close <= target;
       }
 
-      const stopLabel = beArmed ? 'BE' : 'SL';
+      const isRaisedStopAboveEntry = beArmed || ((openPosition.lock2Armed || openPosition.trailArmed) && side * (stop - entry) >= -EPS);
+      const stopLabel = isRaisedStopAboveEntry ? 'BE' : 'SL';
       let fill;
       let exitReason;
 
@@ -385,6 +443,8 @@ export function simulateTrades(rows, signals, options = {}) {
           rewardRisk: openPosition.rewardRisk,
           beArmed,
           beArmedIndex: openPosition.beArmedIndex,
+          lock2Armed: openPosition.lock2Armed,
+          trailArmed: openPosition.trailArmed,
           exit,
           exitReason,
           barsHeld,
@@ -403,7 +463,7 @@ export function simulateTrades(rows, signals, options = {}) {
       }
     }
 
-    // 3. Confirmed-close Breakeven-Plus-Cost Ratchet (active starting bar i + 1).
+    // 3. Confirmed-close BE+, Tier-2 Lock, and Trailing ATR ratchets (active starting bar i + 1).
     if (openPosition && openPosition.beTriggerR > 0 && !openPosition.beArmed) {
       const { side, entry, initialStopDist, stop, target, beTriggerR, beOffsetPct } = openPosition;
       if (side * (row.close - entry) >= beTriggerR * initialStopDist) {
@@ -412,6 +472,32 @@ export function simulateTrades(rows, signals, options = {}) {
           openPosition.stop = raisedStop;
           openPosition.beArmed = true;
           openPosition.beArmedIndex = i;
+        }
+      }
+    }
+
+    if (openPosition && openPosition.lock2TriggerR > 0 && !openPosition.lock2Armed) {
+      const { side, entry, initialStopDist, stop, target, lock2TriggerR, lock2OffsetR } = openPosition;
+      if (side * (row.close - entry) >= lock2TriggerR * initialStopDist) {
+        const raisedStop = entry + side * lock2OffsetR * initialStopDist;
+        if (side * (raisedStop - stop) > 0 && side * (target - raisedStop) > 0) {
+          openPosition.stop = raisedStop;
+          openPosition.lock2Armed = true;
+          openPosition.lock2ArmedIndex = i;
+        }
+      }
+    }
+
+    if (openPosition && openPosition.trailTriggerR > 0 && openPosition.trailAtrMult > 0) {
+      const { side, entry, initialStopDist, target, trailTriggerR, trailAtrMult, atr } = openPosition;
+      if (!openPosition.trailArmed && side * (row.close - entry) >= trailTriggerR * initialStopDist) {
+        openPosition.trailArmed = true;
+        openPosition.trailArmedIndex = i;
+      }
+      if (openPosition.trailArmed && Number.isFinite(atr) && atr > 0) {
+        const trailCandidate = row.close - side * trailAtrMult * atr;
+        if (side * (trailCandidate - openPosition.stop) > 0 && side * (target - trailCandidate) > 0) {
+          openPosition.stop = trailCandidate;
         }
       }
     }
@@ -453,6 +539,10 @@ export function simulateTrades(rows, signals, options = {}) {
             maxHoldBars: entrySpec.maxHoldBars,
             beTriggerR: entrySpec.beTriggerR,
             beOffsetPct: entrySpec.beOffsetPct,
+            lock2TriggerR: entrySpec.lock2TriggerR,
+            lock2OffsetR: entrySpec.lock2OffsetR,
+            trailTriggerR: entrySpec.trailTriggerR,
+            trailAtrMult: entrySpec.trailAtrMult,
             stopDist: signal.stopDist,
             stopPrice: signal.stopPrice,
             targetPrice: signal.targetPrice,

@@ -1,0 +1,518 @@
+{
+  "schema": "smc-v4-verification-report-v1",
+  "verifiedAt": "2026-11-21T22:43:02.481Z",
+  "overallStatus": "ALL_PASSED",
+  "totalCandidatesVerified": 7,
+  "checksRunPerCandidate": [
+    "prefixTruncationCausality(5 cutoffs: signals + closedTrades)",
+    "futureMutationCausality(OHLCV + non-closed HTF bars)",
+    "priceScaleInvariance(0.37x, 3.14x)",
+    "conservativeFillInvariants(costPct=0.10, slippagePct=0.025, RR>=0.75, no-arming-bar BE, entry/close invariants)"
+  ],
+  "results": [
+    {
+      "key": "15m_r1r2",
+      "track": "15m",
+      "lockFile": "lock_15m.json",
+      "id": "R2:M15_H4Disp_0.8_H4Close_adp:w6|s5_m1.6_rr3_be0.48/0.45_l20/0_tr1/3.2_cd20",
+      "prefixCausality": [
+        {
+          "cutoff": 25000,
+          "checkedSignals": 174,
+          "checkedTrades": 110,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 45000,
+          "checkedSignals": 335,
+          "checkedTrades": 211,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 65000,
+          "checkedSignals": 480,
+          "checkedTrades": 303,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 85000,
+          "checkedSignals": 623,
+          "checkedTrades": 392,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 100000,
+          "checkedSignals": 723,
+          "checkedTrades": 462,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 65000,
+        "checkedSignals": 480,
+        "checkedTrades": 303,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 760,
+          "trades": 485,
+          "maxSignalRelDiff": 1.65e-14,
+          "netPctDiff": 2.7e-13,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 760,
+          "trades": 485,
+          "maxSignalRelDiff": 1.952e-14,
+          "netPctDiff": 4.974e-13,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 3,
+        "spotTradesVerified": 485,
+        "swapTradesVerified": 470,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "15m_r3",
+      "track": "15m",
+      "lockFile": "lock_15m_r3.json",
+      "id": "M15_H4Disp_0.85_H4Close_p0.35_w6|s5.5_m1.6_rr2_cd12",
+      "prefixCausality": [
+        {
+          "cutoff": 25000,
+          "checkedSignals": 152,
+          "checkedTrades": 101,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 45000,
+          "checkedSignals": 294,
+          "checkedTrades": 200,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 65000,
+          "checkedSignals": 421,
+          "checkedTrades": 288,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 85000,
+          "checkedSignals": 554,
+          "checkedTrades": 375,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 100000,
+          "checkedSignals": 648,
+          "checkedTrades": 443,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 65000,
+        "checkedSignals": 421,
+        "checkedTrades": 288,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 682,
+          "trades": 464,
+          "maxSignalRelDiff": 1.65e-14,
+          "netPctDiff": 7.105e-14,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 682,
+          "trades": 464,
+          "maxSignalRelDiff": 1.952e-14,
+          "netPctDiff": 3.979e-13,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 2,
+        "spotTradesVerified": 464,
+        "swapTradesVerified": 455,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "15m_r4",
+      "track": "15m",
+      "lockFile": "lock_15m_r4.json",
+      "id": "H4Disp0.9_LtfConf_p0.35_w6|s5_m1.2_rr1.5_cd20",
+      "prefixCausality": [
+        {
+          "cutoff": 25000,
+          "checkedSignals": 60,
+          "checkedTrades": 44,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 45000,
+          "checkedSignals": 122,
+          "checkedTrades": 94,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 65000,
+          "checkedSignals": 171,
+          "checkedTrades": 136,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 85000,
+          "checkedSignals": 248,
+          "checkedTrades": 197,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 100000,
+          "checkedSignals": 277,
+          "checkedTrades": 222,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 65000,
+        "checkedSignals": 171,
+        "checkedTrades": 136,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 292,
+          "trades": 235,
+          "maxSignalRelDiff": 1.161e-14,
+          "netPctDiff": 7.105e-15,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 292,
+          "trades": 235,
+          "maxSignalRelDiff": 1.391e-14,
+          "netPctDiff": 1.35e-13,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 1.5,
+        "spotTradesVerified": 235,
+        "swapTradesVerified": 235,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "1h_r1r2",
+      "track": "1h",
+      "lockFile": "lock_1h.json",
+      "id": "R2:H4Disp_0.9_off0.15_adp:w6|s4_m1.8_rr2.5_be0.46/0.4_l21.2/0.75_tr0/0_cd1",
+      "prefixCausality": [
+        {
+          "cutoff": 6000,
+          "checkedSignals": 501,
+          "checkedTrades": 65,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 11000,
+          "checkedSignals": 990,
+          "checkedTrades": 124,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 16000,
+          "checkedSignals": 1490,
+          "checkedTrades": 194,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 21000,
+          "checkedSignals": 1971,
+          "checkedTrades": 260,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 25000,
+          "checkedSignals": 2323,
+          "checkedTrades": 306,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 16000,
+        "checkedSignals": 1490,
+        "checkedTrades": 194,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 2447,
+          "trades": 325,
+          "maxSignalRelDiff": 1.068e-14,
+          "netPctDiff": 2.842e-14,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 2447,
+          "trades": 325,
+          "maxSignalRelDiff": 9.186e-15,
+          "netPctDiff": 5.116e-13,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 2.5,
+        "spotTradesVerified": 325,
+        "swapTradesVerified": 312,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "1h_r3",
+      "track": "1h",
+      "lockFile": "lock_1h_r3.json",
+      "id": "MultiTrap_N20_P10_off0.10_w6|s3.6_m1.7_rr2.2_be0.50_o0.55_cd2",
+      "prefixCausality": [
+        {
+          "cutoff": 6000,
+          "checkedSignals": 97,
+          "checkedTrades": 50,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 11000,
+          "checkedSignals": 194,
+          "checkedTrades": 96,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 16000,
+          "checkedSignals": 307,
+          "checkedTrades": 139,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 21000,
+          "checkedSignals": 390,
+          "checkedTrades": 178,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 25000,
+          "checkedSignals": 476,
+          "checkedTrades": 219,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 16000,
+        "checkedSignals": 307,
+        "checkedTrades": 139,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 495,
+          "trades": 227,
+          "maxSignalRelDiff": 1.639e-14,
+          "netPctDiff": 7.816e-14,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 495,
+          "trades": 227,
+          "maxSignalRelDiff": 1.466e-14,
+          "netPctDiff": 7.105e-15,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 2.2,
+        "spotTradesVerified": 227,
+        "swapTradesVerified": 226,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "1h_r4",
+      "track": "1h",
+      "lockFile": "lock_1h_r4.json",
+      "id": "MT_N20_P10_off0.14_w6|s2.9_m2_rr1.25_cd2",
+      "prefixCausality": [
+        {
+          "cutoff": 6000,
+          "checkedSignals": 97,
+          "checkedTrades": 52,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 11000,
+          "checkedSignals": 194,
+          "checkedTrades": 107,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 16000,
+          "checkedSignals": 307,
+          "checkedTrades": 156,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 21000,
+          "checkedSignals": 390,
+          "checkedTrades": 203,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 25000,
+          "checkedSignals": 476,
+          "checkedTrades": 249,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 16000,
+        "checkedSignals": 307,
+        "checkedTrades": 156,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 495,
+          "trades": 258,
+          "maxSignalRelDiff": 1.639e-14,
+          "netPctDiff": 1.421e-14,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 495,
+          "trades": 258,
+          "maxSignalRelDiff": 1.466e-14,
+          "netPctDiff": 1.563e-13,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 1.25,
+        "spotTradesVerified": 258,
+        "swapTradesVerified": 260,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    },
+    {
+      "key": "1h_r5",
+      "track": "1h",
+      "lockFile": "lock_1h_r5.json",
+      "id": "MT_off0.22_w6|s3.2_m1.7_rr1.25_l2_0.90_0.55",
+      "prefixCausality": [
+        {
+          "cutoff": 6000,
+          "checkedSignals": 97,
+          "checkedTrades": 48,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 11000,
+          "checkedSignals": 194,
+          "checkedTrades": 102,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 16000,
+          "checkedSignals": 307,
+          "checkedTrades": 155,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 21000,
+          "checkedSignals": 390,
+          "checkedTrades": 199,
+          "status": "PASS"
+        },
+        {
+          "cutoff": 25000,
+          "checkedSignals": 476,
+          "checkedTrades": 247,
+          "status": "PASS"
+        }
+      ],
+      "futureMutationCausality": {
+        "pivot": 16000,
+        "checkedSignals": 307,
+        "checkedTrades": 155,
+        "status": "PASS"
+      },
+      "priceScaleInvariance": [
+        {
+          "scale": 0.37,
+          "signals": 495,
+          "trades": 257,
+          "maxSignalRelDiff": 1.639e-14,
+          "netPctDiff": 9.237e-14,
+          "status": "PASS"
+        },
+        {
+          "scale": 3.14,
+          "signals": 495,
+          "trades": 257,
+          "maxSignalRelDiff": 1.466e-14,
+          "netPctDiff": 1.421e-14,
+          "status": "PASS"
+        }
+      ],
+      "conservativeFillInvariants": {
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "totalRoundTripDragPct": 0.15,
+        "rewardRisk": 1.25,
+        "spotTradesVerified": 257,
+        "swapTradesVerified": 250,
+        "status": "PASS"
+      },
+      "overallStatus": "PASS"
+    }
+  ]
+}
