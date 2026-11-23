@@ -121,6 +121,62 @@ test('100% parity on selectable alternative engine profiles (15m v3.0 legacy & 1
   assert.equal(r1hTrend.trades, 73);
 });
 
+test('100% parity on v4.1 VolNorm Auto sizing (1h 4.5% [1.5..2.8x] & 15m 2.2% [0.75..1.5x])', () => {
+  const r15Auto = verifyDatasetParity('data/btcusdt_tv_15m_6k.json', {
+    paperSizingMode: 'VolNorm [v4.1 Auto]',
+  });
+  assert.equal(r15Auto.parity, '100%_BAR_AND_TRADE_MATCH');
+  assert.equal(r15Auto.trades, 21);
+
+  const r1hAuto = verifyDatasetParity('data/btcusdt_tv_1h_6k.json', {
+    paperSizingMode: 'VolNorm [v4.1 Auto]',
+  });
+  assert.equal(r1hAuto.parity, '100%_BAR_AND_TRADE_MATCH');
+  assert.equal(r1hAuto.trades, 68);
+  assert.ok(r1hAuto.compoundedNetLevPct > r1hAuto.totalNetPct);
+
+  const r1hFixed = verifyDatasetParity('data/btcusdt_tv_1h_6k.json', {
+    paperSizingMode: 'Fixed Leverage',
+    paperLeverageRef: 2.0,
+  });
+  assert.equal(r1hFixed.parity, '100%_BAR_AND_TRADE_MATCH');
+  assert.ok(Math.abs(r1hFixed.totalNetLevPct - 2.0 * r1hFixed.totalNetPct) < 2e-4);
+});
+
+test('100% parity on v4.1 VolNorm + Partial TP1 (50% @ 0.95R, Lock 0.65R) on 1h & 15m', () => {
+  const r1hPartial = verifyDatasetParity('data/btcusdt_tv_1h_6k.json', {
+    paperUseAutoPreset: false,
+    customRewardRisk: 2.0,
+    paperSizingMode: 'VolNorm [v4.1 Auto]',
+    paperTp1QtyPct: 50,
+    paperTp1TriggerR: 0.95,
+    paperTp1LockR: 0.65,
+  });
+  assert.equal(r1hPartial.parity, '100%_BAR_AND_TRADE_MATCH');
+  assert.ok(r1hPartial.trades >= 60);
+
+  const r15Partial = verifyDatasetParity('data/btcusdt_tv_15m_6k.json', {
+    paperSizingMode: 'VolNorm [v4.1 Auto]',
+    paperTp1QtyPct: 50,
+    paperTp1TriggerR: 0.95,
+    paperTp1LockR: 0.65,
+  });
+  assert.equal(r15Partial.parity, '100%_BAR_AND_TRADE_MATCH');
+  assert.equal(r15Partial.trades, 21);
+
+  // Confirm TP1 events actively trigger under Partial TP1 simulation
+  const ds1h = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/btcusdt_tv_1h_6k.json'), 'utf8'));
+  const sim1h = simulatePineV6Engine(ds1h, {
+    paperUseAutoPreset: false,
+    customRewardRisk: 2.0,
+    paperSizingMode: 'VolNorm [v4.1 Auto]',
+    paperTp1QtyPct: 50,
+    paperTp1TriggerR: 0.95,
+    paperTp1LockR: 0.65,
+  });
+  assert.ok(sim1h.trades.some(t => t.tp1Hit === true));
+});
+
 test('Pine v6 prefix-truncation causality matches sim_engine on TV-6k windows', () => {
   for (const rel of ['data/btcusdt_tv_15m_6k.json', 'data/btcusdt_tv_1h_6k.json']) {
     const full = JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8'));

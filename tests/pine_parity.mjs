@@ -95,6 +95,15 @@ function paperExitConservativePine(side, entryMode, isEntryBar, filledAtOpen, be
   return { price, reason };
 }
 
+function calcPosLevPine(useVolNorm, riskPct, minLev, maxLev, fixedLev, entryPrice, dist) {
+  const stopDistPct = Number.isFinite(entryPrice) && entryPrice > 0 && Number.isFinite(dist) && dist > 0
+    ? (dist / entryPrice) * 100.0
+    : NaN;
+  return useVolNorm && Number.isFinite(stopDistPct) && stopDistPct > 0
+    ? Math.max(minLev, Math.min(maxLev, riskPct / stopDistPct))
+    : fixedLev;
+}
+
 /**
  * Mirrors TradingView Pine v6 execution order (unconditional top-level indicators,
  * request.security(..., lookahead_off) + timeframe.change boundary [1] latching,
@@ -106,6 +115,16 @@ export function simulatePineV6Engine(dataset, options = {}) {
     slippagePct = 0.025,
     engine15mProfile = 'v4.0 H4-Close-Disp [3Y OKX]',
     engine1hProfile = 'v3.0 Adaptive-MultiTrap [All-Weather]',
+    paperUseAutoPreset = true,
+    customRewardRisk = null,
+    paperSizingMode = 'VolNorm [v4.1 Auto]',
+    paperRiskPct = 4.5,
+    paperMinLev = 1.5,
+    paperMaxLev = 2.8,
+    paperLeverageRef = 2.0,
+    paperTp1QtyPct = 0.0,
+    paperTp1TriggerR = 0.95,
+    paperTp1LockR = 0.65,
   } = options;
   const rows = dataset.rows;
   const intervalSeconds = dataset.intervalSeconds;
@@ -202,13 +221,19 @@ export function simulatePineV6Engine(dataset, options = {}) {
   const effExpiryBars = vExpiryCfg;
   const effStopAtr = vStopAtrCfg;
   const effMinStopPct = vMinStopCfg;
-  const effRewardRisk = vRrCfg;
+  const effRewardRisk = paperUseAutoPreset || customRewardRisk === null ? vRrCfg : customRewardRisk;
   const effMaxHoldBars = vMaxHoldCfg;
   const effCooldown = vCooldownCfg;
   const effBeTriggerR = vBeTrigCfg;
   const effBeOffsetPct = vBeOffCfg;
   const effLock2TriggerR = vLock2TrigCfg;
   const effLock2OffsetR = vLock2OffCfg;
+  const effUseVolNorm = paperSizingMode !== 'Fixed Leverage';
+  const effAutoVolNorm = paperSizingMode === 'VolNorm [v4.1 Auto]';
+  const effRiskPct = effAutoVolNorm ? (is15mProfile ? 2.2 : 4.5) : paperRiskPct;
+  const effMinLev = effAutoVolNorm ? (is15mProfile ? 0.75 : 1.5) : paperMinLev;
+  const effMaxLev = Math.max(effMinLev, effAutoVolNorm ? (is15mProfile ? 1.5 : 2.8) : paperMaxLev);
+  const effTp1QtyFrac = paperTp1TriggerR > 0 && paperTp1QtyPct > 0 ? paperTp1QtyPct / 100.0 : 0.0;
 
   let paperSide = 0;
   let paperPendingSide = 0;
@@ -226,6 +251,13 @@ export function simulatePineV6Engine(dataset, options = {}) {
   let paperInitialDist = NaN;
   let paperBeArmed = false;
   let paperLock2Armed = false;
+  let paperActiveLev = 1.0;
+  let paperTp1QtyFrac = 0.0;
+  let paperTp1Price = NaN;
+  let paperTp1Hit = false;
+  let paperRemFrac = 1.0;
+  let paperLeg1Net = 0.0;
+  let paperLeg1Gross = 0.0;
 
   let paperWins = 0;
   let paperLosses = 0;
@@ -233,6 +265,10 @@ export function simulatePineV6Engine(dataset, options = {}) {
   let paperGains = 0;
   let paperLossSum = 0;
   let paperTotalNet = 0;
+  let paperGainsLev = 0;
+  let paperLossSumLev = 0;
+  let paperTotalNetLev = 0;
+  let paperEquityLev = 1.0;
 
   const barStates = [];
   const signals = [];
@@ -596,6 +632,13 @@ export function simulatePineV6Engine(dataset, options = {}) {
           paperFilledAtOpen = fillAtOpen;
           paperBeArmed = false;
           paperLock2Armed = false;
+          paperActiveLev = calcPosLevPine(effUseVolNorm, effRiskPct, effMinLev, effMaxLev, paperLeverageRef, fill, lvl.dist);
+          paperTp1QtyFrac = effTp1QtyFrac;
+          paperTp1Price = effTp1QtyFrac > 0.0 ? fill + paperSide * paperTp1TriggerR * lvl.dist : NaN;
+          paperTp1Hit = false;
+          paperRemFrac = 1.0;
+          paperLeg1Net = 0.0;
+          paperLeg1Gross = 0.0;
           paperInLong = paperSide === 1;
           paperInShort = paperSide === -1;
           paperInPrice = fill;
@@ -613,29 +656,82 @@ export function simulatePineV6Engine(dataset, options = {}) {
     }
 
     if (paperSide !== 0) {
-      const paperIsBeRaised = paperBeArmed || (paperLock2Armed && paperSide * (paperStop - paperEntry) >= -EPS_ZERO);
-      const ex = paperExitConservativePine(
-        paperSide, effEntryMode, i === paperEntryBar, paperFilledAtOpen, paperIsBeRaised,
+      const paperIsBeRaised = paperBeArmed || paperTp1Hit || (paperLock2Armed && paperSide * (paperStop - paperEntry) >= -EPS_ZERO);
+      const bullOpen = paperSide === 1;
+      const isEntryBarNow = i === paperEntryBar;
+      const canGapAndHL = effEntryMode === 'MARKET_NEXT_OPEN' || !isEntryBarNow || paperFilledAtOpen;
+      const gapStopNow = bullOpen ? r.open <= paperStop : r.open >= paperStop;
+      const gapTargetNow = canGapAndHL && (bullOpen ? r.open >= paperTarget : r.open <= paperTarget);
+      const hitStopNow = bullOpen ? r.low <= paperStop : r.high >= paperStop;
+      let tp1JustHitByWick = false;
+
+      if (paperTp1QtyFrac > 0.0 && !paperTp1Hit && Number.isFinite(paperTp1Price) && !gapStopNow) {
+        let hitTp1Bar = false;
+        let tp1Raw = NaN;
+        if (gapTargetNow) {
+          hitTp1Bar = true;
+          tp1Raw = paperTp1Price;
+        } else if (!hitStopNow) {
+          const gapTp1 = canGapAndHL && (bullOpen ? r.open >= paperTp1Price : r.open <= paperTp1Price);
+          const hitTp1 = canGapAndHL
+            ? (bullOpen ? r.high >= paperTp1Price : r.low <= paperTp1Price)
+            : (bullOpen ? r.close >= paperTp1Price : r.close <= paperTp1Price);
+          if (gapTp1 || hitTp1) {
+            hitTp1Bar = true;
+            tp1Raw = gapTp1 ? r.open : paperTp1Price;
+            tp1JustHitByWick = !gapTp1;
+          }
+        }
+        if (hitTp1Bar) {
+          const tp1Exit = adverseFillPine(tp1Raw, paperSide, false, slippagePct);
+          const leg1Gross = (paperSide * (tp1Exit - paperEntry)) / paperEntry * 100.0;
+          const leg1Net = leg1Gross - feePct;
+          paperLeg1Gross += paperTp1QtyFrac * leg1Gross;
+          paperLeg1Net += paperTp1QtyFrac * leg1Net;
+          paperRemFrac = 1.0 - paperTp1QtyFrac;
+          paperTp1Hit = true;
+        }
+      }
+
+      let ex = paperExitConservativePine(
+        paperSide, effEntryMode, isEntryBarNow, paperFilledAtOpen, paperIsBeRaised,
         r.open, r.high, r.low, r.close, paperStop, paperTarget, i - paperEntryBar + 1, effMaxHoldBars,
       );
+      if (tp1JustHitByWick && ex.reason === 2 && !(bullOpen ? r.close >= paperTarget : r.close <= paperTarget)) {
+        if (i - paperEntryBar + 1 >= effMaxHoldBars) {
+          ex = { price: r.close, reason: 3 };
+        } else {
+          ex = { price: NaN, reason: 0 };
+        }
+      }
+
       if (ex.reason !== 0) {
         paperOutPrice = adverseFillPine(ex.price, paperSide, false, slippagePct);
-        const grossPct = (paperSide * (paperOutPrice - paperEntry)) / paperEntry * 100.0;
-        paperClosedNet = grossPct - feePct;
+        const remGross = (paperSide * (paperOutPrice - paperEntry)) / paperEntry * 100.0;
+        const remNet = remGross - feePct;
+        const unleveredGrossPct = paperLeg1Gross + paperRemFrac * remGross;
+        paperClosedNet = paperLeg1Net + paperRemFrac * remNet;
         paperClosedNet = Math.abs(paperClosedNet) < EPS_ZERO ? 0.0 : paperClosedNet;
+        const grossPctLev = unleveredGrossPct * paperActiveLev;
+        const netPctLev = paperClosedNet * paperActiveLev;
         paperOutReason = ex.reason;
         paperClosedSide = paperSide;
         paperClosedEntry = paperEntry;
         if (paperClosedNet > EPS_ZERO) {
           paperWins++;
           paperGains += paperClosedNet;
+          paperGainsLev += netPctLev;
         } else if (paperClosedNet < -EPS_ZERO) {
           paperLosses++;
           paperLossSum -= paperClosedNet;
+          paperLossSumLev -= netPctLev;
         } else {
           paperTies++;
         }
         paperTotalNet += paperClosedNet;
+        paperTotalNetLev += netPctLev;
+        const levFactor = 1.0 + netPctLev / 100.0;
+        paperEquityLev = levFactor <= 0.0 ? 0.0 : paperEquityLev * levFactor;
         const reasonStr = ['', 'SL', 'TP', 'TIME', 'BE'][paperOutReason];
         trades.push({
           signalIndex: paperSignalBar,
@@ -648,12 +744,25 @@ export function simulatePineV6Engine(dataset, options = {}) {
           target: paperTarget,
           beArmed: paperBeArmed,
           lock2Armed: paperLock2Armed,
+          tp1Hit: paperTp1Hit,
+          lev: paperActiveLev,
           exit: paperOutPrice,
           exitReason: reasonStr,
-          grossPct,
+          unleveredGrossPct,
+          unleveredNetPct: paperClosedNet,
+          grossPct: grossPctLev,
           netPct: paperClosedNet,
+          netPctLev,
         });
         paperSide = 0;
+      }
+    }
+
+    if (paperSide !== 0 && paperTp1Hit && paperTp1LockR > 0) {
+      const raisedTp1Stop = paperEntry + paperSide * paperTp1LockR * paperInitialDist;
+      if (paperSide * (raisedTp1Stop - paperStop) > 0 && paperSide * (paperTarget - raisedTp1Stop) > 0) {
+        paperStop = raisedTp1Stop;
+        paperBeArmed = true;
       }
     }
 
@@ -700,6 +809,8 @@ export function simulatePineV6Engine(dataset, options = {}) {
       paperStop,
       paperTarget,
       paperBeArmed,
+      paperTp1Hit,
+      paperActiveLev,
       paperInLong,
       paperInShort,
       paperInPrice,
@@ -713,6 +824,8 @@ export function simulatePineV6Engine(dataset, options = {}) {
       paperTies,
       paperPF: paperLossSum > 0 ? paperGains / paperLossSum : NaN,
       paperTotalNet,
+      paperTotalNetLev,
+      paperEquityLev,
     });
   }
 
@@ -727,6 +840,9 @@ export function simulatePineV6Engine(dataset, options = {}) {
     winRatePct: trades.length ? (paperWins / trades.length) * 100 : null,
     totalNetPct: paperTotalNet,
     profitFactor: paperLossSum > 0 ? paperGains / paperLossSum : null,
+    totalNetLevPct: paperTotalNetLev,
+    compoundedNetLevPct: (paperEquityLev - 1.0) * 100.0,
+    profitFactorLev: paperLossSumLev > 0 ? paperGainsLev / paperLossSumLev : null,
   };
 }
 
@@ -768,16 +884,25 @@ export function verifyPineSourcesMatchSpec() {
     'resolvePaperLevels(',
     'adaptivePolarityFlip(',
     'recordShadowOutcome(',
+    'calcPosLev(',
     'V3_SHADOW_FEE_PCT = 0.10',
     'V3_SHADOW_SLIP_PCT = 0.025',
+    'VolNorm [v4.1 Auto]',
+    'paperSizingMode',
+    'paperRiskPct',
+    'paperTp1QtyPct',
   ];
 
   for (const snippet of requiredLiterals) {
     assert.ok(toolPine.includes(snippet), `TOOL.pine missing required v4/v3 spec snippet: ${snippet}`);
     assert.ok(stratPine.includes(snippet), `TOOL_Strategy.pine missing required v4/v3 spec snippet: ${snippet}`);
   }
+  assert.ok(toolPine.includes('SMC Confirmed [4.1.0]'), 'TOOL.pine missing 4.1.0 title');
+  assert.ok(stratPine.includes('SMC High-WinRate Strategy [4.1.0]'), 'TOOL_Strategy.pine missing 4.1.0 title');
   assert.ok(stratPine.includes('default_qty_value = 200'), 'TOOL_Strategy.pine missing default 2x Futures sizing (default_qty_value = 200)');
-  assert.ok(stratPine.includes('margin_long = 25') && stratPine.includes('margin_short = 25'), 'TOOL_Strategy.pine missing 25% margin bounds for 2x');
+  assert.ok(stratPine.includes('margin_long = 20') && stratPine.includes('margin_short = 20'), 'TOOL_Strategy.pine missing 20% margin bounds for VolNorm <= 5x');
+  assert.ok(stratPine.includes('qty = stratOrderQty'), 'TOOL_Strategy.pine missing dynamic stratOrderQty entry sizing');
+  assert.ok(stratPine.includes('qty_percent = paperTp1QtyPct'), 'TOOL_Strategy.pine missing Partial TP1 strategy.exit');
 
   // Verify shared pure execution/signal helper functions are byte-identical between TOOL.pine and TOOL_Strategy.pine
   const extractFn = (src, sig) => {
@@ -792,6 +917,7 @@ export function verifyPineSourcesMatchSpec() {
     'resolvePaperLevels(',
     'paperExitConservative(',
     'recordShadowOutcome(',
+    'calcPosLev(',
     'adaptivePolarityFlip(',
   ]) {
     assert.equal(
@@ -818,9 +944,32 @@ export function verifyDatasetParity(relDataPath, options = {}) {
   const {
     engine15mProfile = 'v4.0 H4-Close-Disp [3Y OKX]',
     engine1hProfile = 'v3.0 Adaptive-MultiTrap [All-Weather]',
+    paperUseAutoPreset = true,
+    customRewardRisk = null,
+    paperSizingMode = 'VolNorm [v4.1 Auto]',
+    paperRiskPct = 4.5,
+    paperMinLev = 1.5,
+    paperMaxLev = 2.8,
+    paperLeverageRef = 2.0,
+    paperTp1QtyPct = 0.0,
+    paperTp1TriggerR = 0.95,
+    paperTp1LockR = 0.65,
   } = options;
   const dataset = JSON.parse(fs.readFileSync(path.join(ROOT, relDataPath), 'utf8'));
-  const pineSim = simulatePineV6Engine(dataset, { engine15mProfile, engine1hProfile });
+  const pineSim = simulatePineV6Engine(dataset, {
+    engine15mProfile,
+    engine1hProfile,
+    paperUseAutoPreset,
+    customRewardRisk,
+    paperSizingMode,
+    paperRiskPct,
+    paperMinLev,
+    paperMaxLev,
+    paperLeverageRef,
+    paperTp1QtyPct,
+    paperTp1TriggerR,
+    paperTp1LockR,
+  });
   const is15m = dataset.intervalSeconds <= 900;
 
   let refSignals;
@@ -957,26 +1106,47 @@ export function verifyDatasetParity(relDataPath, options = {}) {
     near(a.limitPrice, b.limitPrice, 1e-12, `${relDataPath}: signal[${i}].limitPrice`);
   }
 
-  // 2. Trade-by-trade parity against sim_engine.mjs
-  const refSim = simulateTrades(dataset.rows, refSignals, refSimOptions);
+  // 2. Trade-by-trade parity against sim_engine.mjs (both 1x unlevered & v4.1 VolNorm/Fixed levered)
+  const effRiskPct = paperSizingMode === 'VolNorm [v4.1 Auto]' ? (is15m ? 2.2 : 4.5) : paperRiskPct;
+  const effMinLev = paperSizingMode === 'VolNorm [v4.1 Auto]' ? (is15m ? 0.75 : 1.5) : paperMinLev;
+  const effMaxLev = Math.max(effMinLev, paperSizingMode === 'VolNorm [v4.1 Auto]' ? (is15m ? 1.5 : 2.8) : paperMaxLev);
+  const sizingSimOpts = paperSizingMode === 'Fixed Leverage'
+    ? { volNormRiskPct: 0, fixedLev: paperLeverageRef }
+    : { volNormRiskPct: effRiskPct, minLev: effMinLev, maxLev: effMaxLev };
+  const tp1SimOpts = {
+    tp1QtyPct: paperTp1QtyPct,
+    tp1TriggerR: paperTp1TriggerR,
+    tp1LockOffsetR: paperTp1LockR,
+  };
+  const rrOverrideOpts = !paperUseAutoPreset && customRewardRisk !== null
+    ? { rewardRisk: customRewardRisk }
+    : {};
+  const refSim = simulateTrades(dataset.rows, refSignals, {
+    ...refSimOptions,
+    ...sizingSimOpts,
+    ...tp1SimOpts,
+    ...rrOverrideOpts,
+  });
   assert.equal(pineSim.trades.length, refSim.trades.length, `${relDataPath}: trade count mismatch`);
   assert.equal(pineSim.wins, refSim.wins, `${relDataPath}: wins mismatch`);
   assert.equal(pineSim.losses, refSim.losses, `${relDataPath}: losses mismatch`);
   assert.equal(pineSim.ties, refSim.ties, `${relDataPath}: ties mismatch`);
-  near(pineSim.totalNetPct, refSim.totalNetPct, 1e-10, `${relDataPath}: totalNetPct`);
+  near(pineSim.totalNetLevPct, refSim.totalNetPct, 1e-10, `${relDataPath}: totalNetLevPct`);
+  near(pineSim.compoundedNetLevPct, refSim.compoundedNetPct, 1e-10, `${relDataPath}: compoundedNetLevPct`);
   if (refSim.profitFactor !== null) {
-    near(pineSim.profitFactor, refSim.profitFactor, 1e-10, `${relDataPath}: profitFactor`);
+    near(pineSim.profitFactorLev, refSim.profitFactor, 1e-10, `${relDataPath}: profitFactorLev`);
   }
 
   for (let i = 0; i < refSim.trades.length; i++) {
     const a = pineSim.trades[i];
     const b = refSim.trades[i];
-    for (const k of ['signalIndex', 'entryIndex', 'exitIndex', 'side', 'exitReason', 'beArmed', 'lock2Armed']) {
+    for (const k of ['signalIndex', 'entryIndex', 'exitIndex', 'side', 'exitReason', 'beArmed', 'lock2Armed', 'tp1Hit']) {
       assert.equal(a[k], b[k], `${relDataPath}: trade[${i}].${k}`);
     }
-    for (const k of ['entry', 'stop', 'initialStop', 'target', 'exit', 'grossPct', 'netPct']) {
+    for (const k of ['entry', 'stop', 'initialStop', 'target', 'exit', 'lev', 'grossPct', 'unleveredNetPct']) {
       near(a[k], b[k], 1e-12, `${relDataPath}: trade[${i}].${k}`);
     }
+    near(a.netPctLev, b.netPct, 1e-12, `${relDataPath}: trade[${i}].netPctLev`);
   }
 
   // 3. Bar-by-bar ledger consistency check across all bars
@@ -992,13 +1162,14 @@ export function verifyDatasetParity(relDataPath, options = {}) {
       assert.equal(st.paperInLong, ent.side === 1, `${relDataPath}: bar[${i}].paperInLong`);
       assert.equal(st.paperInShort, ent.side === -1, `${relDataPath}: bar[${i}].paperInShort`);
       near(st.paperInPrice, ent.entry, 1e-12, `${relDataPath}: bar[${i}].paperInPrice`);
+      near(st.paperActiveLev, ent.lev, 1e-12, `${relDataPath}: bar[${i}].paperActiveLev`);
     }
     const ex = exitMap.get(i);
     if (ex) {
       const code = { SL: 1, TP: 2, TIME: 3, BE: 4 }[ex.exitReason];
       assert.equal(st.paperOutReason, code, `${relDataPath}: bar[${i}].paperOutReason`);
       near(st.paperOutPrice, ex.exit, 1e-12, `${relDataPath}: bar[${i}].paperOutPrice`);
-      near(st.paperClosedNet, ex.netPct, 1e-12, `${relDataPath}: bar[${i}].paperClosedNet`);
+      near(st.paperClosedNet, ex.unleveredNetPct, 1e-12, `${relDataPath}: bar[${i}].paperClosedNet`);
     } else {
       assert.equal(st.paperOutReason, 0, `${relDataPath}: bar[${i}].paperOutReason expected 0`);
     }
@@ -1014,8 +1185,11 @@ export function verifyDatasetParity(relDataPath, options = {}) {
     losses: refSim.losses,
     ties: refSim.ties,
     winRatePct: Number((refSim.winRatePct ?? 0).toFixed(4)),
-    profitFactor: refSim.profitFactor !== null ? Number(refSim.profitFactor.toFixed(4)) : null,
-    totalNetPct: Number(refSim.totalNetPct.toFixed(4)),
+    profitFactor: pineSim.profitFactor !== null ? Number(pineSim.profitFactor.toFixed(4)) : null,
+    profitFactorLev: refSim.profitFactor !== null ? Number(refSim.profitFactor.toFixed(4)) : null,
+    totalNetPct: Number(pineSim.totalNetPct.toFixed(4)),
+    totalNetLevPct: Number(refSim.totalNetPct.toFixed(4)),
+    compoundedNetLevPct: Number(refSim.compoundedNetPct.toFixed(4)),
     meanNetPct: Number((refSim.meanNetPct ?? 0).toFixed(4)),
     parity: '100%_BAR_AND_TRADE_MATCH',
   };

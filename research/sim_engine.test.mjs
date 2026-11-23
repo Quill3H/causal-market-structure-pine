@@ -547,3 +547,71 @@ test('trailTriggerR / trailAtrMult ratchets monotonically starting k+1 and never
   near(t.stop, 102.5);
   near(t.exit, 102.5);
 });
+
+test('volNormRiskPct scales leverage by stop distance clamped to [minLev, maxLev]', () => {
+  const rows = fixture(4);
+  // entry=100, atr=1, stopAtr=2 => stopDistPct=2%. With volNormRiskPct=4.5, lev = clamp(4.5/2 = 2.25, 1.5, 2.8) = 2.25
+  Object.assign(rows[1], { open: 100, high: 103.5, low: 99, close: 103 });
+  const res = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 1 }], {
+    ...OPTIONS, stopAtr: 2, rewardRisk: 1, volNormRiskPct: 4.5, minLev: 1.5, maxLev: 2.8, costPct: 0.1,
+  });
+  assert.equal(res.count, 1);
+  near(res.trades[0].lev, 2.25);
+  near(res.trades[0].unleveredNetPct, 1.9);
+  near(res.trades[0].netPct, 1.9 * 2.25);
+
+  // High vol: atr=3, stopAtr=2 => stopDistPct=6% -> 4.5/6 = 0.75 -> clamped to minLev=1.5
+  const resHighVol = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 3 }], {
+    ...OPTIONS, stopAtr: 2, rewardRisk: 1, volNormRiskPct: 4.5, minLev: 1.5, maxLev: 2.8, costPct: 0.1, maxHoldBars: 1,
+  });
+  near(resHighVol.trades[0].lev, 1.5);
+});
+
+test('Partial TP1 + Runner obeys SL priority, blocks same-bar wick double-TP, and locks runner stop', () => {
+  // 1) Bar 1 hits TP1 (+1.0R = 102) by wick and closes at 101.5 -> banks 50% at 102, ratchets runner stop to +0.5R (101)
+  // Bar 2 hits raised runner stop 101 -> remaining 50% exits BE at 101
+  const rows = fixture(5);
+  Object.assign(rows[1], { open: 100, high: 102.5, low: 99.5, close: 101.5 });
+  Object.assign(rows[2], { open: 101.5, high: 101.8, low: 100.8, close: 101.0 });
+  const res = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 2 }], {
+    ...OPTIONS, stopAtr: 1, rewardRisk: 2, tp1TriggerR: 1.0, tp1QtyPct: 50, tp1LockOffsetR: 0.5, costPct: 0.1,
+  });
+  assert.equal(res.count, 1);
+  const t = res.trades[0];
+  assert.equal(t.tp1Hit, true);
+  assert.equal(t.exitIndex, 2);
+  assert.equal(t.exitReason, 'BE');
+  // 0.5*(2.0 - 0.1) + 0.5*(1.0 - 0.1) = 0.95 + 0.45 = 1.40%
+  near(t.netPct, 1.40);
+
+  // 2) Same-bar wick touching SL (98) and TP1 (102) must exit full SL on bar 1
+  const rowsSlFirst = fixture(4);
+  Object.assign(rowsSlFirst[1], { open: 100, high: 105, low: 97.5, close: 104 });
+  const resSl = simulateTrades(rowsSlFirst, [{ barIndex: 0, side: 1, atr: 2 }], {
+    ...OPTIONS, stopAtr: 1, rewardRisk: 2, tp1TriggerR: 1.0, tp1QtyPct: 50, tp1LockOffsetR: 0.5, costPct: 0,
+  });
+  assert.equal(resSl.trades[0].tp1Hit, false);
+  assert.equal(resSl.trades[0].exitReason, 'SL');
+  near(resSl.trades[0].netPct, -2.0);
+});
+
+test('fundingPctPer8h deducts weighted by remaining open fraction at 8h UTC settlements', () => {
+  // Anchor exactly on 28800-second boundary for bar 2 (START = Date.parse('2026-09-01T00:00:00Z') / 1000)
+  // Entry bar 1 (close after 8h?), wait: let's construct exact 1h bars aligned to 28800 UTC
+  const base8h = 1788220800; // multiple of 28800 (2026-09-01T00:00:00Z)
+  assert.equal(base8h % 28800, 0);
+  const rows = [
+    { time: base8h - 7200, open: 100, high: 101, low: 99, close: 100, volume: 10 }, // bar 0 signal
+    { time: base8h - 3600, open: 100, high: 102.5, low: 99.5, close: 101.5, volume: 10 }, // bar 1 entry + wick TP1 (50% @ 102)
+    { time: base8h,        open: 101.5, high: 104.5, low: 101.2, close: 104.0, volume: 10 }, // bar 2 (00:00 UTC!) remFrac=0.5 hits TP2 (104)
+  ];
+  const res = simulateTrades(rows, [{ barIndex: 0, side: 1, atr: 2 }], {
+    ...OPTIONS, intervalSeconds: 3600, stopAtr: 1, rewardRisk: 2,
+    tp1TriggerR: 1.0, tp1QtyPct: 50, fundingPctPer8h: 0.02, fixedLev: 2.0, costPct: 0, slippagePct: 0,
+  });
+  assert.equal(res.count, 1);
+  // 1x: 0.5*2% + 0.5*4% - (0.5 * 0.02%) = 3.0 - 0.01 = 2.99%; at 2x = 5.98%
+  near(res.trades[0].fundingDragPct, 0.02);
+  near(res.trades[0].unleveredNetPct, 2.99);
+  near(res.trades[0].netPct, 5.98);
+});
