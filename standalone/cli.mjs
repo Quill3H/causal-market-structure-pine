@@ -15,6 +15,7 @@ import {
   computeV8MacroRegimeRadar,
   createExchangeClient,
   evaluateStrategy,
+  getAllVersionsMatrixPreview,
   loadOfflineOrDbDataset,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
@@ -22,6 +23,7 @@ import {
   StandaloneTradingDaemon,
 } from './engine_runtime.mjs';
 import { isEquitySymbol, YahooEquitiesClient } from './market_equities.mjs';
+import { resolveRouterMode } from './order_router.mjs';
 import { createStandaloneServer } from './server.mjs';
 import { StandaloneStore } from './store_sqlite.mjs';
 
@@ -128,6 +130,10 @@ export async function runDoctor({ config } = {}) {
       v8RegimeEngine: runtimeSpecs.hasV8RegimeEngine,
       v8ModelsReady: runtimeSpecs.hasV8Models,
       v8FrontierReady: runtimeSpecs.hasV8Frontier,
+      v9Engine: runtimeSpecs.hasV9Engine,
+      v9ModelsReady: runtimeSpecs.hasV9Models,
+      v9FrontierReady: runtimeSpecs.hasV9Frontier,
+      allVersionsMatrixReady: runtimeSpecs.hasAllVersionsMatrix,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
       v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
@@ -140,7 +146,12 @@ export async function runDoctor({ config } = {}) {
       v8BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/models_v8_btc_bnb.json')),
       v8EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/models_v8_eth_sol.json')),
       v8FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/maximized_v8_summary.json')),
+      v9EnsembleFile: fs.existsSync(path.join(cfg.repoRoot, 'research/ensemble_v9_walkforward.mjs')),
+      v9ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/models_v9_crypto.json')),
+      v9FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/ensemble_v9_crypto_5y.json')),
+      allVersionsMatrixFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/all_versions_comparison_matrix.json')),
     },
+    routerMode: resolveRouterMode(cfg),
     connectivity: {
       okxPublic,
       binancePublic,
@@ -269,11 +280,16 @@ export async function runRegime(flags, cfg) {
   }
 }
 
+export async function runVersions(_flags, cfg) {
+  const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
+  return getAllVersionsMatrixPreview({ repoRoot: cfg.repoRoot, runtimeSpecs });
+}
+
 export async function runServe(flags, cfg) {
   if (flags.port) cfg.port = Number(flags.port);
   const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
   const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
-  const daemon = new StandaloneTradingDaemon({ config: cfg, store, runtimeSpecs });
+  const daemon = new StandaloneTradingDaemon({ config: cfg, store, runtimeSpecs, autoRoute: false });
   const srv = createStandaloneServer({ config: cfg, store, runtimeSpecs, daemon, checkAccountHealth: true });
 
   for (const rawSym of cfg.symbols) {
@@ -281,7 +297,7 @@ export async function runServe(flags, cfg) {
     const tfs = isEquitySymbol(symbol) ? ['1d'] : (symbol === 'BTCUSDT.P' ? ['1h', '15m'] : ['1h']);
     for (const timeframe of tfs) {
       try {
-        daemon.evaluateAndPersist({ symbol, timeframe });
+        await daemon.evaluateAndRoute({ symbol, timeframe });
       } catch {
         // non-fatal if local data missing before background sync
       }
@@ -289,7 +305,7 @@ export async function runServe(flags, cfg) {
   }
   daemon.start(60000);
   const bound = await srv.start();
-  console.log(`[standalone] v6.0 Command Center running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
+  console.log(`[standalone] v9.0 Command Center running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
 
   const shutdown = async () => {
     daemon.stop();
@@ -326,10 +342,13 @@ async function main() {
   } else if (cmd === 'regime') {
     const res = await runRegime(flags, cfg);
     console.log(JSON.stringify({ ok: true, ...res }, null, 2));
+  } else if (cmd === 'versions') {
+    const res = await runVersions(flags, cfg);
+    console.log(JSON.stringify({ ok: true, ...res }, null, 2));
   } else if (cmd === 'serve') {
     await runServe(flags, cfg);
   } else {
-    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|regime|serve>`);
+    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|regime|versions|serve>`);
     process.exitCode = 1;
   }
 }

@@ -34,17 +34,26 @@ import {
   computeLiquidationDistance,
   computeV8MacroRegimeRadar,
   evaluateStrategy,
+  getAllVersionsMatrixPreview,
   loadOfflineOrDbDataset,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
   runFrontierPortfolio,
   runV7FrontierPortfolio,
 } from './engine_runtime.mjs';
+import { runVersions } from './cli.mjs';
 import {
   parseYahooChartResponse,
   resolveEquityInstrument,
   YahooEquitiesClient,
 } from './market_equities.mjs';
+import {
+  isValidOkxClOrdId,
+  makeClientOrderId,
+  resolveRouterMode,
+  ROUTER_MODES,
+  StandaloneOrderRouter,
+} from './order_router.mjs';
 import { createStandaloneServer } from './server.mjs';
 import { resolveSafeSqlitePath, StandaloneStore } from './store_sqlite.mjs';
 
@@ -628,7 +637,7 @@ describe('6. v7.0 Risk Tiers, Distance-to-Liquidation Buffer & /api/frontier', (
       const bound = await srv.start();
       const base = `http://${bound.host}:${bound.port}`;
 
-      const frontierRes = await fetch(`${base}/api/frontier?tier=SAFE_75WR`);
+      const frontierRes = await fetch(`${base}/api/frontier?tier=SAFE_75WR&version=v7`);
       assert.equal(frontierRes.status, 200);
       const frontierJson = await frontierRes.json();
       assert.equal(frontierJson.ok, true);
@@ -770,6 +779,285 @@ describe('7. v8.0 Macro-Trend Regime Radar, /api/regime & v7/v8 Frontier Toggle'
       assert.equal(statusJson.v8Radar.ready, true);
       assert.equal(statusJson.config.executionMode, 'PAPER');
       assert.equal(statusJson.config.riskTier, 'SAFE_75WR');
+    } finally {
+      await srv.stop();
+      store.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('8. Off-TV Order Router (OKX clOrdId, 3 Modes, Idempotency) & All-Versions Preview', () => {
+  it('generates deterministic strictly alphanumeric OKX clOrdId (<=32 chars) and routes PAPER_ZERO_KEY idempotently', async () => {
+    const id1 = makeClientOrderId({
+      exchange: 'OKX',
+      symbol: 'BTCUSDT.P',
+      timeframe: '1h',
+      barTime: 1795590000,
+      side: 1,
+      leg: 'E',
+    });
+    const id2 = makeClientOrderId({
+      exchange: 'OKX',
+      symbol: 'BTCUSDT.P',
+      timeframe: '1h',
+      barTime: 1795590000,
+      side: 1,
+      leg: 'E',
+    });
+    assert.equal(id1, id2);
+    assert.ok(isValidOkxClOrdId(id1), `clOrdId "${id1}" failed ^[A-Za-z0-9]{1,32}$`);
+    assert.equal(id1.includes('_'), false);
+    assert.equal(id1.includes('-'), false);
+
+    const tmp = makeTmpDir('tt9-paper-');
+    const cfg = loadConfig({ cwd: tmp, useProcessEnv: false });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'router.sqlite'), allowedBaseDir: tmp });
+    let networkTouched = false;
+    const okxStub = new OkxClient({
+      dryRun: true,
+      executionMode: 'PAPER',
+      fetchImpl: async () => {
+        networkTouched = true;
+        throw new Error('Must not touch network in PAPER_ZERO_KEY');
+      },
+    });
+    try {
+      assert.equal(resolveRouterMode(cfg).mode, ROUTER_MODES.PAPER_ZERO_KEY);
+      const router = new StandaloneOrderRouter({ config: cfg, store, exchangeClient: okxStub });
+
+      const pendingOverlay = {
+        status: 'PENDING_LIMIT',
+        side: 1,
+        signalTime: 1795590000,
+        limitPrice: 58500,
+        stop: 57200,
+        target: 60100,
+        lev: 1.5,
+      };
+      const first = await router.routeTransition({ symbol: 'BTCUSDT.P', timeframe: '1h', activeOverlay: pendingOverlay });
+      assert.equal(first.mode, ROUTER_MODES.PAPER_ZERO_KEY);
+      assert.equal(first.action, 'PAPER_SIMULATED');
+      assert.equal(networkTouched, false);
+
+      // Repeat same bar -> must skip idempotently
+      const dup = await router.routeTransition({ symbol: 'BTCUSDT.P', timeframe: '1h', activeOverlay: pendingOverlay });
+      assert.equal(dup.action, 'IDEMPOTENT_SKIP');
+
+      // Expire pending -> must log PAPER_CANCEL_SIMULATED
+      const cancelled = await router.routeTransition({
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+        activeOverlay: { status: 'FLAT' },
+        previousOverlay: pendingOverlay,
+      });
+      assert.equal(cancelled.action, 'PAPER_CANCEL_SIMULATED');
+
+      const logRows = store.getOrdersLog({ symbol: 'BTCUSDT.P', limit: 20 });
+      assert.equal(logRows.length, 2);
+      assert.ok(logRows.every(r => isValidOkxClOrdId(r.clientOrderId)));
+    } finally {
+      store.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('routes OKX_DEMO_SIMULATED (x-simulated-trading: 1) and enforces LIVE_EXCHANGE_ARMED interlocks', async () => {
+    const tmp = makeTmpDir('tt9-demo-');
+    const demoCalls = [];
+    const cfgDemo = loadConfig({
+      cwd: tmp,
+      useProcessEnv: false,
+      envOverrides: {
+        EXCHANGE: 'OKX',
+        OKX_API_KEY: 'demo-key-123',
+        OKX_API_SECRET: 'demo-secret-xyz',
+        OKX_PASSPHRASE: 'demo-pass',
+        OKX_SIMULATED: '1',
+        EXECUTION_MODE: 'LIVE_ARMED',
+        DRY_RUN: 'false',
+        LIVE_CONFIRM_TOKEN: 'tok-okx-demo',
+        MAX_LEVERAGE_CAP: '3.0',
+        MAX_ORDER_USDT: '500',
+      },
+    });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'demo.sqlite'), allowedBaseDir: tmp });
+    const mockClient = new OkxClient({
+      apiKey: cfgDemo.okx.apiKey,
+      apiSecret: cfgDemo.okx.apiSecret,
+      passphrase: cfgDemo.okx.passphrase,
+      simulated: true,
+      dryRun: false,
+      executionMode: 'LIVE_ARMED',
+      liveConfirmToken: cfgDemo.liveConfirmToken,
+      maxLeverageCap: cfgDemo.maxLeverageCap,
+      maxOrderUsdt: cfgDemo.maxOrderUsdt,
+      fetchImpl: async (url, init) => {
+        demoCalls.push({ url, headers: init.headers, body: JSON.parse(init.body || '{}') });
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ code: '0', msg: '', data: [{ ordId: '99887766', algoId: '554433', sCode: '0' }] }),
+        };
+      },
+    });
+
+    try {
+      assert.equal(resolveRouterMode(cfgDemo).mode, ROUTER_MODES.OKX_DEMO_SIMULATED);
+      const router = new StandaloneOrderRouter({
+        config: cfgDemo,
+        store,
+        exchangeClient: mockClient,
+        confirmToken: 'tok-okx-demo',
+      });
+
+      const pendingOverlay = { status: 'PENDING_LIMIT', side: 1, signalTime: 1795600000, limitPrice: 59000, lev: 2.0 };
+      const resEntry = await router.routeTransition({
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+        activeOverlay: pendingOverlay,
+        notionalUsdt: 150,
+      });
+      assert.equal(resEntry.action, 'SUBMITTED');
+      assert.equal(demoCalls.length, 1);
+      assert.equal(demoCalls[0].headers['x-simulated-trading'], '1');
+      assert.equal(demoCalls[0].body.ordType, 'post_only');
+      assert.ok(isValidOkxClOrdId(demoCalls[0].body.clOrdId));
+
+      // Stale PENDING_LIMIT -> FLAT cancellation in OKX_DEMO_SIMULATED mode must succeed cleanly (no notional 0 rejection)
+      const cancelRes = await router.routeTransition({
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+        activeOverlay: { status: 'FLAT' },
+        previousOverlay: pendingOverlay,
+      });
+      assert.equal(cancelRes.action, 'CANCELLED');
+      assert.equal(demoCalls.length, 2);
+      assert.equal(demoCalls[1].url.endsWith('/api/v5/trade/cancel-order'), true);
+      assert.ok(isValidOkxClOrdId(demoCalls[1].body.clOrdId));
+
+      // Filled position -> places reduceOnly OCO SL/TP
+      const openOverlay = {
+        status: 'OPEN_POSITION',
+        side: 1,
+        entryTime: 1795603600,
+        entry: 59000,
+        stop: 57500,
+        target: 61000,
+        lev: 2.0,
+      };
+      const resSlTp = await router.routeTransition({
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+        activeOverlay: openOverlay,
+        notionalUsdt: 150,
+      });
+      assert.equal(resSlTp.action, 'SUBMITTED');
+      assert.equal(demoCalls.length, 3);
+      assert.equal(demoCalls[2].body.ordType, 'oco');
+      assert.equal(demoCalls[2].body.reduceOnly, true);
+
+      // Flipping to LIVE_ARMED real mode must still enforce notional cap and token check
+      cfgDemo.okx.simulated = false;
+      assert.equal(resolveRouterMode(cfgDemo).mode, ROUTER_MODES.LIVE_EXCHANGE_ARMED);
+      await assert.rejects(
+        () => router.routeTransition({
+          symbol: 'ETHUSDT.P',
+          timeframe: '1h',
+          activeOverlay: { status: 'PENDING_LIMIT', side: -1, signalTime: 1795610000, limitPrice: 3100, lev: 2.0 },
+          notionalUsdt: 9999,
+        }),
+        /MAX_ORDER_USDT/,
+      );
+      await assert.rejects(
+        () => router.routeTransition({
+          symbol: 'ETHUSDT.P',
+          timeframe: '1h',
+          activeOverlay: { status: 'PENDING_LIMIT', side: -1, signalTime: 1795610000, limitPrice: 3100, lev: 2.0 },
+          notionalUsdt: 100,
+          confirmToken: 'wrong-token',
+        }),
+        /LIVE_CONFIRM_TOKEN mismatch/,
+      );
+    } finally {
+      store.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('serves /api/versions, /api/orders, and runs cli.mjs versions cleanly', async () => {
+    const tmp = makeTmpDir('tt9-http-');
+    const cfg = loadConfig({
+      cwd: REPO_ROOT,
+      useProcessEnv: false,
+      envOverrides: { HOST: '127.0.0.1', PORT: '0', EXECUTION_MODE: 'PAPER', DRY_RUN: 'true', RISK_TIER: 'SAFE_75WR' },
+    });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'v9.sqlite'), allowedBaseDir: tmp });
+    const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+    const srv = createStandaloneServer({ config: cfg, store, runtimeSpecs });
+
+    try {
+      const router = new StandaloneOrderRouter({ config: cfg, store });
+      await router.routeTransition({
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+        activeOverlay: { status: 'PENDING_LIMIT', side: 1, signalTime: 1795620000, limitPrice: 58800, lev: 1.5 },
+      });
+
+      const bound = await srv.start();
+      const base = `http://${bound.host}:${bound.port}`;
+
+      const versionsRes = await fetch(`${base}/api/versions`);
+      assert.equal(versionsRes.status, 200);
+      const versionsJson = await versionsRes.json();
+      assert.equal(versionsJson.ok, true);
+      assert.ok(Array.isArray(versionsJson.okxKeyGuide) && versionsJson.okxKeyGuide.length >= 3);
+
+      const ordersRes = await fetch(`${base}/api/orders?limit=20`);
+      assert.equal(ordersRes.status, 200);
+      const ordersJson = await ordersRes.json();
+      assert.equal(ordersJson.ok, true);
+      assert.equal(ordersJson.router.mode, ROUTER_MODES.PAPER_ZERO_KEY);
+      assert.equal(ordersJson.count, 1);
+      assert.ok(isValidOkxClOrdId(ordersJson.orders[0].clientOrderId));
+
+      const v9FrontierRes = await fetch(`${base}/api/frontier?tier=SAFE_75WR&version=v9`);
+      assert.equal(v9FrontierRes.status, 200);
+      const v9FrontierJson = await v9FrontierRes.json();
+      assert.equal(v9FrontierJson.ok, true);
+      assert.equal(v9FrontierJson.ready, true);
+      assert.equal(v9FrontierJson.version, 'v9');
+      assert.equal(v9FrontierJson.selectedTier.full5y.liquidationCount, 0);
+      assert.equal(v9FrontierJson.monthlyTable.length, 61);
+
+      const v9BtRes = await fetch(`${base}/api/backtest?symbol=BTCUSDT.P&timeframe=1h&version=v9`);
+      assert.equal(v9BtRes.status, 200);
+      const v9BtJson = await v9BtRes.json();
+      assert.equal(v9BtJson.ok, true);
+      assert.equal(v9BtJson.summary.modelVersion, 'v9.0-WalkForwardEnsemble');
+      assert.equal(v9BtJson.summary.liquidationCount, 0);
+
+      // Simulate pre-crash SUBMITTING entry -> recoverInterruptedOrders() marks INTERRUPTED
+      store.upsertOrderLog({
+        clientOrderId: 'tt9OKBTC1hLEdeadbeef01',
+        exchange: 'OKX',
+        symbol: 'BTCUSDT.P',
+        mode: ROUTER_MODES.OKX_DEMO_SIMULATED,
+        orderType: 'post_only',
+        side: 'buy',
+        price: 58900,
+        qty: 0.002,
+        reduceOnly: false,
+        status: 'SUBMITTING',
+      });
+      assert.equal(store.recoverInterruptedOrders(), 1);
+      const afterCrash = store.getOrdersLog({ symbol: 'BTCUSDT.P', limit: 10 });
+      assert.equal(afterCrash.find(r => r.clientOrderId === 'tt9OKBTC1hLEdeadbeef01')?.status, 'INTERRUPTED');
+
+      const cliVersions = await runVersions({}, cfg);
+      assert.ok(cliVersions.okxKeyGuide.length >= 3);
+      const directPreview = await getAllVersionsMatrixPreview({ repoRoot: REPO_ROOT, runtimeSpecs });
+      assert.ok(directPreview.okxKeyGuide.length >= 3);
     } finally {
       await srv.stop();
       store.close();

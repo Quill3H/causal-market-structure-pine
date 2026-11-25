@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v8.0 Standalone Command Center</title>
+  <title>TRADING-TOOL v9.0 Standalone Command Center</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT8</div>
+      <div class="brand-mark" aria-hidden="true">TT9</div>
       <div>
-        <h1 class="brand-title">TRADING-TOOL v8.0 Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">Macro-Trend Regime Radar • Asymmetric Long/Short • Off-TradingView</p>
+        <h1 class="brand-title">TRADING-TOOL v9.0 Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">Walk-Forward Barbell • Off-TV Order Router • All-Versions Preview</p>
       </div>
     </div>
 
@@ -50,7 +50,20 @@
       </label>
 
       <label class="control-field">
-        <span class="control-label">v7 Tier</span>
+        <span class="control-label">Version</span>
+        <select id="version-select" aria-label="Strategy Version">
+          <option value="auto">auto (Best)</option>
+          <option value="v9">v9.0 Ensemble</option>
+          <option value="v8">v8.0 Regime</option>
+          <option value="v7">v7.0 High-WR</option>
+          <option value="v6">v6.0 Multi-Asset</option>
+          <option value="v5">v5.0 ML</option>
+          <option value="v4.1">v4.1 Lock</option>
+        </select>
+      </label>
+
+      <label class="control-field">
+        <span class="control-label">Tier</span>
         <select id="tier-select" aria-label="Risk Tier">
           <option value="SAFE_75WR">Safe (75%+ WR)</option>
           <option value="BALANCED_75WR">Balanced (75%+ WR)</option>
@@ -176,6 +189,7 @@
             <h2 class="panel-title">Monthly Profit-Sweep Gauge</h2>
             <div class="frontier-controls">
               <select id="frontier-version-select" aria-label="Frontier Version">
+                <option value="v9">v9.0 Ensemble</option>
                 <option value="v8">v8.0 Regime</option>
                 <option value="v7">v7.0 High-WR</option>
               </select>
@@ -262,6 +276,64 @@
             <tbody id="trades-tbody"></tbody>
           </table>
         </div>
+      </article>
+    </section>
+
+    <section class="tables-grid">
+      <article class="panel" id="order-router-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Off-TradingView Order Router &amp; OKX API Key Guide</h2>
+            <p class="panel-meta" id="router-reason-text">Checking router state...</p>
+          </div>
+          <span class="badge badge-safe" id="router-mode-badge">PAPER_ZERO_KEY</span>
+        </div>
+        <div class="guide-grid" id="okx-key-guide-grid"></div>
+        <div tabindex="0" role="region" aria-label="Order Router Log" class="table-wrapper">
+          <table id="orders-table">
+            <thead>
+              <tr>
+                <th>clOrdId (OKX &lt;=32)</th>
+                <th>Exchange</th>
+                <th>Symbol</th>
+                <th>Mode</th>
+                <th>Type</th>
+                <th>Side</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel" id="versions-matrix-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">All-Versions Preview Matrix (v1.4 -&gt; v9.0)</h2>
+            <p class="panel-meta" id="versions-source-text">Loading version matrix...</p>
+          </div>
+          <span class="badge badge-neutral" id="versions-status-badge">--</span>
+        </div>
+        <div tabindex="0" role="region" aria-labelledby="versions-matrix-panel" class="table-wrapper">
+          <table id="versions-table">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Era / Architecture</th>
+                <th>Win Rate</th>
+                <th>Monthly Sweep</th>
+                <th>Full / OOS Return</th>
+                <th>Max DD</th>
+                <th>OOS &amp; Notes</th>
+              </tr>
+            </thead>
+            <tbody id="versions-tbody"></tbody>
+          </table>
+        </div>
+        <div class="recs-grid" id="versions-recs-grid"></div>
       </article>
     </section>
   </main>

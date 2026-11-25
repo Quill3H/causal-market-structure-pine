@@ -17,11 +17,16 @@ import {
   computeV8MacroRegimeRadar,
   createExchangeClient,
   evaluateStrategy,
+  getAllVersionsMatrixPreview,
   loadOfflineOrDbDataset,
   normalizeAssetSymbol,
   runFrontierPortfolio,
 } from './engine_runtime.mjs';
 import { isEquitySymbol } from './market_equities.mjs';
+import {
+  OKX_KEY_REQUIREMENTS_GUIDE,
+  resolveRouterMode,
+} from './order_router.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(HERE, 'public');
@@ -202,12 +207,23 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             v8RegimeEngineReady: Boolean(runtimeSpecs?.hasV8RegimeEngine),
             v8ModelsReady: Boolean(runtimeSpecs?.hasV8Models),
             v8FrontierReady: Boolean(runtimeSpecs?.hasV8Frontier),
-            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV8Models ? 'v8.0-RegimeMax' : runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
+            v9EngineReady: Boolean(runtimeSpecs?.hasV9Engine),
+            v9ModelsReady: Boolean(runtimeSpecs?.hasV9Models),
+            v9FrontierReady: Boolean(runtimeSpecs?.hasV9Frontier),
+            allVersionsMatrixReady: Boolean(runtimeSpecs?.hasAllVersionsMatrix),
+            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV9Models ? 'v9.0-Ensemble' : runtimeSpecs?.hasV8Models ? 'v8.0-RegimeMax' : runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
+          },
+          routerStatus: daemon?.orderRouter ? daemon.orderRouter.getStatus() : {
+            ...resolveRouterMode(config),
+            maxLeverageCap: Number(config.maxLeverageCap ?? 3.0),
+            maxOrderUsdt: Number(config.maxOrderUsdt ?? 500),
+            okxKeyGuide: OKX_KEY_REQUIREMENTS_GUIDE,
           },
           daemon: {
             lastSyncAt: daemon?.lastSyncAt || null,
             lastEvalAt: daemon?.lastEvalAt || null,
             lastError: daemon?.lastError || null,
+            lastRouteResult: daemon?.lastRouteResult || null,
           },
           regime,
           v8Radar,
@@ -215,6 +231,33 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           frontierSummary: frontier,
           summary,
           activeOverlay,
+        });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/versions') {
+        const preview = await getAllVersionsMatrixPreview({ repoRoot: config.repoRoot, runtimeSpecs });
+        sendJson(res, 200, { ok: true, ...preview });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/orders') {
+        const filterSym = parsed.searchParams.get('symbol');
+        const normalizedSym = filterSym ? normalizeAssetSymbol(filterSym) : undefined;
+        const orders = store.getOrdersLog({ symbol: normalizedSym, limit });
+        const router = daemon?.orderRouter
+          ? daemon.orderRouter.getStatus()
+          : {
+              ...resolveRouterMode(config),
+              maxLeverageCap: Number(config.maxLeverageCap ?? 3.0),
+              maxOrderUsdt: Number(config.maxOrderUsdt ?? 500),
+            };
+        sendJson(res, 200, {
+          ok: true,
+          router,
+          okxKeyGuide: OKX_KEY_REQUIREMENTS_GUIDE,
+          count: orders.length,
+          orders,
         });
         return;
       }

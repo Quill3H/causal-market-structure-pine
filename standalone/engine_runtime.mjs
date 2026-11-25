@@ -13,6 +13,11 @@ import {
   resolveEquityInstrument,
   YahooEquitiesClient,
 } from './market_equities.mjs';
+import {
+  OKX_KEY_REQUIREMENTS_GUIDE,
+  resolveRouterMode,
+  StandaloneOrderRouter,
+} from './order_router.mjs';
 
 export function intervalSecondsFor(timeframe) {
   const tf = String(timeframe || '1h').toLowerCase();
@@ -106,6 +111,10 @@ export async function loadRuntimeSpecs(repoRoot) {
   const summaryV8EthSol = readJsonIfExists(path.join(researchDir, 'results_v8', 'eth_sol_v8_5y.json'));
   const maximizedV8Summary = readJsonIfExists(path.join(researchDir, 'results_v8', 'maximized_v8_summary.json'));
 
+  const modelsV9Crypto = readJsonIfExists(path.join(researchDir, 'results_v9', 'models_v9_crypto.json'));
+  const ensembleV9Summary = readJsonIfExists(path.join(researchDir, 'results_v9', 'ensemble_v9_crypto_5y.json'));
+  const allVersionsMatrix = readJsonIfExists(path.join(researchDir, 'results_v9', 'all_versions_comparison_matrix.json'));
+
   const [
     simV5Mod,
     simV6Mod,
@@ -124,6 +133,8 @@ export async function loadRuntimeSpecs(repoRoot) {
     regimeV8BtcBnbMod,
     regimeV8EthSolMod,
     portfolioV8Mod,
+    ensembleV9Mod,
+    versionMatrixMod,
   ] = await Promise.all([
     tryImportOptional(path.join(researchDir, 'sim_engine_v5.mjs')),
     tryImportOptional(path.join(researchDir, 'sim_engine_v6.mjs')),
@@ -142,6 +153,8 @@ export async function loadRuntimeSpecs(repoRoot) {
     tryImportOptional(path.join(researchDir, 'regime_v8_btc_bnb.mjs')),
     tryImportOptional(path.join(researchDir, 'regime_v8_eth_sol.mjs')),
     tryImportOptional(path.join(researchDir, 'portfolio_v8_regime_maximizer.mjs')),
+    tryImportOptional(path.join(researchDir, 'ensemble_v9_walkforward.mjs')),
+    tryImportOptional(path.join(researchDir, 'version_matrix_preview.mjs')),
   ]);
 
   return {
@@ -166,6 +179,9 @@ export async function loadRuntimeSpecs(repoRoot) {
     summaryV8BtcBnb,
     summaryV8EthSol,
     maximizedV8Summary,
+    modelsV9Crypto,
+    ensembleV9Summary,
+    allVersionsMatrix,
     simV5Mod,
     simV6Mod,
     simV7Mod,
@@ -183,6 +199,8 @@ export async function loadRuntimeSpecs(repoRoot) {
     regimeV8BtcBnbMod,
     regimeV8EthSolMod,
     portfolioV8Mod,
+    ensembleV9Mod,
+    versionMatrixMod,
     hasV5Engine: Boolean(simV5Mod?.simulateTradesV5),
     hasV5Ml: Boolean(featuresV5Mod && mlInfMod && mlModelsBtc),
     hasV6Engine: Boolean(simV6Mod?.simulateTradesV6),
@@ -194,6 +212,10 @@ export async function loadRuntimeSpecs(repoRoot) {
     hasV8RegimeEngine: Boolean(regimeEngineV8Mod?.precomputeAssetRegimeV8 && regimeEngineV8Mod?.precomputeCryptoBreadthV8),
     hasV8Models: Boolean(modelsV8BtcBnb || modelsV8EthSol),
     hasV8Frontier: Boolean(maximizedV8Summary),
+    hasV9Engine: Boolean(ensembleV9Mod),
+    hasV9Models: Boolean(modelsV9Crypto),
+    hasV9Frontier: Boolean(ensembleV9Summary),
+    hasAllVersionsMatrix: Boolean(allVersionsMatrix || versionMatrixMod?.buildAllVersionsMatrix),
   };
 }
 
@@ -959,22 +981,22 @@ export function computeLiquidationDistance(overlay, currentPrice, { mmr = 0.005,
 function normalizeFrontierTierNode(node, prof) {
   if (!node || typeof node !== 'object') return null;
   const profData = node.profiles?.[prof] || null;
-  const fullRaw = profData?.full5y_60m || profData?.full5y || node.full5y_60m || node.full5y || null;
-  const holdoutRaw = profData?.blindHoldoutY5_12m || profData?.holdoutY5 || node.blindHoldoutY5_12m || node.holdoutY5 || null;
-  const calValRaw = profData?.calVal_48m || node.calVal_48m || null;
+  const fullRaw = profData?.full5y_61m || profData?.full5y_60m || profData?.full5y || node.full5y_61m || node.full5y_60m || node.full5y || null;
+  const holdoutRaw = profData?.blindHoldoutY5_13m || profData?.blindHoldoutY5_12m || profData?.holdoutY5 || node.blindHoldoutY5_13m || node.blindHoldoutY5_12m || node.holdoutY5 || null;
+  const calValRaw = profData?.calVal_49m || profData?.calVal_48m || node.calVal_49m || node.calVal_48m || null;
   const stripTable = (block) => {
     if (!block || typeof block !== 'object') return null;
     const { monthlyTable: _omit, ...rest } = block;
     return rest;
   };
   return {
-    tierKey: node.tierKey || node.constraints?.key || null,
-    constraints: node.constraints || null,
+    tierKey: node.tierKey || node.constraints?.key || node.label || null,
+    constraints: node.constraints || node.lockedParams || null,
     weightPreset: node.weightPreset || null,
     weights: node.weights || null,
-    activeStreams: node.activeStreams || null,
-    levScale: node.levScale ?? null,
-    maxTotalOpenLev: node.maxTotalOpenLev ?? null,
+    activeStreams: node.activeStreams || node.qualifiedStreams || null,
+    levScale: node.levScale ?? node.lockedParams?.levScale ?? null,
+    maxTotalOpenLev: node.maxTotalOpenLev ?? node.lockedParams?.maxTotalOpenLev ?? null,
     full5y: stripTable(fullRaw),
     holdoutY5: stripTable(holdoutRaw),
     calVal_48m: stripTable(calValRaw),
@@ -1036,11 +1058,11 @@ function findFrontierTierNode(tiersMap, tierId, tierSpec) {
   if (!tiersMap || typeof tiersMap !== 'object') return null;
   const candidates = [tierSpec.frontierKey, tierId];
   if (tierId === 'TARGET_30MO_75WR') {
-    candidates.push('TIER_3_MAXIMIZED_30MO_75WR', 'MAXIMIZED_30MO_75WR');
+    candidates.push('TIER_3_MAXIMIZED_30MO_75WR', 'MAXIMIZED_30MO_75WR', 'MAXIMIZED_V9', 'TIER_3_MAXIMIZED_V9');
   } else if (tierId === 'BALANCED_75WR') {
-    candidates.push('TIER_2_BALANCED_75WR', 'BALANCED_75WR');
+    candidates.push('TIER_2_BALANCED_75WR', 'BALANCED_75WR', 'BALANCED_V9', 'TIER_2_BALANCED_V9');
   } else if (tierId === 'SAFE_75WR') {
-    candidates.push('TIER_1_SAFE_75WR', 'SAFE_75WR');
+    candidates.push('TIER_1_SAFE_75WR', 'SAFE_75WR', 'SAFE_V9', 'TIER_1_SAFE_V9');
   }
   for (const key of candidates) {
     if (key && tiersMap[key]) return tiersMap[key];
@@ -1100,17 +1122,341 @@ export function runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execPro
   };
 }
 
+export function runV9FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
+  const tierId = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
+  const tierSpec = RISK_TIER_SPECS[tierId];
+  const prof = String(execProfile || 'EXCHANGE_POST_ONLY').toUpperCase();
+  const v9Sum = runtimeSpecs?.ensembleV9Summary;
+
+  if (v9Sum && typeof v9Sum === 'object') {
+    const profBlock = v9Sum.profiles?.[prof] || v9Sum.tracks?.[prof] || v9Sum[prof] || v9Sum.tiers || v9Sum;
+    const tiersMap = profBlock?.tiers || v9Sum.tiers || profBlock;
+    const rawSelected = findFrontierTierNode(tiersMap, tierId, tierSpec);
+    const allTiers = {};
+    for (const [k, spec] of Object.entries(RISK_TIER_SPECS)) {
+      const node = findFrontierTierNode(tiersMap, k, spec);
+      if (node) allTiers[k] = normalizeFrontierTierNode(node, prof);
+    }
+    if (rawSelected) {
+      const selected = normalizeFrontierTierNode(rawSelected, prof);
+      const profData = rawSelected.profiles?.[prof] || null;
+      const fullRaw = profData?.full5y_61m || profData?.full5y_60m || profData?.full5y || rawSelected.full5y_61m || rawSelected.full5y_60m || rawSelected.full5y || null;
+      return {
+        ready: true,
+        version: 'v9',
+        source: 'research/results_v9/ensemble_v9_crypto_5y.json',
+        execProfile: prof,
+        riskTier: tierId,
+        tierSpec,
+        selectedTier: selected,
+        tiers: allTiers,
+        qualifiedStreams: v9Sum.qualifiedStreams || null,
+        crossAssetAllWeather: v9Sum.crossAssetAllWeather || null,
+        streams: fullRaw?.perStream || v9Sum.streams || null,
+        monthlyTable: fullRaw?.monthlyTable || rawSelected.monthlyTable || null,
+      };
+    }
+  }
+
+  return {
+    ready: false,
+    version: 'v9',
+    source: 'pending-v9-frontier',
+    execProfile: prof,
+    riskTier: tierId,
+    tierSpec,
+    selectedTier: null,
+    tiers: {},
+    streams: null,
+    monthlyTable: null,
+  };
+}
+
 export function runFrontierPortfolio({ version = 'auto', runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
   const ver = String(version || 'auto').toLowerCase();
+  const rawTierStr = String(riskTier || config?.riskTier || '').toUpperCase();
+  const explicitV9Tier = rawTierStr.includes('_V9');
+  const explicit75WrTier = /_75WR|30MO/.test(rawTierStr);
+
+  if (ver === 'v9' || (ver === 'auto' && explicitV9Tier)) {
+    return runV9FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+  }
   if (ver === 'v8') {
     return runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
   }
-  if (ver === 'auto' && runtimeSpecs?.maximizedV8Summary) {
-    const v8Res = runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
-    if (v8Res.ready) return v8Res;
+  if (ver === 'auto') {
+    if (!explicit75WrTier && runtimeSpecs?.ensembleV9Summary) {
+      const v9Res = runV9FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+      if (v9Res.ready) return v9Res;
+    }
+    if (runtimeSpecs?.maximizedV8Summary) {
+      const v8Res = runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+      if (v8Res.ready) return v8Res;
+    }
   }
   const v7Res = runV7FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
   return { version: 'v7', ...v7Res };
+}
+
+/**
+ * Returns the All-Versions Comparison Matrix (v1.4 -> v9.0) with safe offline fallback.
+ */
+export async function getAllVersionsMatrixPreview({ repoRoot, runtimeSpecs } = {}) {
+  if (runtimeSpecs?.allVersionsMatrix) {
+    return {
+      ready: true,
+      source: 'research/results_v9/all_versions_comparison_matrix.json',
+      ...runtimeSpecs.allVersionsMatrix,
+      okxKeyGuide: runtimeSpecs.allVersionsMatrix.okxKeyGuide || runtimeSpecs.allVersionsMatrix.okxApiKeyMatrix || OKX_KEY_REQUIREMENTS_GUIDE,
+    };
+  }
+  if (typeof runtimeSpecs?.versionMatrixMod?.buildAllVersionsMatrix === 'function') {
+    try {
+      const built = await runtimeSpecs.versionMatrixMod.buildAllVersionsMatrix(repoRoot);
+      if (built && typeof built === 'object') {
+        return {
+          ready: true,
+          source: 'research/version_matrix_preview.mjs',
+          ...built,
+          okxKeyGuide: built.okxKeyGuide || built.okxApiKeyMatrix || OKX_KEY_REQUIREMENTS_GUIDE,
+        };
+      }
+    } catch {
+      // fall through cleanly to static metadata fallback
+    }
+  }
+
+  const v7Safe = runtimeSpecs?.frontierV7Summary?.tiers?.TIER_1_SAFE_75WR?.profiles?.EXCHANGE_POST_ONLY?.full5y_60m;
+  const v8Safe = runtimeSpecs?.maximizedV8Summary?.tiers?.TIER_1_SAFE_75WR?.profiles?.EXCHANGE_POST_ONLY?.full5y_60m;
+  return {
+    ready: false,
+    source: 'fallback-local-summary',
+    generatedAt: new Date().toISOString(),
+    versions: [
+      { version: 'v4.1', era: '3Y Perp Amp', wrPct: 74.51, fullNetPct: null, oosNote: 'VolNorm + Partial TP1 (BTC 1h+15m 3Y)' },
+      { version: 'v5.0', era: 'Off-TV + Purged ML', wrPct: 72.1, fullNetPct: 1943.8, oosNote: 'Blind Y3 +61.46% (Exchange Post-Only + Real 8h Funding)' },
+      { version: 'v6.0', era: '5Y Crypto + 10Y Stocks', wrPct: 71.5, fullNetPct: 19750.27, oosNote: 'Qualified BTC+BNB+SOL Blind Y5 +111.22% Post-Only / +38.91% Taker' },
+      {
+        version: 'v7.0',
+        era: '5Y High-WR 30%/Mo Frontier',
+        wrPct: v7Safe?.winRatePct ?? 76.76,
+        fullNetPct: v7Safe?.compoundedNetPct ?? 7454.52,
+        monthlySweepPct: v7Safe?.meanMonthlySweepPct ?? 8.25,
+        oosNote: 'Cal+Val Tier3 +31.65%/mo, Blind Y5 -1.70%..-1.90%/mo (Zero-Liq)',
+      },
+      {
+        version: 'v8.0',
+        era: 'Macro-Regime + L/S ML',
+        wrPct: v8Safe?.winRatePct ?? 76.14,
+        fullNetPct: v8Safe?.compoundedNetPct ?? 15089.56,
+        monthlySweepPct: v8Safe?.meanMonthlySweepPct ?? 9.58,
+        oosNote: 'Worst month cut -59.19% -> -36.67%; US Indices Blind 2Y +11.98%',
+      },
+      {
+        version: 'v9.0',
+        era: 'Walk-Forward Barbell + DD Guard',
+        wrPct: null,
+        fullNetPct: null,
+        monthlySweepPct: null,
+        oosNote: 'Pending ensemble_v9_crypto_5y.json generation',
+      },
+    ],
+    recommendationsByGoal: [],
+    okxKeyGuide: OKX_KEY_REQUIREMENTS_GUIDE,
+  };
+}
+
+function finalizeCryptoSimResult({
+  dsReady,
+  rawSignals,
+  filteredSignals,
+  regimeCtx,
+  modelSpec,
+  modelVersion,
+  exchange,
+  symbol,
+  timeframe,
+  execProfile,
+  riskTier,
+  fundingRates,
+  regime,
+  config,
+  runtimeSpecs,
+}) {
+  const acceptedMap = new Map();
+  for (const fsig of filteredSignals) {
+    acceptedMap.set(`${fsig.barIndex}:${fsig.side}`, fsig);
+  }
+  const signalsAudit = rawSignals.map(sig => {
+    const acc = acceptedMap.get(`${sig.barIndex}:${sig.side}`);
+    const row = dsReady.rows[sig.barIndex];
+    const dirModel = sig.side === 1 ? (modelSpec.longModel || modelSpec.mlModel || modelSpec) : (modelSpec.shortModel || modelSpec.mlModel || modelSpec);
+    return {
+      exchange,
+      symbol,
+      timeframe,
+      barTime: row.time,
+      side: sig.side,
+      limitPrice: sig.limitPrice ?? row.close,
+      atr: sig.atr ?? null,
+      probWin: acc?.meta?.probWin ?? null,
+      modelVersion,
+      decision: acc ? 'ACCEPTED' : 'FILTERED',
+      sizeMult: acc?.sizeMult ?? 0,
+      features: { regime: regimeCtx.regime[sig.barIndex], dirModel: dirModel?.modelType || null },
+      meta: { ...(sig.meta ?? {}), regime: regimeCtx.regime[sig.barIndex] },
+    };
+  });
+
+  const structural = modelSpec.structuralSpec;
+  const maxLevCap = Number(config.maxLeverageCap ?? 3.0);
+  const execOpts = {
+    ...structural.execOptions,
+    maxLev: Math.min(maxLevCap, Number(structural.execOptions?.maxLev ?? maxLevCap)),
+    execProfile: execProfile || 'EXCHANGE_POST_ONLY',
+    fundingRows: fundingRates,
+    fundingPctPer8h: 0.01,
+    isolatedLiqCheck: true,
+    mmr: 0.005,
+    intervalSeconds: dsReady.intervalSeconds,
+    start: 0,
+    end: dsReady.rows.length,
+  };
+  execOpts.minLev = Math.min(execOpts.maxLev, Number(execOpts.minLev ?? 1.0));
+
+  const simResult = runtimeSpecs.simV7Mod.simulateTradesV7(dsReady.rows, filteredSignals, execOpts);
+  const { fundingRows: _omitFundingRows, ...execOptionsClean } = execOpts;
+  let equity = 1.0;
+  let peakEq = 1.0;
+  let fundingDragSum = 0;
+  const equityCurve = [];
+  const enrichedTrades = simResult.trades.map(t => {
+    const entryRow = dsReady.rows[t.entryIndex];
+    const exitRow = dsReady.rows[t.exitIndex];
+    const factor = 1 + t.netPct / 100;
+    equity = factor <= 0 ? 0 : equity * factor;
+    if (equity > peakEq) peakEq = equity;
+    const ddPct = peakEq > 0 ? ((peakEq - equity) / peakEq) * 100 : 100;
+    fundingDragSum += t.fundingDragPct ?? 0;
+    equityCurve.push({
+      time: exitRow.time,
+      equity: Number(equity.toFixed(6)),
+      drawdownPct: Number(ddPct.toFixed(4)),
+      openLev: t.lev ?? 1.0,
+    });
+    return {
+      ...t,
+      entryTime: entryRow.time,
+      exitTime: exitRow.time,
+      probWin: t.meta?.probWin ?? null,
+    };
+  });
+
+  const activeOverlay = buildActiveOverlay(simResult, dsReady.rows, signalsAudit);
+  const lastClose = dsReady.rows[dsReady.rows.length - 1]?.close;
+  const liquidationDistance = computeLiquidationDistance(activeOverlay, lastClose, {
+    fallbackLev: execOpts.minLev ?? 1.5,
+  });
+  const monthlySummary = runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7
+    ? runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7(simResult.trades, dsReady.rows)
+    : null;
+
+  const mlThresh = modelSpec.longModel?.threshold ?? modelSpec.mlModel?.threshold ?? modelSpec.threshold ?? null;
+  return {
+    summary: {
+      exchange,
+      symbol,
+      timeframe,
+      execProfile: execOpts.execProfile,
+      riskTier,
+      modelVersion,
+      mlThresholdLong: modelSpec.longModel?.threshold ?? mlThresh,
+      mlThresholdShort: modelSpec.shortModel?.threshold ?? mlThresh,
+      mlThreshold: mlThresh,
+      bars: dsReady.rows.length,
+      rawSignalsCount: rawSignals.length,
+      acceptedSignalsCount: filteredSignals.length,
+      count: simResult.count,
+      wins: simResult.wins,
+      losses: simResult.losses,
+      winRatePct: simResult.winRatePct !== null ? Number(simResult.winRatePct.toFixed(2)) : 0,
+      wilsonLower95Pct: simResult.count ? Number(wilsonLowerBound(simResult.wins, simResult.count, 1.96).toFixed(2)) : 0,
+      profitFactor: simResult.profitFactor !== null ? Number(simResult.profitFactor.toFixed(2)) : 0,
+      totalNetPct: Number((simResult.totalNetPct ?? 0).toFixed(2)),
+      compoundedNetPct: Number((simResult.compoundedNetPct ?? 0).toFixed(2)),
+      maxDrawdownPct: Number((simResult.maxDrawdownPct ?? 0).toFixed(2)),
+      compoundedMaxDrawdownPct: Number((simResult.compoundedMaxDrawdownPct ?? 0).toFixed(2)),
+      fundingDragPct: Number(fundingDragSum.toFixed(2)),
+      liquidationCount: simResult.liquidationCount ?? 0,
+      meanMonthlySweepPct: monthlySummary ? Number((monthlySummary.meanMonthlySweepPct ?? 0).toFixed(2)) : null,
+      exitReasons: simResult.exitReasons,
+    },
+    regime,
+    liquidationDistance,
+    monthlySummary,
+    execOptions: execOptionsClean,
+    signalsAudit,
+    trades: enrichedTrades,
+    equityCurve,
+    activeOverlay,
+    openPosition: simResult.openPosition || null,
+    pending: simResult.pending || null,
+  };
+}
+
+function evaluateCryptoV9ForStandalone({
+  dataset,
+  fundingRates,
+  alignedFunding,
+  timeframe,
+  symbol,
+  exchange,
+  execProfile,
+  mlEnabled,
+  riskTier,
+  regime,
+  config,
+  runtimeSpecs,
+}) {
+  const coinPrefix = symbol.replace('USDT.P', '').replace('USDT', '');
+  const streamKey = `${coinPrefix}_${timeframe}`;
+  const modelSpec = runtimeSpecs.modelsV9Crypto?.models?.[streamKey];
+  const regimeMod = runtimeSpecs.regimeEngineV8Mod;
+  const v9Mod = runtimeSpecs.ensembleV9Mod;
+  if (!modelSpec?.structuralSpec?.sigSpec || !regimeMod || !v9Mod?.generateStreamSignalsV9 || !runtimeSpecs.simV7Mod?.simulateTradesV7) {
+    return null;
+  }
+
+  const dsReady = ensureDatasetHtfForRegimeV8(dataset, fundingRates);
+  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod)?.breadth || null;
+  const regimeCtx = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
+  const effectiveFunding = alignedFunding || (runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal
+    ? runtimeSpecs.fetchDerivsMod.alignFundingToBarsCausal(dsReady.rows, fundingRates || [])
+    : new Float64Array(dsReady.rows.length));
+  const btcFile = timeframe === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
+  const btcRefDs = symbol === 'ETHUSDT.P' ? (readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dsReady) : null;
+  const rawSignals = v9Mod.generateStreamSignalsV9(streamKey, dsReady, modelSpec.structuralSpec.sigSpec, effectiveFunding, regimeCtx, btcRefDs);
+  const filteredSignals = mlEnabled && typeof v9Mod.applyV9ModelToSignals === 'function'
+    ? v9Mod.applyV9ModelToSignals(streamKey, dsReady, rawSignals, effectiveFunding, regimeCtx, modelSpec, dsReady.rows[dsReady.rows.length - 1].time)
+    : rawSignals;
+
+  return finalizeCryptoSimResult({
+    dsReady,
+    rawSignals,
+    filteredSignals,
+    regimeCtx,
+    modelSpec,
+    modelVersion: mlEnabled ? 'v9.0-WalkForwardEnsemble' : 'v9.0-RulesOnly',
+    exchange,
+    symbol,
+    timeframe,
+    execProfile,
+    riskTier,
+    fundingRates,
+    regime,
+    config,
+    runtimeSpecs,
+  });
 }
 
 function evaluateCryptoV8ForStandalone({
@@ -1164,124 +1510,23 @@ function evaluateCryptoV8ForStandalone({
       : rawSignals;
   }
 
-  const acceptedMap = new Map();
-  for (const fsig of filteredSignals) {
-    acceptedMap.set(`${fsig.barIndex}:${fsig.side}`, fsig);
-  }
-  const modelVersion = mlEnabled ? 'v8.0-AsymmetricRegime' : 'v8.0-RulesOnly';
-  const signalsAudit = rawSignals.map(sig => {
-    const acc = acceptedMap.get(`${sig.barIndex}:${sig.side}`);
-    const row = dsReady.rows[sig.barIndex];
-    const dirModel = sig.side === 1 ? modelSpec.longModel : modelSpec.shortModel;
-    return {
-      exchange,
-      symbol,
-      timeframe,
-      barTime: row.time,
-      side: sig.side,
-      limitPrice: sig.limitPrice ?? row.close,
-      atr: sig.atr ?? null,
-      probWin: acc?.meta?.probWin ?? null,
-      modelVersion,
-      decision: acc ? 'ACCEPTED' : 'FILTERED',
-      sizeMult: acc?.sizeMult ?? 0,
-      features: { regime: regimeCtx.regime[sig.barIndex], dirModel: dirModel?.modelType || null },
-      meta: { ...(sig.meta ?? {}), regime: regimeCtx.regime[sig.barIndex] },
-    };
-  });
-
-  const maxLevCap = Number(config.maxLeverageCap ?? 3.0);
-  const execOpts = {
-    ...structural.execOptions,
-    maxLev: Math.min(maxLevCap, Number(structural.execOptions?.maxLev ?? maxLevCap)),
-    execProfile: execProfile || 'EXCHANGE_POST_ONLY',
-    fundingRows: fundingRates,
-    fundingPctPer8h: 0.01,
-    isolatedLiqCheck: true,
-    mmr: 0.005,
-    intervalSeconds: dsReady.intervalSeconds,
-    start: 0,
-    end: dsReady.rows.length,
-  };
-  execOpts.minLev = Math.min(execOpts.maxLev, Number(execOpts.minLev ?? 1.0));
-
-  const simResult = runtimeSpecs.simV7Mod.simulateTradesV7(dsReady.rows, filteredSignals, execOpts);
-  const { fundingRows: _omitFundingRows, ...execOptionsClean } = execOpts;
-  let equity = 1.0;
-  let peakEq = 1.0;
-  let fundingDragSum = 0;
-  const equityCurve = [];
-  const enrichedTrades = simResult.trades.map(t => {
-    const entryRow = dsReady.rows[t.entryIndex];
-    const exitRow = dsReady.rows[t.exitIndex];
-    const factor = 1 + t.netPct / 100;
-    equity = factor <= 0 ? 0 : equity * factor;
-    if (equity > peakEq) peakEq = equity;
-    const ddPct = peakEq > 0 ? ((peakEq - equity) / peakEq) * 100 : 100;
-    fundingDragSum += t.fundingDragPct ?? 0;
-    equityCurve.push({
-      time: exitRow.time,
-      equity: Number(equity.toFixed(6)),
-      drawdownPct: Number(ddPct.toFixed(4)),
-      openLev: t.lev ?? 1.0,
-    });
-    return {
-      ...t,
-      entryTime: entryRow.time,
-      exitTime: exitRow.time,
-      probWin: t.meta?.probWin ?? null,
-    };
-  });
-
-  const activeOverlay = buildActiveOverlay(simResult, dsReady.rows, signalsAudit);
-  const lastClose = dsReady.rows[dsReady.rows.length - 1]?.close;
-  const liquidationDistance = computeLiquidationDistance(activeOverlay, lastClose, {
-    fallbackLev: execOpts.minLev ?? 1.5,
-  });
-  const monthlySummary = runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7
-    ? runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7(simResult.trades, dsReady.rows)
-    : null;
-
-  return {
-    summary: {
-      exchange,
-      symbol,
-      timeframe,
-      execProfile: execOpts.execProfile,
-      riskTier,
-      modelVersion,
-      mlThresholdLong: modelSpec.longModel?.threshold ?? null,
-      mlThresholdShort: modelSpec.shortModel?.threshold ?? null,
-      mlThreshold: modelSpec.longModel?.threshold ?? modelSpec.shortModel?.threshold ?? null,
-      bars: dsReady.rows.length,
-      rawSignalsCount: rawSignals.length,
-      acceptedSignalsCount: filteredSignals.length,
-      count: simResult.count,
-      wins: simResult.wins,
-      losses: simResult.losses,
-      winRatePct: simResult.winRatePct !== null ? Number(simResult.winRatePct.toFixed(2)) : 0,
-      wilsonLower95Pct: simResult.count ? Number(wilsonLowerBound(simResult.wins, simResult.count, 1.96).toFixed(2)) : 0,
-      profitFactor: simResult.profitFactor !== null ? Number(simResult.profitFactor.toFixed(2)) : 0,
-      totalNetPct: Number((simResult.totalNetPct ?? 0).toFixed(2)),
-      compoundedNetPct: Number((simResult.compoundedNetPct ?? 0).toFixed(2)),
-      maxDrawdownPct: Number((simResult.maxDrawdownPct ?? 0).toFixed(2)),
-      compoundedMaxDrawdownPct: Number((simResult.compoundedMaxDrawdownPct ?? 0).toFixed(2)),
-      fundingDragPct: Number(fundingDragSum.toFixed(2)),
-      liquidationCount: simResult.liquidationCount ?? 0,
-      meanMonthlySweepPct: monthlySummary ? Number((monthlySummary.meanMonthlySweepPct ?? 0).toFixed(2)) : null,
-      exitReasons: simResult.exitReasons,
-    },
+  return finalizeCryptoSimResult({
+    dsReady,
+    rawSignals,
+    filteredSignals,
+    regimeCtx,
+    modelSpec,
+    modelVersion: mlEnabled ? 'v8.0-AsymmetricRegime' : 'v8.0-RulesOnly',
+    exchange,
+    symbol,
+    timeframe,
+    execProfile,
+    riskTier,
+    fundingRates,
     regime,
-    liquidationDistance,
-    monthlySummary,
-    execOptions: execOptionsClean,
-    signalsAudit,
-    trades: enrichedTrades,
-    equityCurve,
-    activeOverlay,
-    openPosition: simResult.openPosition || null,
-    pending: simResult.pending || null,
-  };
+    config,
+    runtimeSpecs,
+  });
 }
 
 /**
@@ -1321,6 +1566,39 @@ export function evaluateStrategy({
   const alignedFunding = alignFn && fundingRates.length > 0
     ? alignFn(dataset.rows, fundingRates)
     : null;
+
+  if (!isEq && ver === 'v9') {
+    const v9Res = evaluateCryptoV9ForStandalone({
+      dataset,
+      fundingRates,
+      alignedFunding,
+      timeframe: tf,
+      symbol: sym,
+      exchange,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      riskTier: effTier,
+      regime,
+      config,
+      runtimeSpecs,
+    });
+    if (v9Res) return v9Res;
+    const v8Fallback = evaluateCryptoV8ForStandalone({
+      dataset,
+      fundingRates,
+      alignedFunding,
+      timeframe: tf,
+      symbol: sym,
+      exchange,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      riskTier: effTier,
+      regime,
+      config,
+      runtimeSpecs,
+    });
+    if (v8Fallback) return v8Fallback;
+  }
 
   if (!isEq && ver === 'v8') {
     const v8Res = evaluateCryptoV8ForStandalone({
@@ -1873,17 +2151,24 @@ export function loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBa
 }
 
 export class StandaloneTradingDaemon {
-  constructor({ config, store, runtimeSpecs, exchangeClient } = {}) {
+  constructor({ config, store, runtimeSpecs, exchangeClient, orderRouter = null, autoRoute = false } = {}) {
     this.config = config;
     this.store = store;
     this.runtimeSpecs = runtimeSpecs;
     this.cryptoClient = exchangeClient || createExchangeClient(config);
     this.equitiesClient = new YahooEquitiesClient();
+    this.orderRouter = orderRouter || new StandaloneOrderRouter({
+      config,
+      store,
+      exchangeClient: this.cryptoClient,
+    });
+    this.autoRoute = Boolean(autoRoute);
     this._timer = null;
     this._running = false;
     this.lastSyncAt = null;
     this.lastEvalAt = null;
     this.lastError = null;
+    this.lastRouteResult = null;
     this.latestMacro = null;
     this.latestSnapshots = new Map();
   }
@@ -1952,11 +2237,13 @@ export class StandaloneTradingDaemon {
     };
   }
 
-  evaluateAndPersist({ symbol, timeframe, execProfile, mlEnabled = true } = {}) {
+  evaluateAndPersist({ symbol, timeframe, execProfile, mlEnabled = true, version = 'auto' } = {}) {
     const sym = normalizeAssetSymbol(symbol || this.config.symbols[0] || 'BTCUSDT.P');
     const isEq = isEquitySymbol(sym);
     const tf = timeframe || (isEq ? '1d' : (this.config.timeframes[0] || '1h'));
     const exchange = isEq ? 'YAHOO' : this.config.exchange;
+    const prevPaper = this.store.loadPaperState(`${exchange}:${sym}:${tf}`);
+    const previousOverlay = prevPaper?.state?.activeOverlay || null;
 
     const { source, dataset, fundingRates, macroData } = loadOfflineOrDbDataset({
       store: this.store,
@@ -1974,6 +2261,7 @@ export class StandaloneTradingDaemon {
       exchange,
       execProfile,
       mlEnabled,
+      version,
       config: this.config,
       runtimeSpecs: this.runtimeSpecs,
     });
@@ -2008,7 +2296,25 @@ export class StandaloneTradingDaemon {
     this.lastEvalAt = new Date().toISOString();
     const key = `${sym}:${tf}`;
     this.latestSnapshots.set(key, { ...evalRes, source, lastEvalAt: this.lastEvalAt });
-    return { ...evalRes, source };
+    return { ...evalRes, source, previousOverlay };
+  }
+
+  async evaluateAndRoute({ symbol, timeframe, execProfile, mlEnabled = true, version = 'auto', confirmToken, forceRoute = false } = {}) {
+    const res = this.evaluateAndPersist({ symbol, timeframe, execProfile, mlEnabled, version });
+    const modeInfo = resolveRouterMode(this.config);
+    const isPaperMode = modeInfo.mode === 'PAPER_ZERO_KEY';
+    if (this.orderRouter && (forceRoute || this.autoRoute || isPaperMode)) {
+      const routeResult = await this.orderRouter.routeTransition({
+        symbol: res.summary.symbol,
+        timeframe: res.summary.timeframe,
+        activeOverlay: res.activeOverlay,
+        previousOverlay: res.previousOverlay,
+        confirmToken,
+      });
+      this.lastRouteResult = { ...routeResult, routedAt: new Date().toISOString() };
+      return { ...res, routeResult };
+    }
+    return res;
   }
 
   async runCycle() {
@@ -2022,7 +2328,7 @@ export class StandaloneTradingDaemon {
           this.lastError = `Sync warning (${sym} ${tf}): ${err.message}`;
         }
         try {
-          this.evaluateAndPersist({ symbol: sym, timeframe: tf });
+          await this.evaluateAndRoute({ symbol: sym, timeframe: tf });
         } catch (err) {
           this.lastError = `Eval warning (${sym} ${tf}): ${err.message}`;
         }

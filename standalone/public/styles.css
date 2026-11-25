@@ -390,6 +390,54 @@ input {
   font-size: 0.74rem;
 }
 
+.guide-grid,
+.recs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.recs-grid {
+  margin-top: 0.85rem;
+  margin-bottom: 0;
+}
+
+.guide-card,
+.rec-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  font-size: 0.76rem;
+}
+
+.guide-card-active {
+  border-color: rgba(34, 197, 94, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.22);
+}
+
+.guide-card strong,
+.rec-card strong {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.guide-card span,
+.rec-card span {
+  color: var(--text-muted);
+}
+
+.mono-code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  word-break: break-word;
+}
+
 #ml-gauge-canvas,
 #sweep-gauge-canvas {
   width: 240px;

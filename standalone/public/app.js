@@ -9,6 +9,7 @@
     timeframe: '1h',
     profile: 'EXCHANGE_POST_ONLY',
     riskTier: 'SAFE_75WR',
+    version: 'auto',
     frontierVersion: 'auto',
     candles: [],
     overlay: null,
@@ -17,6 +18,8 @@
     radar: null,
     liquidationDistance: null,
     frontier: null,
+    versionsData: null,
+    ordersData: null,
     signals: [],
     trades: [],
     status: null,
@@ -95,7 +98,7 @@
     }
 
     const subtitle = el('model-subtitle');
-    subtitle.textContent = `v8.0 Macro-Regime Radar (${state.riskTier}) • ${status.models?.activeModelVersion || 'v7.0/v6.0'}`;
+    subtitle.textContent = `v9.0 Off-TV Router (${state.riskTier}) • ${status.models?.activeModelVersion || 'v9/v8/v7'}`;
   }
 
   function renderRegimeRadar() {
@@ -560,18 +563,179 @@
     }
   }
 
+  function renderOrderRouterPanel() {
+    const data = state.ordersData || {};
+    const router = data.router || state.status?.routerStatus || {};
+    const guideList = data.okxKeyGuide || router.okxKeyGuide || [];
+    const orders = data.orders || [];
+
+    const modeBadge = el('router-mode-badge');
+    const modeStr = router.mode || 'PAPER_ZERO_KEY';
+    modeBadge.textContent = modeStr;
+    modeBadge.className = `badge ${
+      modeStr === 'LIVE_EXCHANGE_ARMED'
+        ? 'badge-danger'
+        : modeStr === 'OKX_DEMO_SIMULATED'
+          ? 'badge-warn'
+          : 'badge-safe'
+    }`;
+    el('router-reason-text').textContent = router.reason || 'Default PAPER mode (zero external API keys required)';
+
+    const guideGrid = el('okx-key-guide-grid');
+    clearNode(guideGrid);
+    for (const item of guideList) {
+      const card = document.createElement('div');
+      card.className = `guide-card ${item.mode === modeStr ? 'guide-card-active' : ''}`;
+      const title = document.createElement('strong');
+      title.textContent = `${item.label || item.mode}`;
+      const keys = document.createElement('span');
+      keys.textContent = `Keys: ${item.keysNeeded || '--'}`;
+      const perms = document.createElement('span');
+      perms.textContent = `Perms: ${item.permissions || '--'}`;
+      const flags = document.createElement('code');
+      flags.className = 'mono-code';
+      flags.textContent = item.envFlags || '';
+      card.appendChild(title);
+      card.appendChild(keys);
+      card.appendChild(perms);
+      card.appendChild(flags);
+      guideGrid.appendChild(card);
+    }
+
+    const tbody = el('orders-tbody');
+    clearNode(tbody);
+    if (orders.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 9;
+      td.textContent = 'No orders routed yet in orders_log (run daemon serve / router transition to inspect clOrdId audit).';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    for (const o of orders.slice(0, 40)) {
+      const tr = document.createElement('tr');
+      const cells = [
+        o.clientOrderId || '--',
+        o.exchange || '--',
+        o.symbol || '--',
+        o.mode || '--',
+        `${o.orderType || '--'}${o.reduceOnly ? ' (RO)' : ''}`,
+        String(o.side || '--').toUpperCase(),
+        fmtNum(o.price, 2),
+        fmtNum(o.qty, 4),
+        o.status || '--',
+      ];
+      cells.forEach((txt, idx) => {
+        const td = document.createElement('td');
+        td.textContent = txt;
+        if (idx === 0) td.className = 'mono-code';
+        if (idx === 8) {
+          td.className = o.status === 'REJECTED' || o.status === 'INTERRUPTED' ? 'neg' : 'pos';
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+  }
+
+  function extractVersionDisplaySummary(r) {
+    const m = r?.metrics || {};
+    let block = null;
+    if (m.tiers) {
+      const tierNode = m.tiers.TIER_1_SAFE_75WR || m.tiers.SAFE_V9 || Object.values(m.tiers)[0];
+      const profNode = tierNode?.postOnly || tierNode?.EXCHANGE_POST_ONLY || tierNode?.profiles?.EXCHANGE_POST_ONLY || tierNode;
+      block = profNode?.full5y_61m || profNode?.full5y_60m || profNode?.full5y || profNode?.holdoutY5 || profNode;
+    } else if (m.cryptoQualifiedPostOnly) {
+      block = m.cryptoQualifiedPostOnly.full5y || m.cryptoQualifiedPostOnly.holdoutY5;
+    } else if (m.postOnly) {
+      block = m.postOnly.full3y || m.postOnly.holdoutY3;
+    } else if (m.btc1hVolNorm) {
+      block = m.btc1hVolNorm.full3y || m.btc1hVolNorm.holdoutY3;
+    } else if (m.track1h_r5) {
+      block = m.track1h_r5.full3y || m.track1h_r5.holdoutY3;
+    } else if (m.track1h) {
+      block = m.track1h.holdout || m.track1h.full12m;
+    } else if (m.blindOos?.tf1h) {
+      block = m.blindOos.tf1h;
+    } else if (m.primary) {
+      block = m.primary;
+    }
+
+    const wrVal = r.wrPct ?? block?.winRatePct ?? block?.validationWr1hPct ?? null;
+    const moVal = r.monthlySweepPct ?? block?.meanMonthlySweepPct ?? null;
+    const retVal = r.fullNetPct ?? block?.compoundedNetPct ?? block?.totalNetPct ?? block?.netPct ?? null;
+    const ddVal = r.maxDdPct ?? block?.maxCompoundedDdPct ?? block?.compoundedMaxDrawdownPct ?? block?.maxDrawdownPct ?? null;
+    const note = r.oosNote
+      || (Array.isArray(r.strengths) && r.strengths[0])
+      || (Array.isArray(r.weaknesses) && r.weaknesses[0])
+      || r.status
+      || '--';
+    return { wrVal, moVal, retVal, ddVal, note };
+  }
+
+  function renderVersionsMatrixPanel() {
+    const vData = state.versionsData || {};
+    const rows = vData.versions || vData.comparisonRows || vData.matrix || [];
+    const recs = vData.recommendationsByGoal || vData.recommendations || [];
+
+    const badge = el('versions-status-badge');
+    badge.textContent = vData.ready ? `${rows.length} VERSIONS READY` : 'PREVIEW FALLBACK';
+    badge.className = `badge ${vData.ready ? 'badge-safe' : 'badge-warn'}`;
+    el('versions-source-text').textContent = `Source: ${vData.source || 'local'}`;
+
+    const tbody = el('versions-tbody');
+    clearNode(tbody);
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      const { wrVal, moVal, retVal, ddVal, note } = extractVersionDisplaySummary(r);
+      const cells = [
+        r.version || r.id || '--',
+        r.era || r.label || r.architecture || '--',
+        typeof wrVal === 'number' ? `${fmtNum(wrVal, 2)}%` : (wrVal || '--'),
+        typeof moVal === 'number' ? `${fmtPct(moVal, 2)}/mo` : (moVal || '--'),
+        typeof retVal === 'number' ? fmtPct(retVal, 2) : (retVal || '--'),
+        typeof ddVal === 'number' ? `${fmtNum(ddVal, 2)}%` : (ddVal || '--'),
+        note,
+      ];
+      for (const txt of cells) {
+        const td = document.createElement('td');
+        td.textContent = String(txt);
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+
+    const recsGrid = el('versions-recs-grid');
+    clearNode(recsGrid);
+    for (const rec of recs) {
+      const card = document.createElement('div');
+      card.className = 'rec-card';
+      const title = document.createElement('strong');
+      title.textContent = `${rec.goal || rec.useCase || 'Goal'}: ${rec.recommendedVersion || rec.recommended || rec.version || '--'}`;
+      const why = document.createElement('span');
+      why.textContent = rec.rationale || rec.reason || rec.why || rec.notes || '';
+      card.appendChild(title);
+      card.appendChild(why);
+      recsGrid.appendChild(card);
+    }
+  }
+
   async function refreshAll() {
     const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}`;
     const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}&version=${encodeURIComponent(state.frontierVersion)}`;
     el('chart-title').textContent = `${state.symbol} • ${state.timeframe} Closed Candles & Order Levels`;
 
-    const [statusData, candleData, tradeData, sigData, frontierData, regimeData] = await Promise.all([
+    const [statusData, candleData, tradeData, sigData, frontierData, regimeData, versionsData, ordersData] = await Promise.all([
       apiGet(`/api/status?${q}`),
       apiGet(`/api/candles?${q}&limit=160`),
       apiGet(`/api/trades?${q}&limit=60`),
       apiGet(`/api/signals?${q}&limit=40`),
       apiGet(`/api/frontier?${fq}`),
       apiGet(`/api/regime?${q}`),
+      apiGet('/api/versions'),
+      apiGet('/api/orders?limit=40'),
     ]);
 
     state.status = statusData;
@@ -584,6 +748,8 @@
     if (frontierData.version) {
       el('frontier-version-select').value = frontierData.version;
     }
+    state.versionsData = versionsData;
+    state.ordersData = ordersData;
     state.trades = tradeData.trades || [];
     state.summary = tradeData.summary || statusData.summary || null;
     state.signals = sigData.signals || [];
@@ -596,12 +762,14 @@
     drawSweepGauge();
     drawCandleChart();
     renderTables();
+    renderOrderRouterPanel();
+    renderVersionsMatrixPanel();
   }
 
   async function runOfflineReplay() {
-    const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}&profile=${encodeURIComponent(state.profile)}&tier=${encodeURIComponent(state.riskTier)}`;
+    const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}&profile=${encodeURIComponent(state.profile)}&tier=${encodeURIComponent(state.riskTier)}&version=${encodeURIComponent(state.version)}`;
     const msg = el('mode-status-msg');
-    msg.textContent = 'Running offline replay...';
+    msg.textContent = `Running offline replay (${state.version})...`;
     const data = await apiGet(`/api/backtest?${q}`);
     state.summary = data.summary;
     state.regime = data.regime || state.regime;
@@ -610,7 +778,7 @@
     renderScoreboard(data.source);
     drawSweepGauge();
     renderTables();
-    msg.textContent = `Replay complete: ${data.summary.count} trades, WR ${fmtNum(data.summary.winRatePct, 2)}%, PF ${fmtNum(data.summary.profitFactor, 2)}, Comp ${fmtPct(data.summary.compoundedNetPct, 2)}`;
+    msg.textContent = `Replay (${state.version}) complete: ${data.summary.count} trades, WR ${fmtNum(data.summary.winRatePct, 2)}%, PF ${fmtNum(data.summary.profitFactor, 2)}, Comp ${fmtPct(data.summary.compoundedNetPct, 2)}`;
   }
 
   function wireEvents() {
@@ -633,6 +801,10 @@
     });
     el('profile-select').addEventListener('change', e => {
       state.profile = e.target.value;
+      runOfflineReplay().catch(err => { el('mode-status-msg').textContent = err.message; });
+    });
+    el('version-select').addEventListener('change', e => {
+      state.version = e.target.value;
       runOfflineReplay().catch(err => { el('mode-status-msg').textContent = err.message; });
     });
     el('tier-select').addEventListener('change', async e => {
