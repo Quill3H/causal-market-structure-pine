@@ -100,6 +100,12 @@ export async function loadRuntimeSpecs(repoRoot) {
   const summaryV7EthSol = readJsonIfExists(path.join(researchDir, 'results_v7', 'eth_sol_v7_5y.json'));
   const frontierV7Summary = readJsonIfExists(path.join(researchDir, 'results_v7', 'frontier_75wr_30mo_summary.json'));
 
+  const modelsV8BtcBnb = readJsonIfExists(path.join(researchDir, 'results_v8', 'models_v8_btc_bnb.json'));
+  const modelsV8EthSol = readJsonIfExists(path.join(researchDir, 'results_v8', 'models_v8_eth_sol.json'));
+  const summaryV8BtcBnb = readJsonIfExists(path.join(researchDir, 'results_v8', 'btc_bnb_v8_5y.json'));
+  const summaryV8EthSol = readJsonIfExists(path.join(researchDir, 'results_v8', 'eth_sol_v8_5y.json'));
+  const maximizedV8Summary = readJsonIfExists(path.join(researchDir, 'results_v8', 'maximized_v8_summary.json'));
+
   const [
     simV5Mod,
     simV6Mod,
@@ -114,6 +120,10 @@ export async function loadRuntimeSpecs(repoRoot) {
     highWrV7BtcBnbMod,
     highWrV7EthSolMod,
     frontierV7Mod,
+    regimeEngineV8Mod,
+    regimeV8BtcBnbMod,
+    regimeV8EthSolMod,
+    portfolioV8Mod,
   ] = await Promise.all([
     tryImportOptional(path.join(researchDir, 'sim_engine_v5.mjs')),
     tryImportOptional(path.join(researchDir, 'sim_engine_v6.mjs')),
@@ -128,6 +138,10 @@ export async function loadRuntimeSpecs(repoRoot) {
     tryImportOptional(path.join(researchDir, 'high_wr_v7_btc_bnb.mjs')),
     tryImportOptional(path.join(researchDir, 'high_wr_v7_eth_sol.mjs')),
     tryImportOptional(path.join(researchDir, 'portfolio_v7_30pct_frontier.mjs')),
+    tryImportOptional(path.join(researchDir, 'regime_engine_v8.mjs')),
+    tryImportOptional(path.join(researchDir, 'regime_v8_btc_bnb.mjs')),
+    tryImportOptional(path.join(researchDir, 'regime_v8_eth_sol.mjs')),
+    tryImportOptional(path.join(researchDir, 'portfolio_v8_regime_maximizer.mjs')),
   ]);
 
   return {
@@ -147,6 +161,11 @@ export async function loadRuntimeSpecs(repoRoot) {
     summaryV7BtcBnb,
     summaryV7EthSol,
     frontierV7Summary,
+    modelsV8BtcBnb,
+    modelsV8EthSol,
+    summaryV8BtcBnb,
+    summaryV8EthSol,
+    maximizedV8Summary,
     simV5Mod,
     simV6Mod,
     simV7Mod,
@@ -160,6 +179,10 @@ export async function loadRuntimeSpecs(repoRoot) {
     highWrV7BtcBnbMod,
     highWrV7EthSolMod,
     frontierV7Mod,
+    regimeEngineV8Mod,
+    regimeV8BtcBnbMod,
+    regimeV8EthSolMod,
+    portfolioV8Mod,
     hasV5Engine: Boolean(simV5Mod?.simulateTradesV5),
     hasV5Ml: Boolean(featuresV5Mod && mlInfMod && mlModelsBtc),
     hasV6Engine: Boolean(simV6Mod?.simulateTradesV6),
@@ -168,6 +191,9 @@ export async function loadRuntimeSpecs(repoRoot) {
     hasV7Engine: Boolean(simV7Mod?.simulateTradesV7),
     hasV7Models: Boolean(modelsV7BtcBnb || modelsV7EthSol),
     hasV7Frontier: Boolean(frontierV7Summary),
+    hasV8RegimeEngine: Boolean(regimeEngineV8Mod?.precomputeAssetRegimeV8 && regimeEngineV8Mod?.precomputeCryptoBreadthV8),
+    hasV8Models: Boolean(modelsV8BtcBnb || modelsV8EthSol),
+    hasV8Frontier: Boolean(maximizedV8Summary),
   };
 }
 
@@ -594,10 +620,225 @@ function buildExecOptions({ symbol, timeframe, execProfile, config, runtimeSpecs
   return merged15;
 }
 
+const BREADTH_CACHE_V8 = new Map();
+
+function loadCryptoBreadthContextV8(repoRoot, regimeEngineV8Mod) {
+  if (!regimeEngineV8Mod?.precomputeCryptoBreadthV8) return null;
+  const cached = BREADTH_CACHE_V8.get(repoRoot);
+  if (cached) return cached;
+
+  const coinFiles = [
+    ['BTCUSDT', 'crypto5y_btcusdt_1h.json'],
+    ['ETHUSDT', 'crypto5y_ethusdt_1h.json'],
+    ['SOLUSDT', 'crypto5y_solusdt_1h.json'],
+    ['BNBUSDT', 'crypto5y_bnbusdt_1h.json'],
+  ];
+  const byCoin = {};
+  for (const [coinKey, fileName] of coinFiles) {
+    const abs = path.join(repoRoot, 'data', fileName);
+    if (fs.existsSync(abs)) {
+      const ds = JSON.parse(fs.readFileSync(abs, 'utf8'));
+      if (ds?.htf?.['1d']?.rows?.length) {
+        byCoin[coinKey] = ds;
+      }
+    }
+  }
+  if (Object.keys(byCoin).length === 0) return null;
+  const breadth = regimeEngineV8Mod.precomputeCryptoBreadthV8(byCoin);
+  const entry = { breadth, byCoin };
+  BREADTH_CACHE_V8.set(repoRoot, entry);
+  return entry;
+}
+
+function ensureDatasetHtfForRegimeV8(dataset, fundingRates = []) {
+  if (!dataset || !Array.isArray(dataset.rows) || dataset.rows.length === 0) return dataset;
+  const ltfSec = dataset.intervalSeconds || intervalSecondsFor(dataset.timeframe || '1h');
+  const htf = { ...(dataset.htf || {}) };
+  if (!htf['4h']?.rows?.length && ltfSec <= 14400) {
+    htf['4h'] = { timeframe: '4h', intervalSeconds: 14400, rows: buildClosedHtfFromLtf(dataset.rows, ltfSec, 14400) };
+  }
+  if (!htf['1d']?.rows?.length && ltfSec <= 86400) {
+    htf['1d'] = { timeframe: '1d', intervalSeconds: 86400, rows: buildClosedHtfFromLtf(dataset.rows, ltfSec, 86400) };
+  }
+  const hasFunding = Array.isArray(dataset.fundingRows) && dataset.fundingRows.length > 0;
+  return {
+    ...dataset,
+    htf,
+    fundingRows: hasFunding ? dataset.fundingRows : (Array.isArray(fundingRates) ? fundingRates : []),
+  };
+}
+
+export function formatRegimeActionLabelV8(regime) {
+  switch (String(regime || '').toUpperCase()) {
+    case 'BULL_TREND':
+      return 'BULL_TREND -> Ưu tiên LONG';
+    case 'BEAR_TREND':
+      return 'BEAR_TREND -> Ưu tiên SHORT';
+    case 'BEAR_SQUEEZE':
+      return 'BEAR_SQUEEZE -> Chờ hồi kiệt sức';
+    case 'RANGE_CHOP':
+      return 'RANGE_CHOP -> Giảm size / Hai chiều';
+    case 'HIGH_VOL_CHOP':
+      return 'HIGH_VOL_CHOP -> Phòng thủ biến động cao';
+    default:
+      return `${regime || 'UNKNOWN'} -> Trung lập`;
+  }
+}
+
+/**
+ * Computes strictly causal v8.0 Macro-Trend Regime Radar state for Crypto Perps & US Equities.
+ */
+export function computeV8MacroRegimeRadar({
+  repoRoot,
+  runtimeSpecs,
+  dataset = null,
+  fundingRates = [],
+  macroData = null,
+  symbol = 'BTCUSDT.P',
+  timeframe = '1h',
+} = {}) {
+  const sym = normalizeAssetSymbol(symbol);
+  const isEq = isEquitySymbol(sym);
+  const tf = String(timeframe || (isEq ? '1d' : '1h')).toLowerCase();
+  const regimeMod = runtimeSpecs?.regimeEngineV8Mod;
+  const loadedMacro = macroData || readJsonIfExists(path.join(repoRoot, 'data', 'equities10y_macro_1d.json'));
+
+  if (!regimeMod) {
+    return {
+      ready: false,
+      version: 'v8.0-pending',
+      symbol: sym,
+      timeframe: tf,
+      assetClass: isEq ? 'EQUITY_ETF' : 'CRYPTO_PERP',
+      regime: 'UNKNOWN',
+      regimeActionLabel: 'Regime Engine v8 chưa sẵn sàng',
+    };
+  }
+
+  let activeDataset = dataset;
+  if (!activeDataset) {
+    const localPath = resolveLocalDatasetPath(repoRoot, { symbol: sym, timeframe: tf, prefer5y: true });
+    if (localPath && fs.existsSync(localPath)) {
+      activeDataset = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+    }
+  }
+  if (!activeDataset?.rows?.length) {
+    return {
+      ready: false,
+      version: 'v8.0-no-data',
+      symbol: sym,
+      timeframe: tf,
+      assetClass: isEq ? 'EQUITY_ETF' : 'CRYPTO_PERP',
+      regime: 'UNKNOWN',
+      regimeActionLabel: `Thiếu dữ liệu cho ${sym} ${tf}`,
+    };
+  }
+
+  if (isEq) {
+    const eqReg = regimeMod.precomputeEquityRegimeV8(activeDataset, loadedMacro);
+    const snap = eqReg.getRegimeAt(activeDataset.rows.length - 1);
+    return {
+      ready: true,
+      version: 'v8.0-equity-regime',
+      symbol: sym,
+      timeframe: tf,
+      assetClass: 'EQUITY_ETF',
+      barTime: snap.time,
+      regime: snap.regime,
+      regimeActionLabel: formatRegimeActionLabelV8(snap.regime),
+      trendScore: Number((snap.trendScore ?? 0).toFixed(3)),
+      breadthBearEma50: null,
+      breadthBearPct: null,
+      breadthBearEma200Pct: null,
+      d1Ema50DistAtr: null,
+      d1Ema200DistAtr: null,
+      d1SlopeAtr: Number((snap.slope20 ?? 0).toFixed(3)),
+      h4RallyExh: 0,
+      longPriority: snap.regime === 'BULL_TREND' ? 1 : 0,
+      shortPriority: snap.regime === 'BEAR_TREND' ? 1 : 0,
+      longSizeMult: Number((snap.longSizeMult ?? 1).toFixed(2)),
+      shortSizeMult: Number((snap.shortSizeMult ?? 0).toFixed(2)),
+      vixLevel: snap.vixLevel ?? null,
+      vixSpike5d: snap.vixSpike5d ?? null,
+      tnxShock20d: snap.tnxShock20d ?? null,
+      coinsSummary: [],
+    };
+  }
+
+  const breadthEntry = loadCryptoBreadthContextV8(repoRoot, regimeMod);
+  const breadthCtx = breadthEntry?.breadth || null;
+  let activeFunding = fundingRates;
+  if ((!activeFunding || activeFunding.length === 0) && !activeDataset.fundingRows?.length) {
+    const coin = sym.toLowerCase().replace(/usdt\.p$|usdt$/, '');
+    const fJson = readJsonIfExists(path.join(repoRoot, 'data', `okx_${coin}usdt_swap_funding_3y.json`));
+    activeFunding = fJson?.rows || [];
+  }
+  const dsReady = ensureDatasetHtfForRegimeV8(activeDataset, activeFunding);
+  const assetReg = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
+  const snap = assetReg.getRegimeAt(dsReady.rows.length - 1);
+  const latestBreadth = breadthCtx?.getBreadthAtTime?.(snap.time) || null;
+
+  const coinsSummary = [];
+  if (breadthEntry?.byCoin && latestBreadth?.perCoin) {
+    for (const [coinKey, coinState] of Object.entries(latestBreadth.perCoin)) {
+      coinsSummary.push({
+        coin: coinKey.replace('USDT', ''),
+        bearEma50: Boolean(coinState?.bearEma50),
+        bearEma200: Boolean(coinState?.bearEma200),
+      });
+    }
+  } else if (breadthEntry?.byCoin) {
+    for (const [coinKey, coinDs] of Object.entries(breadthEntry.byCoin)) {
+      const d1 = coinDs?.htf?.['1d']?.rows || [];
+      if (d1.length >= 50) {
+        const recent = d1.slice(-50);
+        const avg50 = recent.reduce((acc, r) => acc + r.close, 0) / recent.length;
+        const lastC = d1[d1.length - 1].close;
+        coinsSummary.push({ coin: coinKey.replace('USDT', ''), bearEma50: lastC < avg50 });
+      }
+    }
+  }
+
+  const bearRatio = Number.isFinite(snap.breadthBearRatio) ? snap.breadthBearRatio : (latestBreadth?.breadthBearEma50 ?? 0);
+  return {
+    ready: true,
+    version: 'v8.0-crypto-regime',
+    symbol: sym,
+    timeframe: tf,
+    assetClass: 'CRYPTO_PERP',
+    barTime: snap.time,
+    regime: snap.regime,
+    regimeActionLabel: formatRegimeActionLabelV8(snap.regime),
+    trendScore: Number((snap.trendScore ?? 0).toFixed(3)),
+    breadthBearEma50: Number(bearRatio.toFixed(4)),
+    breadthBearPct: Number((bearRatio * 100).toFixed(1)),
+    breadthBearEma200Pct: latestBreadth && Number.isFinite(latestBreadth.breadthBearEma200)
+      ? Number((latestBreadth.breadthBearEma200 * 100).toFixed(1))
+      : null,
+    btcD1Trend: latestBreadth?.btcD1Trend ?? null,
+    d1Ema50DistAtr: Number((snap.d1Ema50DistAtr ?? 0).toFixed(3)),
+    d1Ema200DistAtr: Number((snap.d1Ema200DistAtr ?? 0).toFixed(3)),
+    d1SlopeAtr: Number((snap.d1SlopeAtr ?? 0).toFixed(3)),
+    h4RallyExh: Number(snap.h4RallyExh ?? 0),
+    longPriority: Number((snap.longPriority ?? 0).toFixed(2)),
+    shortPriority: Number((snap.shortPriority ?? 0).toFixed(2)),
+    longSizeMult: Number((snap.longSizeMult ?? 1).toFixed(2)),
+    shortSizeMult: Number((snap.shortSizeMult ?? 1).toFixed(2)),
+    d1Close: snap.d1Close !== null ? Number(snap.d1Close.toFixed(2)) : null,
+    d1Ema50: snap.d1Ema50 !== null ? Number(snap.d1Ema50.toFixed(2)) : null,
+    d1Ema200: snap.d1Ema200 !== null ? Number(snap.d1Ema200.toFixed(2)) : null,
+    h4Close: snap.h4Close !== null ? Number(snap.h4Close.toFixed(2)) : null,
+    h4Ema20: snap.h4Ema20 !== null ? Number(snap.h4Ema20.toFixed(2)) : null,
+    h4Rsi: snap.h4Rsi !== null ? Number(snap.h4Rsi.toFixed(1)) : null,
+    fundingRateBps: Number.isFinite(snap.fundingRate) ? Number((snap.fundingRate * 10000).toFixed(2)) : null,
+    coinsSummary,
+  };
+}
+
 /**
  * Computes live/historical macro & orderflow regime telemetry for the Command Center UI.
  */
-export function computeRegimeTelemetry({ repoRoot, dataset, fundingRates = [], macroData = null, symbol }) {
+export function computeRegimeTelemetry({ repoRoot, runtimeSpecs = null, dataset, fundingRates = [], macroData = null, symbol, timeframe = '1h' }) {
   const sym = normalizeAssetSymbol(symbol);
   const rows = dataset?.rows || [];
   let takerBuyRatio = null;
@@ -653,6 +894,18 @@ export function computeRegimeTelemetry({ repoRoot, dataset, fundingRates = [], m
     vixRegime = vix < 15 ? 'CALM' : vix < 22 ? 'NORMAL' : vix < 30 ? 'ELEVATED' : 'STRESS';
   }
 
+  const v8Radar = runtimeSpecs?.regimeEngineV8Mod
+    ? computeV8MacroRegimeRadar({
+        repoRoot,
+        runtimeSpecs,
+        dataset,
+        fundingRates,
+        macroData: loadedMacro,
+        symbol: sym,
+        timeframe,
+      })
+    : null;
+
   return {
     assetClass: isEquitySymbol(sym) ? 'EQUITY_ETF' : 'CRYPTO_PERP',
     vix,
@@ -662,6 +915,8 @@ export function computeRegimeTelemetry({ repoRoot, dataset, fundingRates = [], m
     fundingRateBps,
     takerBuyRatio,
     cvd24hPct,
+    v8Regime: v8Radar?.ready ? v8Radar.regime : null,
+    v8Radar,
   };
 }
 
@@ -762,6 +1017,7 @@ export function runV7FrontierPortfolio({ runtimeSpecs, config, riskTier, execPro
 
   return {
     ready: false,
+    version: 'v7',
     source: 'pending-v7-frontier',
     execProfile: prof,
     riskTier: tierId,
@@ -776,8 +1032,260 @@ export function runV7FrontierPortfolio({ runtimeSpecs, config, riskTier, execPro
   };
 }
 
+function findFrontierTierNode(tiersMap, tierId, tierSpec) {
+  if (!tiersMap || typeof tiersMap !== 'object') return null;
+  const candidates = [tierSpec.frontierKey, tierId];
+  if (tierId === 'TARGET_30MO_75WR') {
+    candidates.push('TIER_3_MAXIMIZED_30MO_75WR', 'MAXIMIZED_30MO_75WR');
+  } else if (tierId === 'BALANCED_75WR') {
+    candidates.push('TIER_2_BALANCED_75WR', 'BALANCED_75WR');
+  } else if (tierId === 'SAFE_75WR') {
+    candidates.push('TIER_1_SAFE_75WR', 'SAFE_75WR');
+  }
+  for (const key of candidates) {
+    if (key && tiersMap[key]) return tiersMap[key];
+  }
+  return null;
+}
+
+export function runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
+  const tierId = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
+  const tierSpec = RISK_TIER_SPECS[tierId];
+  const prof = String(execProfile || 'EXCHANGE_POST_ONLY').toUpperCase();
+  const frontier = runtimeSpecs?.maximizedV8Summary;
+
+  if (frontier && typeof frontier === 'object') {
+    const profBlock = frontier.profiles?.[prof] || frontier.tracks?.[prof] || frontier[prof] || frontier.tiers || frontier;
+    const tiersMap = profBlock?.tiers || frontier.tiers || profBlock;
+    const rawSelected = findFrontierTierNode(tiersMap, tierId, tierSpec);
+    const allTiers = {};
+    for (const [k, spec] of Object.entries(RISK_TIER_SPECS)) {
+      const node = findFrontierTierNode(tiersMap, k, spec);
+      if (node) allTiers[k] = normalizeFrontierTierNode(node, prof);
+    }
+    if (rawSelected) {
+      const selected = normalizeFrontierTierNode(rawSelected, prof);
+      const profData = rawSelected.profiles?.[prof] || null;
+      const fullRaw = profData?.full5y_60m || profData?.full5y || rawSelected.full5y_60m || rawSelected.full5y || null;
+      return {
+        ready: true,
+        version: 'v8',
+        source: 'research/results_v8/maximized_v8_summary.json',
+        execProfile: prof,
+        riskTier: tierId,
+        tierSpec,
+        selectedTier: selected,
+        tiers: allTiers,
+        comparisonMatrix: frontier.comparisonMatrix || frontier.v7VsV8Comparison || null,
+        streams: fullRaw?.perStream || frontier.streams || frontier.calValStreamScreening || null,
+        monthlyTable: fullRaw?.monthlyTable || rawSelected.monthlyTable || null,
+      };
+    }
+  }
+
+  return {
+    ready: false,
+    version: 'v8',
+    source: 'pending-v8-frontier',
+    execProfile: prof,
+    riskTier: tierId,
+    tierSpec,
+    selectedTier: null,
+    tiers: {},
+    streams: {
+      btcBnb: Boolean(runtimeSpecs?.summaryV8BtcBnb),
+      ethSol: Boolean(runtimeSpecs?.summaryV8EthSol),
+    },
+    monthlyTable: null,
+  };
+}
+
+export function runFrontierPortfolio({ version = 'auto', runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
+  const ver = String(version || 'auto').toLowerCase();
+  if (ver === 'v8') {
+    return runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+  }
+  if (ver === 'auto' && runtimeSpecs?.maximizedV8Summary) {
+    const v8Res = runV8FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+    if (v8Res.ready) return v8Res;
+  }
+  const v7Res = runV7FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+  return { version: 'v7', ...v7Res };
+}
+
+function evaluateCryptoV8ForStandalone({
+  dataset,
+  fundingRates,
+  alignedFunding,
+  timeframe,
+  symbol,
+  exchange,
+  execProfile,
+  mlEnabled,
+  riskTier,
+  regime,
+  config,
+  runtimeSpecs,
+}) {
+  const coinPrefix = symbol.replace('USDT.P', '').replace('USDT', '');
+  const streamKey = `${coinPrefix}_${timeframe}`;
+  const isBtcBnb = symbol === 'BTCUSDT.P' || symbol === 'BNBUSDT.P';
+  const modelSpec = isBtcBnb
+    ? runtimeSpecs.modelsV8BtcBnb?.models?.[streamKey]
+    : runtimeSpecs.modelsV8EthSol?.models?.[streamKey];
+  const regimeMod = runtimeSpecs.regimeEngineV8Mod;
+  const streamMod = isBtcBnb ? runtimeSpecs.regimeV8BtcBnbMod : runtimeSpecs.regimeV8EthSolMod;
+  if (!modelSpec?.structuralSpec?.sigSpec || !regimeMod || !streamMod || !runtimeSpecs.simV7Mod?.simulateTradesV7) {
+    return null;
+  }
+
+  const dsReady = ensureDatasetHtfForRegimeV8(dataset, fundingRates);
+  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod)?.breadth || null;
+  const regimeCtx = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
+  const structural = modelSpec.structuralSpec;
+  const effectiveFunding = alignedFunding || (runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal
+    ? runtimeSpecs.fetchDerivsMod.alignFundingToBarsCausal(dsReady.rows, fundingRates || [])
+    : new Float64Array(dsReady.rows.length));
+
+  let rawSignals = [];
+  let filteredSignals = [];
+  if (isBtcBnb) {
+    rawSignals = streamMod.generateAsymmetricSignalsV8(streamKey, dsReady, structural.sigSpec, effectiveFunding, regimeCtx);
+    filteredSignals = mlEnabled
+      ? streamMod.applyV8DirectionalModels(dsReady, rawSignals, effectiveFunding, regimeCtx, modelSpec)
+      : rawSignals;
+  } else {
+    const isEth = symbol === 'ETHUSDT.P';
+    const btcFile = timeframe === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
+    const btcRefDs = isEth ? (readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dsReady) : null;
+    rawSignals = streamMod.generateEthSolStreamSignalsV8(streamKey, dsReady, structural.sigSpec, regimeCtx, btcRefDs);
+    filteredSignals = mlEnabled
+      ? streamMod.applyV8EthSolModelToSignals(streamKey, dsReady, rawSignals, effectiveFunding, modelSpec, regimeCtx, btcRefDs)
+      : rawSignals;
+  }
+
+  const acceptedMap = new Map();
+  for (const fsig of filteredSignals) {
+    acceptedMap.set(`${fsig.barIndex}:${fsig.side}`, fsig);
+  }
+  const modelVersion = mlEnabled ? 'v8.0-AsymmetricRegime' : 'v8.0-RulesOnly';
+  const signalsAudit = rawSignals.map(sig => {
+    const acc = acceptedMap.get(`${sig.barIndex}:${sig.side}`);
+    const row = dsReady.rows[sig.barIndex];
+    const dirModel = sig.side === 1 ? modelSpec.longModel : modelSpec.shortModel;
+    return {
+      exchange,
+      symbol,
+      timeframe,
+      barTime: row.time,
+      side: sig.side,
+      limitPrice: sig.limitPrice ?? row.close,
+      atr: sig.atr ?? null,
+      probWin: acc?.meta?.probWin ?? null,
+      modelVersion,
+      decision: acc ? 'ACCEPTED' : 'FILTERED',
+      sizeMult: acc?.sizeMult ?? 0,
+      features: { regime: regimeCtx.regime[sig.barIndex], dirModel: dirModel?.modelType || null },
+      meta: { ...(sig.meta ?? {}), regime: regimeCtx.regime[sig.barIndex] },
+    };
+  });
+
+  const maxLevCap = Number(config.maxLeverageCap ?? 3.0);
+  const execOpts = {
+    ...structural.execOptions,
+    maxLev: Math.min(maxLevCap, Number(structural.execOptions?.maxLev ?? maxLevCap)),
+    execProfile: execProfile || 'EXCHANGE_POST_ONLY',
+    fundingRows: fundingRates,
+    fundingPctPer8h: 0.01,
+    isolatedLiqCheck: true,
+    mmr: 0.005,
+    intervalSeconds: dsReady.intervalSeconds,
+    start: 0,
+    end: dsReady.rows.length,
+  };
+  execOpts.minLev = Math.min(execOpts.maxLev, Number(execOpts.minLev ?? 1.0));
+
+  const simResult = runtimeSpecs.simV7Mod.simulateTradesV7(dsReady.rows, filteredSignals, execOpts);
+  const { fundingRows: _omitFundingRows, ...execOptionsClean } = execOpts;
+  let equity = 1.0;
+  let peakEq = 1.0;
+  let fundingDragSum = 0;
+  const equityCurve = [];
+  const enrichedTrades = simResult.trades.map(t => {
+    const entryRow = dsReady.rows[t.entryIndex];
+    const exitRow = dsReady.rows[t.exitIndex];
+    const factor = 1 + t.netPct / 100;
+    equity = factor <= 0 ? 0 : equity * factor;
+    if (equity > peakEq) peakEq = equity;
+    const ddPct = peakEq > 0 ? ((peakEq - equity) / peakEq) * 100 : 100;
+    fundingDragSum += t.fundingDragPct ?? 0;
+    equityCurve.push({
+      time: exitRow.time,
+      equity: Number(equity.toFixed(6)),
+      drawdownPct: Number(ddPct.toFixed(4)),
+      openLev: t.lev ?? 1.0,
+    });
+    return {
+      ...t,
+      entryTime: entryRow.time,
+      exitTime: exitRow.time,
+      probWin: t.meta?.probWin ?? null,
+    };
+  });
+
+  const activeOverlay = buildActiveOverlay(simResult, dsReady.rows, signalsAudit);
+  const lastClose = dsReady.rows[dsReady.rows.length - 1]?.close;
+  const liquidationDistance = computeLiquidationDistance(activeOverlay, lastClose, {
+    fallbackLev: execOpts.minLev ?? 1.5,
+  });
+  const monthlySummary = runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7
+    ? runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7(simResult.trades, dsReady.rows)
+    : null;
+
+  return {
+    summary: {
+      exchange,
+      symbol,
+      timeframe,
+      execProfile: execOpts.execProfile,
+      riskTier,
+      modelVersion,
+      mlThresholdLong: modelSpec.longModel?.threshold ?? null,
+      mlThresholdShort: modelSpec.shortModel?.threshold ?? null,
+      mlThreshold: modelSpec.longModel?.threshold ?? modelSpec.shortModel?.threshold ?? null,
+      bars: dsReady.rows.length,
+      rawSignalsCount: rawSignals.length,
+      acceptedSignalsCount: filteredSignals.length,
+      count: simResult.count,
+      wins: simResult.wins,
+      losses: simResult.losses,
+      winRatePct: simResult.winRatePct !== null ? Number(simResult.winRatePct.toFixed(2)) : 0,
+      wilsonLower95Pct: simResult.count ? Number(wilsonLowerBound(simResult.wins, simResult.count, 1.96).toFixed(2)) : 0,
+      profitFactor: simResult.profitFactor !== null ? Number(simResult.profitFactor.toFixed(2)) : 0,
+      totalNetPct: Number((simResult.totalNetPct ?? 0).toFixed(2)),
+      compoundedNetPct: Number((simResult.compoundedNetPct ?? 0).toFixed(2)),
+      maxDrawdownPct: Number((simResult.maxDrawdownPct ?? 0).toFixed(2)),
+      compoundedMaxDrawdownPct: Number((simResult.compoundedMaxDrawdownPct ?? 0).toFixed(2)),
+      fundingDragPct: Number(fundingDragSum.toFixed(2)),
+      liquidationCount: simResult.liquidationCount ?? 0,
+      meanMonthlySweepPct: monthlySummary ? Number((monthlySummary.meanMonthlySweepPct ?? 0).toFixed(2)) : null,
+      exitReasons: simResult.exitReasons,
+    },
+    regime,
+    liquidationDistance,
+    monthlySummary,
+    execOptions: execOptionsClean,
+    signalsAudit,
+    trades: enrichedTrades,
+    equityCurve,
+    activeOverlay,
+    openPosition: simResult.openPosition || null,
+    pending: simResult.pending || null,
+  };
+}
+
 /**
- * Evaluates causal signals, ML probability filtering, and simulation on any of the v6.0 / v7.0 assets.
+ * Evaluates causal signals, ML probability filtering, and simulation on any of the v6.0 / v7.0 / v8.0 assets.
  */
 export function evaluateStrategy({
   dataset,
@@ -801,16 +1309,36 @@ export function evaluateStrategy({
   const ver = String(version || 'auto').toLowerCase();
   const regime = computeRegimeTelemetry({
     repoRoot: config.repoRoot,
+    runtimeSpecs,
     dataset,
     fundingRates,
     macroData,
     symbol: sym,
+    timeframe: tf,
   });
 
   const alignFn = runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal || runtimeSpecs.simV5Mod?.alignFundingToBarsCausal;
   const alignedFunding = alignFn && fundingRates.length > 0
     ? alignFn(dataset.rows, fundingRates)
     : null;
+
+  if (!isEq && ver === 'v8') {
+    const v8Res = evaluateCryptoV8ForStandalone({
+      dataset,
+      fundingRates,
+      alignedFunding,
+      timeframe: tf,
+      symbol: sym,
+      exchange,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      riskTier: effTier,
+      regime,
+      config,
+      runtimeSpecs,
+    });
+    if (v8Res) return v8Res;
+  }
 
   // v7.0 High-WR path (when v7 modules + models are present and requested/auto for crypto)
   const v7Runner = (!isEq && (ver === 'v7' || ver === 'auto'))

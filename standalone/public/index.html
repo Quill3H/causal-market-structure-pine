@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v7.0 Standalone Command Center</title>
+  <title>TRADING-TOOL v8.0 Standalone Command Center</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT7</div>
+      <div class="brand-mark" aria-hidden="true">TT8</div>
       <div>
-        <h1 class="brand-title">TRADING-TOOL v7.0 Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">High-WR 5Y Frontier • 0-Liquidation Physics • Off-TradingView</p>
+        <h1 class="brand-title">TRADING-TOOL v8.0 Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">Macro-Trend Regime Radar • Asymmetric Long/Short • Off-TradingView</p>
       </div>
     </div>
 
@@ -127,6 +127,35 @@
       </article>
 
       <aside class="side-rail">
+        <article class="panel radar-panel" id="regime-radar-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Macro-Trend Regime Radar</h2>
+            <span class="badge badge-neutral" id="radar-regime-badge">--</span>
+          </div>
+          <p class="radar-action-banner" id="radar-action-text">Loading causal regime...</p>
+          <div class="radar-meter-block">
+            <div class="radar-meter-head">
+              <span>4-Coin Breadth (&lt; 1D EMA50)</span>
+              <strong id="radar-breadth-text">--%</strong>
+            </div>
+            <div class="meter-track" aria-hidden="true">
+              <div class="meter-fill meter-bear" id="radar-breadth-bar"></div>
+            </div>
+            <div class="radar-coins-row" id="radar-coins-row"></div>
+          </div>
+          <div class="radar-mult-grid">
+            <div class="radar-mult-card">
+              <span class="radar-mult-label">LONG SizeMult</span>
+              <strong class="pos" id="radar-long-mult">--x</strong>
+            </div>
+            <div class="radar-mult-card">
+              <span class="radar-mult-label">SHORT SizeMult</span>
+              <strong class="neg" id="radar-short-mult">--x</strong>
+            </div>
+          </div>
+          <dl class="overlay-list" id="radar-stats-list"></dl>
+        </article>
+
         <article class="panel gauge-panel">
           <div class="panel-header">
             <h2 class="panel-title">Live ML Probability Gauge</h2>
@@ -145,7 +174,13 @@
         <article class="panel gauge-panel">
           <div class="panel-header">
             <h2 class="panel-title">Monthly Profit-Sweep Gauge</h2>
-            <span class="badge badge-safe" id="frontier-tier-badge">SAFE_75WR</span>
+            <div class="frontier-controls">
+              <select id="frontier-version-select" aria-label="Frontier Version">
+                <option value="v8">v8.0 Regime</option>
+                <option value="v7">v7.0 High-WR</option>
+              </select>
+              <span class="badge badge-safe" id="frontier-tier-badge">SAFE_75WR</span>
+            </div>
           </div>
           <div class="gauge-wrap">
             <canvas id="sweep-gauge-canvas"></canvas>

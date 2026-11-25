@@ -1,0 +1,3296 @@
+{
+  "schema": "smc-v8-btc-bnb-5y-summary-v1",
+  "generatedAt": "2026-11-25T09:42:38.677Z",
+  "modelMetadata": {
+    "BTC_1h": {
+      "calRange": [
+        0,
+        21976
+      ],
+      "valRange": [
+        21976,
+        35161
+      ],
+      "holdoutRangeUntouched": [
+        35161,
+        43952
+      ],
+      "long": {
+        "selectedId": "LONG:wick_delta:GB_d1_n8|t=0.7049|sc=linear_0.85_1.35",
+        "calCvAuc": 0.5714,
+        "calInAuc": 0.6923,
+        "valRocAuc": 0.5201,
+        "valCorrNet": 0.0131,
+        "calTrainSamples": 46,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.7019336377985659,
+          "medianMonthlySweepPct": 0.27500929791417494,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -5.963558834745752,
+          "maxMonthlySweepDdPct": 7.544372926552391,
+          "totalSweptNetPct": 32.33673911817275,
+          "compoundedNetPct": 35.70625009716808,
+          "cagrPct": 22.50821777473966,
+          "geomMonthlyPct": 1.6199412455551343,
+          "maxCompoundedDdPct": 12.038470943250353,
+          "winRatePct": 78.18181818181819,
+          "profitFactor": 1.5835492670302318,
+          "liquidationCount": 0,
+          "count": 55
+        }
+      },
+      "short": {
+        "selectedId": "SHORT:wick_delta:LR_C0.15_mag|t=0.6078|sc=linear_0.85_1.35",
+        "calCvAuc": 0.659,
+        "calInAuc": 0.6549,
+        "valRocAuc": 0.6503,
+        "valCorrNet": -0.0225,
+        "calTrainSamples": 86,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.5624189316497752,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 42.10526315789473,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -7.008908812286563,
+          "maxMonthlySweepDdPct": 11.700467905504143,
+          "totalSweptNetPct": 29.68595970134573,
+          "compoundedNetPct": 32.277403609124256,
+          "cagrPct": 20.441299649853306,
+          "geomMonthlyPct": 1.4831600713649307,
+          "maxCompoundedDdPct": 11.342018095360409,
+          "winRatePct": 81.81818181818183,
+          "profitFactor": 1.9744971167025713,
+          "liquidationCount": 0,
+          "count": 33
+        }
+      },
+      "valBaseline": {
+        "totalMonths": 19,
+        "meanMonthlySweepPct": 2.390785111544529,
+        "medianMonthlySweepPct": 2.2372512533470834,
+        "pctPositiveMonths": 68.42105263157895,
+        "pctMonthsGe30": 0,
+        "worstMonthPct": -7.014939771310602,
+        "maxMonthlySweepDdPct": 8.464009942556807,
+        "totalSweptNetPct": 45.42491711934605,
+        "compoundedNetPct": 52.97534766583305,
+        "cagrPct": 32.66434551554562,
+        "geomMonthlyPct": 2.2626207229558437,
+        "maxCompoundedDdPct": 13.244128540166258,
+        "winRatePct": 78,
+        "profitFactor": 1.4805891095509753,
+        "liquidationCount": 0,
+        "count": 100,
+        "long": {
+          "count": 57,
+          "wins": 44,
+          "winRatePct": 77.19298245614034,
+          "profitFactor": 1.4119915368377975,
+          "netSumPct": 22.6724440373547
+        },
+        "short": {
+          "count": 43,
+          "wins": 34,
+          "winRatePct": 79.06976744186046,
+          "profitFactor": 1.5705381551074942,
+          "netSumPct": 23.944563614409837
+        }
+      }
+    },
+    "BTC_15m": {
+      "calRange": [
+        0,
+        87904
+      ],
+      "valRange": [
+        87904,
+        140646
+      ],
+      "holdoutRangeUntouched": [
+        140646,
+        175808
+      ],
+      "long": {
+        "selectedId": "LONG:of_micro_15m:LR_C0.02_mag|t=0.6004|sc=flat_1_1",
+        "calCvAuc": 0.556,
+        "calInAuc": 0.6841,
+        "valRocAuc": 0.527,
+        "valCorrNet": 0.0912,
+        "calTrainSamples": 69,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.41019488589562403,
+          "medianMonthlySweepPct": 0.26117535483869414,
+          "pctPositiveMonths": 57.89473684210527,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -3.3695342118322813,
+          "maxMonthlySweepDdPct": 5.768899060153155,
+          "totalSweptNetPct": 7.793702832016857,
+          "compoundedNetPct": 7.709466355262173,
+          "cagrPct": 5.061468308338779,
+          "geomMonthlyPct": 0.3916454072334652,
+          "maxCompoundedDdPct": 5.714252301010703,
+          "winRatePct": 83.78378378378379,
+          "profitFactor": 1.4565553366319732,
+          "liquidationCount": 0,
+          "count": 37
+        }
+      },
+      "short": {
+        "selectedId": "SHORT:wick_adv_only:GB_d1_n8|t=0.7547|sc=linear_0.85_1.35",
+        "calCvAuc": 0.4504,
+        "calInAuc": 0.7073,
+        "valRocAuc": 0.5602,
+        "valCorrNet": -0.0864,
+        "calTrainSamples": 88,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.0062250127159575,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 26.31578947368421,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -6.094602032404206,
+          "maxMonthlySweepDdPct": 11.052732376989848,
+          "totalSweptNetPct": 19.118275241603193,
+          "compoundedNetPct": 17.89250048193878,
+          "cagrPct": 11.564604159057644,
+          "geomMonthlyPct": 0.870095146435923,
+          "maxCompoundedDdPct": 12.491202515272173,
+          "winRatePct": 80,
+          "profitFactor": 1.706869287204133,
+          "liquidationCount": 0,
+          "count": 35
+        }
+      },
+      "valBaseline": {
+        "totalMonths": 19,
+        "meanMonthlySweepPct": 1.0424526866279962,
+        "medianMonthlySweepPct": 0.23420709677419715,
+        "pctPositiveMonths": 52.63157894736842,
+        "pctMonthsGe30": 0,
+        "worstMonthPct": -8.741240217684943,
+        "maxMonthlySweepDdPct": 21.733014656331584,
+        "totalSweptNetPct": 19.806601045931927,
+        "compoundedNetPct": 16.99143261394862,
+        "cagrPct": 10.996969816367464,
+        "geomMonthlyPct": 0.8293704867524454,
+        "maxCompoundedDdPct": 20.10114760788285,
+        "winRatePct": 78.57142857142857,
+        "profitFactor": 1.2773988991439984,
+        "liquidationCount": 0,
+        "count": 98,
+        "long": {
+          "count": 47,
+          "wins": 37,
+          "winRatePct": 78.72340425531915,
+          "profitFactor": 1.0477927028997813,
+          "netSumPct": 1.293152359299071
+        },
+        "short": {
+          "count": 51,
+          "wins": 40,
+          "winRatePct": 78.43137254901961,
+          "profitFactor": 1.4506712442809944,
+          "netSumPct": 16.15854688329749
+        }
+      }
+    },
+    "BNB_1h": {
+      "calRange": [
+        0,
+        21976
+      ],
+      "valRange": [
+        21976,
+        35161
+      ],
+      "holdoutRangeUntouched": [
+        35161,
+        43952
+      ],
+      "long": {
+        "selectedId": "LONG:bnb_regime_of:LR_C0.02_mag|t=0.5666|sc=flat_1_1",
+        "calCvAuc": 0.5434,
+        "calInAuc": 0.5625,
+        "valRocAuc": 0.6148,
+        "valCorrNet": 0.181,
+        "calTrainSamples": 48,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.1858390405235186,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 47.368421052631575,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -2.917017524766663,
+          "maxMonthlySweepDdPct": 3.0791759228135374,
+          "totalSweptNetPct": 22.530941769946853,
+          "compoundedNetPct": 24.524586469319942,
+          "cagrPct": 15.700389466096976,
+          "geomMonthlyPct": 1.1610728960908867,
+          "maxCompoundedDdPct": 7.3898675703487235,
+          "winRatePct": 81.81818181818183,
+          "profitFactor": 2.475630716545119,
+          "liquidationCount": 0,
+          "count": 22
+        }
+      },
+      "short": {
+        "selectedId": "SHORT:bnb_wick_fund:LR_C0.05_mag|t=0.6363|sc=linear_0.85_1.35",
+        "calCvAuc": 0.6661,
+        "calInAuc": 0.6771,
+        "valRocAuc": 0.71,
+        "valCorrNet": 0.3046,
+        "calTrainSamples": 62,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.9425285867316161,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 36.84210526315789,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -4.248657201116524,
+          "maxMonthlySweepDdPct": 7.6663637350840155,
+          "totalSweptNetPct": 17.908043147900706,
+          "compoundedNetPct": 18.082474153448235,
+          "cagrPct": 11.685263738320995,
+          "geomMonthlyPct": 0.8786435455166997,
+          "maxCompoundedDdPct": 7.538347870559342,
+          "winRatePct": 82.35294117647058,
+          "profitFactor": 2.3978613664878625,
+          "liquidationCount": 0,
+          "count": 17
+        }
+      },
+      "valBaseline": {
+        "totalMonths": 19,
+        "meanMonthlySweepPct": 0.7163326771423144,
+        "medianMonthlySweepPct": -0.3020850669132713,
+        "pctPositiveMonths": 47.368421052631575,
+        "pctMonthsGe30": 0,
+        "worstMonthPct": -8.184138345888547,
+        "maxMonthlySweepDdPct": 17.996507499786308,
+        "totalSweptNetPct": 13.610320865703974,
+        "compoundedNetPct": 11.153477556799164,
+        "cagrPct": 7.283786723631858,
+        "geomMonthlyPct": 0.5580870145558192,
+        "maxCompoundedDdPct": 19.891453112375977,
+        "winRatePct": 70.1492537313433,
+        "profitFactor": 1.1684669769728604,
+        "liquidationCount": 0,
+        "count": 67,
+        "long": {
+          "count": 37,
+          "wins": 27,
+          "winRatePct": 72.97297297297297,
+          "profitFactor": 1.4905389471589479,
+          "netSumPct": 20.011868248599924
+        },
+        "short": {
+          "count": 30,
+          "wins": 20,
+          "winRatePct": 66.66666666666666,
+          "profitFactor": 0.859729522229371,
+          "netSumPct": -5.969583441749099
+        }
+      }
+    },
+    "BNB_15m": {
+      "calRange": [
+        0,
+        87904
+      ],
+      "valRange": [
+        87904,
+        140646
+      ],
+      "holdoutRangeUntouched": [
+        140646,
+        175808
+      ],
+      "long": {
+        "selectedId": "LONG:bnb_lp_15m:GB_d1_n12|t=0.6203|sc=linear_0.85_1.35",
+        "calCvAuc": 0.5714,
+        "calInAuc": 0.6795,
+        "valRocAuc": 0.5648,
+        "valCorrNet": -0.1196,
+        "calTrainSamples": 113,
+        "usedPooledFallback": false,
+        "eligibleOnVal": false,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.5292675707856871,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 47.368421052631575,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -6.866547451793171,
+          "maxMonthlySweepDdPct": 9.078357123180215,
+          "totalSweptNetPct": 10.056083844928054,
+          "compoundedNetPct": 9.217621539138609,
+          "cagrPct": 6.037209772867347,
+          "geomMonthlyPct": 0.4651428343118935,
+          "maxCompoundedDdPct": 15.502614138751197,
+          "winRatePct": 75.53191489361703,
+          "profitFactor": 1.1290535674422277,
+          "liquidationCount": 0,
+          "count": 94
+        }
+      },
+      "short": {
+        "selectedId": "SHORT:bnb_regime_15m:LR_C0.02_unw|t=0.7201|sc=linear_0.85_1.35",
+        "calCvAuc": 0.5171,
+        "calInAuc": 0.5896,
+        "valRocAuc": 0.6078,
+        "valCorrNet": 0.159,
+        "calTrainSamples": 245,
+        "usedPooledFallback": false,
+        "eligibleOnVal": true,
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 2.179082136288207,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 47.368421052631575,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -4.421770184825336,
+          "maxMonthlySweepDdPct": 7.771546756843804,
+          "totalSweptNetPct": 41.40256058947594,
+          "compoundedNetPct": 48.23431783962344,
+          "cagrPct": 29.9129710299038,
+          "geomMonthlyPct": 2.0933143883116623,
+          "maxCompoundedDdPct": 11.808776561661038,
+          "winRatePct": 77.02702702702703,
+          "profitFactor": 1.6896736983416183,
+          "liquidationCount": 0,
+          "count": 74
+        }
+      },
+      "valBaseline": {
+        "totalMonths": 19,
+        "meanMonthlySweepPct": 0.9483088492242782,
+        "medianMonthlySweepPct": 0.17058706207233598,
+        "pctPositiveMonths": 52.63157894736842,
+        "pctMonthsGe30": 0,
+        "worstMonthPct": -8.399683267373225,
+        "maxMonthlySweepDdPct": 10.056612617846428,
+        "totalSweptNetPct": 18.017868135261285,
+        "compoundedNetPct": 16.62004653332083,
+        "cagrPct": 10.762586287479635,
+        "geomMonthlyPct": 0.8124987837401232,
+        "maxCompoundedDdPct": 22.336296101970177,
+        "winRatePct": 72.39583333333334,
+        "profitFactor": 1.1208474418355878,
+        "liquidationCount": 0,
+        "count": 192,
+        "long": {
+          "count": 96,
+          "wins": 72,
+          "winRatePct": 75,
+          "profitFactor": 1.0850351555293174,
+          "netSumPct": 6.794543070546339
+        },
+        "short": {
+          "count": 96,
+          "wins": 67,
+          "winRatePct": 69.79166666666666,
+          "profitFactor": 1.1516173418484263,
+          "netSumPct": 14.099917994354447
+        }
+      }
+    }
+  },
+  "streams": {
+    "BTC_1h": {
+      "EXCHANGE_POST_ONLY": {
+        "id": "BTC_1h",
+        "coin": "BTCUSDT",
+        "timeframe": "1h",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 2.040056732427596,
+              "medianMonthlySweepPct": 1.3910183381080854,
+              "pctPositiveMonths": 63.26530612244898,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.674791357164194,
+              "maxMonthlySweepDdPct": 17.512698228829436,
+              "totalSweptNetPct": 99.96277988895221,
+              "compoundedNetPct": 149.92272051827769,
+              "cagrPct": 25.65503491506309,
+              "geomMonthlyPct": 1.8869318685016179,
+              "maxCompoundedDdPct": 24.670714198364934,
+              "winRatePct": 75,
+              "profitFactor": 1.4032435407755515,
+              "liquidationCount": 0,
+              "count": 232,
+              "long": {
+                "count": 103,
+                "wins": 77,
+                "winRatePct": 74.75728155339806,
+                "profitFactor": 1.3385815904901142,
+                "netSumPct": 36.04536027655905
+              },
+              "short": {
+                "count": 129,
+                "wins": 97,
+                "winRatePct": 75.1937984496124,
+                "profitFactor": 1.449416036235042,
+                "netSumPct": 67.00389463695242
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -0.4189279625793637,
+              "medianMonthlySweepPct": -0.8608051708580367,
+              "pctPositiveMonths": 46.15384615384615,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.500680775810235,
+              "maxMonthlySweepDdPct": 26.87092447490226,
+              "totalSweptNetPct": -5.446063513531728,
+              "compoundedNetPct": -7.8724572115908,
+              "cagrPct": -7.851829341934868,
+              "geomMonthlyPct": -0.6287552734519086,
+              "maxCompoundedDdPct": 27.53501203759444,
+              "winRatePct": 68.75,
+              "profitFactor": 0.9349912356747592,
+              "liquidationCount": 0,
+              "count": 64,
+              "long": {
+                "count": 22,
+                "wins": 17,
+                "winRatePct": 77.27272727272727,
+                "profitFactor": 1.705016128954195,
+                "netSumPct": 14.88111017374028
+              },
+              "short": {
+                "count": 42,
+                "wins": 27,
+                "winRatePct": 64.28571428571429,
+                "profitFactor": 0.676893851530865,
+                "netSumPct": -20.347106773192557
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.4738995374292665,
+              "medianMonthlySweepPct": 0.9537327605777524,
+              "pctPositiveMonths": 60.65573770491803,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.674791357164194,
+              "maxMonthlySweepDdPct": 26.870924474902267,
+              "totalSweptNetPct": 89.90787178318526,
+              "compoundedNetPct": 120.71924982740958,
+              "cagrPct": 17.105884681321882,
+              "geomMonthlyPct": 1.3063631748506888,
+              "maxCompoundedDdPct": 27.535012037594413,
+              "winRatePct": 73.4006734006734,
+              "profitFactor": 1.2718238434303228,
+              "liquidationCount": 0,
+              "count": 297,
+              "long": {
+                "count": 125,
+                "wins": 94,
+                "winRatePct": 75.2,
+                "profitFactor": 1.3992123603401352,
+                "netSumPct": 50.92647045029935
+              },
+              "short": {
+                "count": 172,
+                "wins": 124,
+                "winRatePct": 72.09302325581395,
+                "profitFactor": 1.1966600693484246,
+                "netSumPct": 42.5184563806471
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 3.7382343492149723,
+              "medianMonthlySweepPct": 1.6290051688525597,
+              "pctPositiveMonths": 64.51612903225806,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.099377485600836,
+              "maxMonthlySweepDdPct": 16.871706723355597,
+              "totalSweptNetPct": 115.88526482566414,
+              "compoundedNetPct": 185.79269032512983,
+              "cagrPct": 52.02757579713704,
+              "geomMonthlyPct": 3.4454340803413475,
+              "maxCompoundedDdPct": 19.214192220861403,
+              "winRatePct": 80.3921568627451,
+              "profitFactor": 2.1529500490100735,
+              "liquidationCount": 0,
+              "count": 102,
+              "long": {
+                "count": 38,
+                "wins": 30,
+                "winRatePct": 78.94736842105263,
+                "profitFactor": 2.239440217512596,
+                "netSumPct": 41.02674473877025
+              },
+              "short": {
+                "count": 64,
+                "wins": 52,
+                "winRatePct": 81.25,
+                "profitFactor": 2.107603601080804,
+                "netSumPct": 69.92770963036503
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 3.2714242583540614,
+              "medianMonthlySweepPct": 1.5509756979857903,
+              "pctPositiveMonths": 68.42105263157895,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.008908812286563,
+              "maxMonthlySweepDdPct": 7.556259369969361,
+              "totalSweptNetPct": 62.15706090872717,
+              "compoundedNetPct": 78.68858520530814,
+              "cagrPct": 47.10193098570829,
+              "geomMonthlyPct": 3.102276156317907,
+              "maxCompoundedDdPct": 15.938524172028487,
+              "winRatePct": 79.3103448275862,
+              "profitFactor": 1.7148431865088523,
+              "liquidationCount": 0,
+              "count": 87,
+              "long": {
+                "count": 54,
+                "wins": 42,
+                "winRatePct": 77.77777777777779,
+                "profitFactor": 1.5754915722801333,
+                "netSumPct": 32.779943322386245
+              },
+              "short": {
+                "count": 33,
+                "wins": 27,
+                "winRatePct": 81.81818181818183,
+                "profitFactor": 1.9744971167025713,
+                "netSumPct": 29.78975229834467
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 3.6317985370295482,
+              "medianMonthlySweepPct": 1.6290051688525597,
+              "pctPositiveMonths": 65.3061224489796,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.099377485600836,
+              "maxMonthlySweepDdPct": 16.871706723355597,
+              "totalSweptNetPct": 177.95812831444786,
+              "compoundedNetPct": 410.6789149621618,
+              "cagrPct": 50.15977342752569,
+              "geomMonthlyPct": 3.3836827250431467,
+              "maxCompoundedDdPct": 19.214192220861403,
+              "winRatePct": 79.8941798941799,
+              "profitFactor": 1.9442744655417292,
+              "liquidationCount": 0,
+              "count": 189,
+              "long": {
+                "count": 92,
+                "wins": 72,
+                "winRatePct": 78.26086956521739,
+                "profitFactor": 1.8195195052758315,
+                "netSumPct": 73.80668806115654
+              },
+              "short": {
+                "count": 97,
+                "wins": 79,
+                "winRatePct": 81.44329896907216,
+                "profitFactor": 2.064179655421671,
+                "netSumPct": 99.7174619287097
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": 0.7498004156601742,
+              "medianMonthlySweepPct": 2.204428742268738,
+              "pctPositiveMonths": 53.84615384615385,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -9.228328660759432,
+              "maxMonthlySweepDdPct": 19.187227494898963,
+              "totalSweptNetPct": 9.747405403582265,
+              "compoundedNetPct": 7.371071875894897,
+              "cagrPct": 7.350223944726619,
+              "geomMonthlyPct": 0.5485808428425276,
+              "maxCompoundedDdPct": 20.15461999226746,
+              "winRatePct": 72,
+              "profitFactor": 1.1463302345195983,
+              "liquidationCount": 0,
+              "count": 50,
+              "long": {
+                "count": 18,
+                "wins": 15,
+                "winRatePct": 83.33333333333334,
+                "profitFactor": 2.8444877494566523,
+                "netSumPct": 26.03412043397207
+              },
+              "short": {
+                "count": 32,
+                "wins": 21,
+                "winRatePct": 65.625,
+                "profitFactor": 0.7052053406855873,
+                "netSumPct": -16.017810458198902
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 2.9808160943744477,
+              "medianMonthlySweepPct": 1.6290051688525597,
+              "pctPositiveMonths": 62.295081967213115,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.099377485600836,
+              "maxMonthlySweepDdPct": 19.187227494898963,
+              "totalSweptNetPct": 181.8297817568413,
+              "compoundedNetPct": 418.2161653504723,
+              "cagrPct": 38.838135292741406,
+              "geomMonthlyPct": 2.7337862617348163,
+              "maxCompoundedDdPct": 20.154619992267442,
+              "winRatePct": 77.91666666666667,
+              "profitFactor": 1.6909063361095094,
+              "liquidationCount": 0,
+              "count": 240,
+              "long": {
+                "count": 110,
+                "wins": 87,
+                "winRatePct": 79.0909090909091,
+                "profitFactor": 1.9583906530326511,
+                "netSumPct": 99.84080849512861
+              },
+              "short": {
+                "count": 130,
+                "wins": 100,
+                "winRatePct": 76.92307692307693,
+                "profitFactor": 1.509408292761041,
+                "netSumPct": 78.20921135184742
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 38,
+            "wins": 30,
+            "winRatePct": 78.94736842105263,
+            "profitFactor": 2.239440217512596,
+            "netSumPct": 41.02674473877025
+          },
+          "val": {
+            "count": 54,
+            "wins": 42,
+            "winRatePct": 77.77777777777779,
+            "profitFactor": 1.5754915722801333,
+            "netSumPct": 32.779943322386245
+          },
+          "calVal": {
+            "count": 92,
+            "wins": 72,
+            "winRatePct": 78.26086956521739,
+            "profitFactor": 1.8195195052758315,
+            "netSumPct": 73.80668806115654
+          },
+          "holdoutY5": {
+            "count": 18,
+            "wins": 15,
+            "winRatePct": 83.33333333333334,
+            "profitFactor": 2.8444877494566523,
+            "netSumPct": 26.03412043397207
+          },
+          "full5y": {
+            "count": 110,
+            "wins": 87,
+            "winRatePct": 79.0909090909091,
+            "profitFactor": 1.9583906530326511,
+            "netSumPct": 99.84080849512861
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 64,
+            "wins": 52,
+            "winRatePct": 81.25,
+            "profitFactor": 2.107603601080804,
+            "netSumPct": 69.92770963036503
+          },
+          "val": {
+            "count": 33,
+            "wins": 27,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 1.9744971167025713,
+            "netSumPct": 29.78975229834467
+          },
+          "calVal": {
+            "count": 97,
+            "wins": 79,
+            "winRatePct": 81.44329896907216,
+            "profitFactor": 2.064179655421671,
+            "netSumPct": 99.7174619287097
+          },
+          "holdoutY5": {
+            "count": 32,
+            "wins": 21,
+            "winRatePct": 65.625,
+            "profitFactor": 0.7052053406855873,
+            "netSumPct": -16.017810458198902
+          },
+          "full5y": {
+            "count": 130,
+            "wins": 100,
+            "winRatePct": 76.92307692307693,
+            "profitFactor": 1.509408292761041,
+            "netSumPct": 78.20921135184742
+          }
+        },
+        "qualifiedForBothProfiles": false
+      },
+      "STRICT_TAKER": {
+        "id": "BTC_1h",
+        "coin": "BTCUSDT",
+        "timeframe": "1h",
+        "execProfile": "STRICT_TAKER",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.7800809743604957,
+              "medianMonthlySweepPct": 1.380397019594648,
+              "pctPositiveMonths": 63.26530612244898,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.989856351852557,
+              "maxMonthlySweepDdPct": 25.205807718706406,
+              "totalSweptNetPct": 87.22396774366429,
+              "compoundedNetPct": 119.50348341024846,
+              "cagrPct": 21.654250759905747,
+              "geomMonthlyPct": 1.6174265319155445,
+              "maxCompoundedDdPct": 28.41384793623633,
+              "winRatePct": 74.34782608695653,
+              "profitFactor": 1.3431146833398209,
+              "liquidationCount": 0,
+              "count": 230,
+              "long": {
+                "count": 102,
+                "wins": 76,
+                "winRatePct": 74.50980392156863,
+                "profitFactor": 1.2784846630199411,
+                "netSumPct": 30.116466758630004
+              },
+              "short": {
+                "count": 128,
+                "wins": 95,
+                "winRatePct": 74.21875,
+                "profitFactor": 1.3883024897582956,
+                "netSumPct": 60.06008537533935
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -0.7152423323147172,
+              "medianMonthlySweepPct": -1.7932253443075252,
+              "pctPositiveMonths": 46.15384615384615,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.829103498537597,
+              "maxMonthlySweepDdPct": 28.499738383343676,
+              "totalSweptNetPct": -9.298150320091324,
+              "compoundedNetPct": -10.999372922589522,
+              "cagrPct": -10.97105181504281,
+              "geomMonthlyPct": -0.8923544449292775,
+              "maxCompoundedDdPct": 27.884444155500184,
+              "winRatePct": 68.75,
+              "profitFactor": 0.8954421172267442,
+              "liquidationCount": 0,
+              "count": 64,
+              "long": {
+                "count": 21,
+                "wins": 16,
+                "winRatePct": 76.19047619047619,
+                "profitFactor": 1.4321085665345539,
+                "netSumPct": 9.258716535721412
+              },
+              "short": {
+                "count": 43,
+                "wins": 28,
+                "winRatePct": 65.11627906976744,
+                "profitFactor": 0.7154293173941354,
+                "netSumPct": -18.178126695277747
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.2013563510849226,
+              "medianMonthlySweepPct": 0.9790665168229795,
+              "pctPositiveMonths": 60.65573770491803,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.989856351852557,
+              "maxMonthlySweepDdPct": 28.49973838334367,
+              "totalSweptNetPct": 73.28273741618028,
+              "compoundedNetPct": 87.186336224931,
+              "cagrPct": 13.319568219500532,
+              "geomMonthlyPct": 1.0330608936388819,
+              "maxCompoundedDdPct": 28.41384793623633,
+              "winRatePct": 72.88135593220339,
+              "profitFactor": 1.2187679304580694,
+              "liquidationCount": 0,
+              "count": 295,
+              "long": {
+                "count": 123,
+                "wins": 92,
+                "winRatePct": 74.79674796747967,
+                "profitFactor": 1.3038890788014816,
+                "netSumPct": 39.375183294351416
+              },
+              "short": {
+                "count": 172,
+                "wins": 123,
+                "winRatePct": 71.51162790697676,
+                "profitFactor": 1.169250952730786,
+                "netSumPct": 37.69831701324847
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 3.271617477568438,
+              "medianMonthlySweepPct": 1.7257096496352542,
+              "pctPositiveMonths": 61.29032258064516,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -9.925217545143838,
+              "maxMonthlySweepDdPct": 17.438165808280615,
+              "totalSweptNetPct": 101.42014180462158,
+              "compoundedNetPct": 150.74660334834013,
+              "cagrPct": 44.297231529349816,
+              "geomMonthlyPct": 3.009801498793596,
+              "maxCompoundedDdPct": 19.613391287676286,
+              "winRatePct": 78.78787878787878,
+              "profitFactor": 1.972344964431592,
+              "liquidationCount": 0,
+              "count": 99,
+              "long": {
+                "count": 37,
+                "wins": 29,
+                "winRatePct": 78.37837837837837,
+                "profitFactor": 2.1117594971756537,
+                "netSumPct": 37.45204376029816
+              },
+              "short": {
+                "count": 62,
+                "wins": 49,
+                "winRatePct": 79.03225806451613,
+                "profitFactor": 1.9020975908512654,
+                "netSumPct": 60.31094774604669
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 3.2561352274791573,
+              "medianMonthlySweepPct": 1.5028085482817755,
+              "pctPositiveMonths": 68.42105263157895,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.089445969942021,
+              "maxMonthlySweepDdPct": 10.326692415977966,
+              "totalSweptNetPct": 61.866569322103985,
+              "compoundedNetPct": 78.00045872197717,
+              "cagrPct": 46.72503221420492,
+              "geomMonthlyPct": 3.0813408368216555,
+              "maxCompoundedDdPct": 17.90670321347495,
+              "winRatePct": 79.3103448275862,
+              "profitFactor": 1.7018675803898122,
+              "liquidationCount": 0,
+              "count": 87,
+              "long": {
+                "count": 54,
+                "wins": 42,
+                "winRatePct": 77.77777777777779,
+                "profitFactor": 1.5150979740517705,
+                "netSumPct": 29.77454313728192
+              },
+              "short": {
+                "count": 33,
+                "wins": 27,
+                "winRatePct": 81.81818181818183,
+                "profitFactor": 2.050942561403141,
+                "netSumPct": 32.502871100798956
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 3.3306909960720223,
+              "medianMonthlySweepPct": 1.7257096496352542,
+              "pctPositiveMonths": 63.26530612244898,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -9.925217545143838,
+              "maxMonthlySweepDdPct": 17.438165808280615,
+              "totalSweptNetPct": 163.2038588075291,
+              "compoundedNetPct": 346.33010418982224,
+              "cagrPct": 45.20132978399975,
+              "geomMonthlyPct": 3.099910764837377,
+              "maxCompoundedDdPct": 19.613391287676286,
+              "winRatePct": 79.03225806451613,
+              "profitFactor": 1.8455464478324235,
+              "liquidationCount": 0,
+              "count": 186,
+              "long": {
+                "count": 91,
+                "wins": 71,
+                "winRatePct": 78.02197802197803,
+                "profitFactor": 1.734790423766436,
+                "netSumPct": 67.22658689758012
+              },
+              "short": {
+                "count": 95,
+                "wins": 76,
+                "winRatePct": 80,
+                "profitFactor": 1.9491747723749884,
+                "netSumPct": 92.81381884684565
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": 0.4822639680496763,
+              "medianMonthlySweepPct": 1.458227059103523,
+              "pctPositiveMonths": 53.84615384615385,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -9.365839710659142,
+              "maxMonthlySweepDdPct": 19.84330714550702,
+              "totalSweptNetPct": 6.269431584645792,
+              "compoundedNetPct": 4.249142188789845,
+              "cagrPct": 4.237298039622073,
+              "geomMonthlyPct": 0.32061631084723263,
+              "maxCompoundedDdPct": 20.621560041806326,
+              "winRatePct": 71.42857142857143,
+              "profitFactor": 1.1025844392336108,
+              "liquidationCount": 0,
+              "count": 49,
+              "long": {
+                "count": 17,
+                "wins": 14,
+                "winRatePct": 82.35294117647058,
+                "profitFactor": 2.4438297764785237,
+                "netSumPct": 20.703467116988936
+              },
+              "short": {
+                "count": 32,
+                "wins": 21,
+                "winRatePct": 65.625,
+                "profitFactor": 0.7536754399629767,
+                "netSumPct": -13.577845310101193
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 2.6809295538500426,
+              "medianMonthlySweepPct": 1.5245355000000016,
+              "pctPositiveMonths": 60.65573770491803,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -9.925217545143838,
+              "maxMonthlySweepDdPct": 19.843307145507026,
+              "totalSweptNetPct": 163.5367027848526,
+              "compoundedNetPct": 339.46883589569336,
+              "cagrPct": 34.348125714849644,
+              "geomMonthlyPct": 2.4565681121328176,
+              "maxCompoundedDdPct": 20.621560041806312,
+              "winRatePct": 77.11864406779661,
+              "profitFactor": 1.6115170603006166,
+              "liquidationCount": 0,
+              "count": 236,
+              "long": {
+                "count": 108,
+                "wins": 85,
+                "winRatePct": 78.70370370370371,
+                "profitFactor": 1.830860515997784,
+                "netSumPct": 87.93005401456904
+              },
+              "short": {
+                "count": 128,
+                "wins": 97,
+                "winRatePct": 75.78125,
+                "profitFactor": 1.465021266136003,
+                "netSumPct": 73.68541913013968
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 37,
+            "wins": 29,
+            "winRatePct": 78.37837837837837,
+            "profitFactor": 2.1117594971756537,
+            "netSumPct": 37.45204376029816
+          },
+          "val": {
+            "count": 54,
+            "wins": 42,
+            "winRatePct": 77.77777777777779,
+            "profitFactor": 1.5150979740517705,
+            "netSumPct": 29.77454313728192
+          },
+          "calVal": {
+            "count": 91,
+            "wins": 71,
+            "winRatePct": 78.02197802197803,
+            "profitFactor": 1.734790423766436,
+            "netSumPct": 67.22658689758012
+          },
+          "holdoutY5": {
+            "count": 17,
+            "wins": 14,
+            "winRatePct": 82.35294117647058,
+            "profitFactor": 2.4438297764785237,
+            "netSumPct": 20.703467116988936
+          },
+          "full5y": {
+            "count": 108,
+            "wins": 85,
+            "winRatePct": 78.70370370370371,
+            "profitFactor": 1.830860515997784,
+            "netSumPct": 87.93005401456904
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 62,
+            "wins": 49,
+            "winRatePct": 79.03225806451613,
+            "profitFactor": 1.9020975908512654,
+            "netSumPct": 60.31094774604669
+          },
+          "val": {
+            "count": 33,
+            "wins": 27,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 2.050942561403141,
+            "netSumPct": 32.502871100798956
+          },
+          "calVal": {
+            "count": 95,
+            "wins": 76,
+            "winRatePct": 80,
+            "profitFactor": 1.9491747723749884,
+            "netSumPct": 92.81381884684565
+          },
+          "holdoutY5": {
+            "count": 32,
+            "wins": 21,
+            "winRatePct": 65.625,
+            "profitFactor": 0.7536754399629767,
+            "netSumPct": -13.577845310101193
+          },
+          "full5y": {
+            "count": 128,
+            "wins": 97,
+            "winRatePct": 75.78125,
+            "profitFactor": 1.465021266136003,
+            "netSumPct": 73.68541913013968
+          }
+        },
+        "qualifiedForBothProfiles": false
+      }
+    },
+    "BTC_15m": {
+      "EXCHANGE_POST_ONLY": {
+        "id": "BTC_15m",
+        "coin": "BTCUSDT",
+        "timeframe": "15m",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 175808,
+        "splits": {
+          "cal": [
+            0,
+            87904
+          ],
+          "val": [
+            87904,
+            140646
+          ],
+          "holdoutY5": [
+            140646,
+            175808
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.4782908241848607,
+              "medianMonthlySweepPct": 0.9251801866605236,
+              "pctPositiveMonths": 57.14285714285714,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.741240217684943,
+              "maxMonthlySweepDdPct": 18.61307557130169,
+              "totalSweptNetPct": 72.43625038505817,
+              "compoundedNetPct": 91.68534165634894,
+              "cagrPct": 17.612052114908593,
+              "geomMonthlyPct": 1.3367846924698057,
+              "maxCompoundedDdPct": 20.101147607882847,
+              "winRatePct": 78.03921568627452,
+              "profitFactor": 1.4166873044957804,
+              "liquidationCount": 0,
+              "count": 255,
+              "long": {
+                "count": 116,
+                "wins": 93,
+                "winRatePct": 80.17241379310344,
+                "profitFactor": 1.4287024357735767,
+                "netSumPct": 27.692743770648285
+              },
+              "short": {
+                "count": 139,
+                "wins": 106,
+                "winRatePct": 76.2589928057554,
+                "profitFactor": 1.4092800286839589,
+                "netSumPct": 42.884523984320225
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -2.052146248278027,
+              "medianMonthlySweepPct": -2.176482298959337,
+              "pctPositiveMonths": 15.384615384615385,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.508756058750455,
+              "maxMonthlySweepDdPct": 26.677901227614353,
+              "totalSweptNetPct": -26.677901227614353,
+              "compoundedNetPct": -24.298112751107137,
+              "cagrPct": -24.239955765587883,
+              "geomMonthlyPct": -2.118522594497707,
+              "maxCompoundedDdPct": 27.658184132376647,
+              "winRatePct": 65,
+              "profitFactor": 0.6264994591536486,
+              "liquidationCount": 0,
+              "count": 60,
+              "long": {
+                "count": 22,
+                "wins": 16,
+                "winRatePct": 72.72727272727273,
+                "profitFactor": 0.792811760908082,
+                "netSumPct": -3.3066946348620254
+              },
+              "short": {
+                "count": 38,
+                "wins": 23,
+                "winRatePct": 60.526315789473685,
+                "profitFactor": 0.5764909389692894,
+                "netSumPct": -22.47874541806933
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.7501368714335053,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 49.18032786885246,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.741240217684943,
+              "maxMonthlySweepDdPct": 26.67790122761435,
+              "totalSweptNetPct": 45.758349157443824,
+              "compoundedNetPct": 45.10942121334436,
+              "cagrPct": 7.708391417053528,
+              "geomMonthlyPct": 0.6122236896945354,
+              "maxCompoundedDdPct": 27.65818413237663,
+              "winRatePct": 75.55555555555556,
+              "profitFactor": 1.1878739329208576,
+              "liquidationCount": 0,
+              "count": 315,
+              "long": {
+                "count": 138,
+                "wins": 109,
+                "winRatePct": 78.98550724637681,
+                "profitFactor": 1.3027197711965166,
+                "netSumPct": 24.386049135786262
+              },
+              "short": {
+                "count": 177,
+                "wins": 129,
+                "winRatePct": 72.88135593220339,
+                "profitFactor": 1.1292668675535966,
+                "netSumPct": 20.405778566250895
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 1.9113078904609384,
+              "medianMonthlySweepPct": 1.786122494445408,
+              "pctPositiveMonths": 54.83870967741935,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.0287941317137115,
+              "maxMonthlySweepDdPct": 8.649303524078057,
+              "totalSweptNetPct": 59.25054460428909,
+              "compoundedNetPct": 75.0113466791559,
+              "cagrPct": 25.013728682317414,
+              "geomMonthlyPct": 1.8218176245240247,
+              "maxCompoundedDdPct": 11.974072893901324,
+              "winRatePct": 83,
+              "profitFactor": 1.9309803088899182,
+              "liquidationCount": 0,
+              "count": 100,
+              "long": {
+                "count": 61,
+                "wins": 50,
+                "winRatePct": 81.9672131147541,
+                "profitFactor": 1.727568802302231,
+                "netSumPct": 26.458586454998454
+              },
+              "short": {
+                "count": 39,
+                "wins": 33,
+                "winRatePct": 84.61538461538461,
+                "profitFactor": 2.203815317296676,
+                "netSumPct": 32.638324492889694
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 1.4221262780194592,
+              "medianMonthlySweepPct": 0.9992887893379265,
+              "pctPositiveMonths": 57.89473684210527,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -6.554448567704673,
+              "maxMonthlySweepDdPct": 16.47820886118417,
+              "totalSweptNetPct": 27.020399282369727,
+              "compoundedNetPct": 26.98138314197116,
+              "cagrPct": 17.21141124189196,
+              "geomMonthlyPct": 1.2651482413489568,
+              "maxCompoundedDdPct": 15.804058281775912,
+              "winRatePct": 81.94444444444444,
+              "profitFactor": 1.6034310578583026,
+              "liquidationCount": 0,
+              "count": 72,
+              "long": {
+                "count": 37,
+                "wins": 31,
+                "winRatePct": 83.78378378378379,
+                "profitFactor": 1.4565553366319732,
+                "netSumPct": 7.934134686392188
+              },
+              "short": {
+                "count": 35,
+                "wins": 28,
+                "winRatePct": 80,
+                "profitFactor": 1.706869287204133,
+                "netSumPct": 17.442719301493234
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.7575154466237988,
+              "medianMonthlySweepPct": 1.07330589569834,
+              "pctPositiveMonths": 57.14285714285714,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.0287941317137115,
+              "maxMonthlySweepDdPct": 13.510178276243806,
+              "totalSweptNetPct": 86.11825688456614,
+              "compoundedNetPct": 122.23182866858235,
+              "cagrPct": 22.02863780126254,
+              "geomMonthlyPct": 1.6430477388539533,
+              "maxCompoundedDdPct": 15.804058281775909,
+              "winRatePct": 82.55813953488372,
+              "profitFactor": 1.8004531720416237,
+              "liquidationCount": 0,
+              "count": 172,
+              "long": {
+                "count": 98,
+                "wins": 81,
+                "winRatePct": 82.6530612244898,
+                "profitFactor": 1.6399359433507796,
+                "netSumPct": 34.392721141390645
+              },
+              "short": {
+                "count": 74,
+                "wins": 61,
+                "winRatePct": 82.43243243243244,
+                "profitFactor": 1.9670317030363906,
+                "netSumPct": 50.081043794382936
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -1.200740374617389,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 30.76923076923077,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.555740869514707,
+              "maxMonthlySweepDdPct": 20.0109997398023,
+              "totalSweptNetPct": -15.609624870026057,
+              "compoundedNetPct": -15.37850540549992,
+              "cagrPct": -15.339514745671433,
+              "geomMonthlyPct": -1.2762618024349082,
+              "maxCompoundedDdPct": 19.028990309446883,
+              "winRatePct": 70.96774193548387,
+              "profitFactor": 0.5429209661150486,
+              "liquidationCount": 0,
+              "count": 31,
+              "long": {
+                "count": 20,
+                "wins": 15,
+                "winRatePct": 75,
+                "profitFactor": 0.977834622070186,
+                "netSumPct": -0.30545487338503985
+              },
+              "short": {
+                "count": 11,
+                "wins": 7,
+                "winRatePct": 63.63636363636363,
+                "profitFactor": 0.2485725644920013,
+                "netSumPct": -15.300313448440964
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.155879213353116,
+              "medianMonthlySweepPct": 0.2529436645161365,
+              "pctPositiveMonths": 52.459016393442624,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.555740869514707,
+              "maxMonthlySweepDdPct": 20.0109997398023,
+              "totalSweptNetPct": 70.50863201454007,
+              "compoundedNetPct": 88.05589488404304,
+              "cagrPct": 13.424123212584771,
+              "geomMonthlyPct": 1.0407374796767677,
+              "maxCompoundedDdPct": 19.028990309446904,
+              "winRatePct": 80.78817733990148,
+              "profitFactor": 1.4930595307806755,
+              "liquidationCount": 0,
+              "count": 203,
+              "long": {
+                "count": 118,
+                "wins": 96,
+                "winRatePct": 81.35593220338984,
+                "profitFactor": 1.5048116174666033,
+                "netSumPct": 34.08726626800561
+              },
+              "short": {
+                "count": 85,
+                "wins": 68,
+                "winRatePct": 80,
+                "profitFactor": 1.4820608404502809,
+                "netSumPct": 34.78073034594197
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 61,
+            "wins": 50,
+            "winRatePct": 81.9672131147541,
+            "profitFactor": 1.727568802302231,
+            "netSumPct": 26.458586454998454
+          },
+          "val": {
+            "count": 37,
+            "wins": 31,
+            "winRatePct": 83.78378378378379,
+            "profitFactor": 1.4565553366319732,
+            "netSumPct": 7.934134686392188
+          },
+          "calVal": {
+            "count": 98,
+            "wins": 81,
+            "winRatePct": 82.6530612244898,
+            "profitFactor": 1.6399359433507796,
+            "netSumPct": 34.392721141390645
+          },
+          "holdoutY5": {
+            "count": 20,
+            "wins": 15,
+            "winRatePct": 75,
+            "profitFactor": 0.977834622070186,
+            "netSumPct": -0.30545487338503985
+          },
+          "full5y": {
+            "count": 118,
+            "wins": 96,
+            "winRatePct": 81.35593220338984,
+            "profitFactor": 1.5048116174666033,
+            "netSumPct": 34.08726626800561
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 39,
+            "wins": 33,
+            "winRatePct": 84.61538461538461,
+            "profitFactor": 2.203815317296676,
+            "netSumPct": 32.638324492889694
+          },
+          "val": {
+            "count": 35,
+            "wins": 28,
+            "winRatePct": 80,
+            "profitFactor": 1.706869287204133,
+            "netSumPct": 17.442719301493234
+          },
+          "calVal": {
+            "count": 74,
+            "wins": 61,
+            "winRatePct": 82.43243243243244,
+            "profitFactor": 1.9670317030363906,
+            "netSumPct": 50.081043794382936
+          },
+          "holdoutY5": {
+            "count": 11,
+            "wins": 7,
+            "winRatePct": 63.63636363636363,
+            "profitFactor": 0.2485725644920013,
+            "netSumPct": -15.300313448440964
+          },
+          "full5y": {
+            "count": 85,
+            "wins": 68,
+            "winRatePct": 80,
+            "profitFactor": 1.4820608404502809,
+            "netSumPct": 34.78073034594197
+          }
+        },
+        "qualifiedForBothProfiles": false
+      },
+      "STRICT_TAKER": {
+        "id": "BTC_15m",
+        "coin": "BTCUSDT",
+        "timeframe": "15m",
+        "execProfile": "STRICT_TAKER",
+        "bars": 175808,
+        "splits": {
+          "cal": [
+            0,
+            87904
+          ],
+          "val": [
+            87904,
+            140646
+          ],
+          "holdoutY5": [
+            140646,
+            175808
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 0.9864190847043626,
+              "medianMonthlySweepPct": 0.7696903063086236,
+              "pctPositiveMonths": 55.10204081632652,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.927253946127067,
+              "maxMonthlySweepDdPct": 19.167399810770366,
+              "totalSweptNetPct": 48.334535150513766,
+              "compoundedNetPct": 51.94346685811377,
+              "cagrPct": 10.99281918628181,
+              "geomMonthlyPct": 0.8574065620076565,
+              "maxCompoundedDdPct": 20.291167607224814,
+              "winRatePct": 77.22007722007721,
+              "profitFactor": 1.2608061122447882,
+              "liquidationCount": 0,
+              "count": 259,
+              "long": {
+                "count": 119,
+                "wins": 94,
+                "winRatePct": 78.99159663865547,
+                "profitFactor": 1.2176090437638376,
+                "netSumPct": 15.750100264081018
+              },
+              "short": {
+                "count": 140,
+                "wins": 106,
+                "winRatePct": 75.71428571428571,
+                "profitFactor": 1.289343654556059,
+                "netSumPct": 31.69991161398618
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -2.196020782118711,
+              "medianMonthlySweepPct": -2.3448890671390443,
+              "pctPositiveMonths": 15.384615384615385,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.827581728731737,
+              "maxMonthlySweepDdPct": 28.548270167543244,
+              "totalSweptNetPct": -28.548270167543244,
+              "compoundedNetPct": -25.747338486648086,
+              "cagrPct": -25.686332183168503,
+              "geomMonthlyPct": -2.2639526741702776,
+              "maxCompoundedDdPct": 28.988440789148434,
+              "winRatePct": 65,
+              "profitFactor": 0.6048645726656058,
+              "liquidationCount": 0,
+              "count": 60,
+              "long": {
+                "count": 22,
+                "wins": 16,
+                "winRatePct": 72.72727272727273,
+                "profitFactor": 0.7883503998370713,
+                "netSumPct": -3.46188069825166
+              },
+              "short": {
+                "count": 38,
+                "wins": 23,
+                "winRatePct": 60.526315789473685,
+                "profitFactor": 0.5490334352553788,
+                "netSumPct": -24.241809686489127
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.3243649997208282,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 47.540983606557376,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -8.927253946127067,
+              "maxMonthlySweepDdPct": 28.548270167543244,
+              "totalSweptNetPct": 19.786264982970522,
+              "compoundedNetPct": 12.822068137807241,
+              "cagrPct": 2.4353331244278076,
+              "geomMonthlyPct": 0.19796909969589382,
+              "maxCompoundedDdPct": 28.988440789148452,
+              "winRatePct": 74.92163009404389,
+              "profitFactor": 1.0783435418912102,
+              "liquidationCount": 0,
+              "count": 319,
+              "long": {
+                "count": 141,
+                "wins": 110,
+                "winRatePct": 78.01418439716312,
+                "profitFactor": 1.1384827979277805,
+                "netSumPct": 12.288219565829355
+              },
+              "short": {
+                "count": 178,
+                "wins": 129,
+                "winRatePct": 72.47191011235955,
+                "profitFactor": 1.0456674709065363,
+                "netSumPct": 7.458101927497057
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 1.4628437433304662,
+              "medianMonthlySweepPct": 0.949678433585821,
+              "pctPositiveMonths": 51.61290322580645,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.4611362849303475,
+              "maxMonthlySweepDdPct": 10.997219567391603,
+              "totalSweptNetPct": 45.34815604324445,
+              "compoundedNetPct": 52.90185006262726,
+              "cagrPct": 18.45712258378851,
+              "geomMonthlyPct": 1.3791855881518877,
+              "maxCompoundedDdPct": 13.981474917102748,
+              "winRatePct": 82.17821782178217,
+              "profitFactor": 1.6715594801690472,
+              "liquidationCount": 0,
+              "count": 101,
+              "long": {
+                "count": 61,
+                "wins": 49,
+                "winRatePct": 80.32786885245902,
+                "profitFactor": 1.375005963194072,
+                "netSumPct": 15.196221212274645
+              },
+              "short": {
+                "count": 40,
+                "wins": 34,
+                "winRatePct": 85,
+                "profitFactor": 2.1114584492304576,
+                "netSumPct": 30.36272874089057
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 1.2499736493159048,
+              "medianMonthlySweepPct": 0.9653660720738477,
+              "pctPositiveMonths": 57.89473684210527,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -6.046708103132181,
+              "maxMonthlySweepDdPct": 16.38493467532018,
+              "totalSweptNetPct": 23.74949933700219,
+              "compoundedNetPct": 23.153456038696717,
+              "cagrPct": 14.850254081099944,
+              "geomMonthlyPct": 1.1021398366457769,
+              "maxCompoundedDdPct": 15.655530266821028,
+              "winRatePct": 82.43243243243244,
+              "profitFactor": 1.5221644195171178,
+              "liquidationCount": 0,
+              "count": 74,
+              "long": {
+                "count": 39,
+                "wins": 33,
+                "winRatePct": 84.61538461538461,
+                "profitFactor": 1.4850903185156126,
+                "netSumPct": 8.605174181810861
+              },
+              "short": {
+                "count": 35,
+                "wins": 28,
+                "winRatePct": 80,
+                "profitFactor": 1.5485385202334598,
+                "netSumPct": 13.678458513554693
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.4088254030116087,
+              "medianMonthlySweepPct": 0.949678433585821,
+              "pctPositiveMonths": 53.06122448979592,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.4611362849303475,
+              "maxMonthlySweepDdPct": 21.06868677794602,
+              "totalSweptNetPct": 69.03244474756883,
+              "compoundedNetPct": 88.3039126992317,
+              "cagrPct": 17.091341737087372,
+              "geomMonthlyPct": 1.2999834415244882,
+              "maxCompoundedDdPct": 21.400576290061537,
+              "winRatePct": 82.28571428571428,
+              "profitFactor": 1.6138709268797706,
+              "liquidationCount": 0,
+              "count": 175,
+              "long": {
+                "count": 100,
+                "wins": 82,
+                "winRatePct": 82,
+                "profitFactor": 1.408523936524004,
+                "netSumPct": 23.801395394085517
+              },
+              "short": {
+                "count": 75,
+                "wins": 62,
+                "winRatePct": 82.66666666666667,
+                "profitFactor": 1.8428273668761426,
+                "netSumPct": 44.04118725444526
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -1.2495909376417678,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 30.76923076923077,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.641517045637706,
+              "maxMonthlySweepDdPct": 20.61003029981264,
+              "totalSweptNetPct": -16.24468218934298,
+              "compoundedNetPct": -15.90650315932487,
+              "cagrPct": -15.86630304709703,
+              "geomMonthlyPct": -1.3237825767564604,
+              "maxCompoundedDdPct": 20.01167609256739,
+              "winRatePct": 70.96774193548387,
+              "profitFactor": 0.5324496969681438,
+              "liquidationCount": 0,
+              "count": 31,
+              "long": {
+                "count": 20,
+                "wins": 15,
+                "winRatePct": 75,
+                "profitFactor": 0.974161543386688,
+                "netSumPct": -0.3655252454558709
+              },
+              "short": {
+                "count": 11,
+                "wins": 7,
+                "winRatePct": 63.63636363636363,
+                "profitFactor": 0.2282688351213798,
+                "netSumPct": -15.853458067978282
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.8653731566922269,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 49.18032786885246,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -11.641517045637706,
+              "maxMonthlySweepDdPct": 21.06868677794602,
+              "totalSweptNetPct": 52.78776255822584,
+              "compoundedNetPct": 58.3513448765961,
+              "cagrPct": 9.600808402836014,
+              "geomMonthlyPct": 0.7563642562070871,
+              "maxCompoundedDdPct": 21.400576290061537,
+              "winRatePct": 80.58252427184466,
+              "profitFactor": 1.3555214100498927,
+              "liquidationCount": 0,
+              "count": 206,
+              "long": {
+                "count": 120,
+                "wins": 97,
+                "winRatePct": 80.83333333333333,
+                "profitFactor": 1.323661888804183,
+                "netSumPct": 23.435870148629647
+              },
+              "short": {
+                "count": 86,
+                "wins": 69,
+                "winRatePct": 80.23255813953489,
+                "profitFactor": 1.3872109793801939,
+                "netSumPct": 28.187729186466974
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 61,
+            "wins": 49,
+            "winRatePct": 80.32786885245902,
+            "profitFactor": 1.375005963194072,
+            "netSumPct": 15.196221212274645
+          },
+          "val": {
+            "count": 39,
+            "wins": 33,
+            "winRatePct": 84.61538461538461,
+            "profitFactor": 1.4850903185156126,
+            "netSumPct": 8.605174181810861
+          },
+          "calVal": {
+            "count": 100,
+            "wins": 82,
+            "winRatePct": 82,
+            "profitFactor": 1.408523936524004,
+            "netSumPct": 23.801395394085517
+          },
+          "holdoutY5": {
+            "count": 20,
+            "wins": 15,
+            "winRatePct": 75,
+            "profitFactor": 0.974161543386688,
+            "netSumPct": -0.3655252454558709
+          },
+          "full5y": {
+            "count": 120,
+            "wins": 97,
+            "winRatePct": 80.83333333333333,
+            "profitFactor": 1.323661888804183,
+            "netSumPct": 23.435870148629647
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 40,
+            "wins": 34,
+            "winRatePct": 85,
+            "profitFactor": 2.1114584492304576,
+            "netSumPct": 30.36272874089057
+          },
+          "val": {
+            "count": 35,
+            "wins": 28,
+            "winRatePct": 80,
+            "profitFactor": 1.5485385202334598,
+            "netSumPct": 13.678458513554693
+          },
+          "calVal": {
+            "count": 75,
+            "wins": 62,
+            "winRatePct": 82.66666666666667,
+            "profitFactor": 1.8428273668761426,
+            "netSumPct": 44.04118725444526
+          },
+          "holdoutY5": {
+            "count": 11,
+            "wins": 7,
+            "winRatePct": 63.63636363636363,
+            "profitFactor": 0.2282688351213798,
+            "netSumPct": -15.853458067978282
+          },
+          "full5y": {
+            "count": 86,
+            "wins": 69,
+            "winRatePct": 80.23255813953489,
+            "profitFactor": 1.3872109793801939,
+            "netSumPct": 28.187729186466974
+          }
+        },
+        "qualifiedForBothProfiles": false
+      }
+    },
+    "BNB_1h": {
+      "EXCHANGE_POST_ONLY": {
+        "id": "BNB_1h",
+        "coin": "BNBUSDT",
+        "timeframe": "1h",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.5061943603567327,
+              "medianMonthlySweepPct": 0.2072603999999867,
+              "pctPositiveMonths": 53.06122448979592,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.202462950722513,
+              "maxMonthlySweepDdPct": 17.996507499786304,
+              "totalSweptNetPct": 73.8035236574799,
+              "compoundedNetPct": 93.12388838175532,
+              "cagrPct": 17.83217369482699,
+              "geomMonthlyPct": 1.3522484376857768,
+              "maxCompoundedDdPct": 19.89145311237592,
+              "winRatePct": 74.01129943502825,
+              "profitFactor": 1.3913663494181414,
+              "liquidationCount": 0,
+              "count": 177,
+              "long": {
+                "count": 85,
+                "wins": 63,
+                "winRatePct": 74.11764705882354,
+                "profitFactor": 1.5617693254593612,
+                "netSumPct": 51.24684722073166
+              },
+              "short": {
+                "count": 92,
+                "wins": 68,
+                "winRatePct": 73.91304347826086,
+                "profitFactor": 1.2357256356495467,
+                "netSumPct": 23.54343937460401
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -0.23669362960039292,
+              "medianMonthlySweepPct": -1.7320054996856404,
+              "pctPositiveMonths": 30.76923076923077,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.838913285301023,
+              "maxMonthlySweepDdPct": 22.935249203225684,
+              "totalSweptNetPct": -3.0770171848051078,
+              "compoundedNetPct": -5.128860144883984,
+              "cagrPct": -5.1152208682529565,
+              "geomMonthlyPct": -0.4041858669061815,
+              "maxCompoundedDdPct": 24.150551510407784,
+              "winRatePct": 63.63636363636363,
+              "profitFactor": 0.9427834663188869,
+              "liquidationCount": 0,
+              "count": 44,
+              "long": {
+                "count": 14,
+                "wins": 8,
+                "winRatePct": 57.14285714285714,
+                "profitFactor": 0.9223963752334637,
+                "netSumPct": -1.7067281259420937
+              },
+              "short": {
+                "count": 30,
+                "wins": 20,
+                "winRatePct": 66.66666666666666,
+                "profitFactor": 0.9550333763894148,
+                "netSumPct": -1.6458679197951902
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.0803445631563302,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 49.18032786885246,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -12.838913285301023,
+              "maxMonthlySweepDdPct": 24.455336937042084,
+              "totalSweptNetPct": 65.90101835253614,
+              "compoundedNetPct": 75.02638553336713,
+              "cagrPct": 11.811596568278793,
+              "geomMonthlyPct": 0.9218734006020357,
+              "maxCompoundedDdPct": 24.150551510407777,
+              "winRatePct": 71.62162162162163,
+              "profitFactor": 1.2634738545056998,
+              "liquidationCount": 0,
+              "count": 222,
+              "long": {
+                "count": 99,
+                "wins": 71,
+                "winRatePct": 71.71717171717171,
+                "profitFactor": 1.4375682507908847,
+                "netSumPct": 49.54011909478956
+              },
+              "short": {
+                "count": 123,
+                "wins": 88,
+                "winRatePct": 71.54471544715447,
+                "profitFactor": 1.1236338437690176,
+                "netSumPct": 17.4261704981901
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 2.3646202831211993,
+              "medianMonthlySweepPct": 1.623014889913743,
+              "pctPositiveMonths": 70.96774193548387,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.280478401431257,
+              "maxMonthlySweepDdPct": 7.280478401431253,
+              "totalSweptNetPct": 73.30322877675718,
+              "compoundedNetPct": 99.79498057821228,
+              "cagrPct": 31.79700637021048,
+              "geomMonthlyPct": 2.25776034613836,
+              "maxCompoundedDdPct": 7.613455803085188,
+              "winRatePct": 83.60655737704919,
+              "profitFactor": 2.742117791102074,
+              "liquidationCount": 0,
+              "count": 61,
+              "long": {
+                "count": 34,
+                "wins": 26,
+                "winRatePct": 76.47058823529412,
+                "profitFactor": 1.9909836967772991,
+                "netSumPct": 32.027601454563154
+              },
+              "short": {
+                "count": 27,
+                "wins": 25,
+                "winRatePct": 92.5925925925926,
+                "profitFactor": 5.438094583011669,
+                "netSumPct": 39.962788572581196
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 2.1354831017658165,
+              "medianMonthlySweepPct": 1.4348639940911179,
+              "pctPositiveMonths": 57.89473684210527,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -4.284406831562693,
+              "maxMonthlySweepDdPct": 6.966960767026455,
+              "totalSweptNetPct": 40.57417893355051,
+              "compoundedNetPct": 47.04171263232306,
+              "cagrPct": 29.220285121474987,
+              "geomMonthlyPct": 2.0499181336678385,
+              "maxCompoundedDdPct": 11.213687949578098,
+              "winRatePct": 82.05128205128204,
+              "profitFactor": 2.4408992185516,
+              "liquidationCount": 0,
+              "count": 39,
+              "long": {
+                "count": 22,
+                "wins": 18,
+                "winRatePct": 81.81818181818183,
+                "profitFactor": 2.475630716545119,
+                "netSumPct": 22.80220148625614
+              },
+              "short": {
+                "count": 17,
+                "wins": 14,
+                "winRatePct": 82.35294117647058,
+                "profitFactor": 2.3978613664878625,
+                "netSumPct": 17.43155461604537
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 2.32402872878179,
+              "medianMonthlySweepPct": 1.623014889913743,
+              "pctPositiveMonths": 67.3469387755102,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.280478401431257,
+              "maxMonthlySweepDdPct": 7.280478401431253,
+              "totalSweptNetPct": 113.87740771030771,
+              "compoundedNetPct": 193.78196119562068,
+              "cagrPct": 30.823815227868256,
+              "geomMonthlyPct": 2.2236851545262004,
+              "maxCompoundedDdPct": 11.213687949578096,
+              "winRatePct": 83,
+              "profitFactor": 2.620655071209394,
+              "liquidationCount": 0,
+              "count": 100,
+              "long": {
+                "count": 56,
+                "wins": 44,
+                "winRatePct": 78.57142857142857,
+                "profitFactor": 2.147751060962661,
+                "netSumPct": 54.829802940819285
+              },
+              "short": {
+                "count": 44,
+                "wins": 39,
+                "winRatePct": 88.63636363636364,
+                "profitFactor": 3.6726553185447326,
+                "netSumPct": 57.39434318862657
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": 0.30357003479967415,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 46.15384615384615,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -6.943344253596262,
+              "maxMonthlySweepDdPct": 15.623197975662375,
+              "totalSweptNetPct": 3.9464104523957637,
+              "compoundedNetPct": 2.9801795690434396,
+              "cagrPct": 2.9719228291059885,
+              "geomMonthlyPct": 0.22615035314399456,
+              "maxCompoundedDdPct": 16.402572092224414,
+              "winRatePct": 70,
+              "profitFactor": 1.1187776602976156,
+              "liquidationCount": 0,
+              "count": 30,
+              "long": {
+                "count": 9,
+                "wins": 6,
+                "winRatePct": 66.66666666666666,
+                "profitFactor": 1.0500944337637867,
+                "netSumPct": 0.5999426642738506
+              },
+              "short": {
+                "count": 21,
+                "wins": 15,
+                "winRatePct": 71.42857142857143,
+                "profitFactor": 1.152833751876519,
+                "netSumPct": 3.6914367701750708
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.8409368478752859,
+              "medianMonthlySweepPct": 1.4348639940911179,
+              "pctPositiveMonths": 63.934426229508205,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.280478401431257,
+              "maxMonthlySweepDdPct": 15.623197975662379,
+              "totalSweptNetPct": 112.29714772039245,
+              "compoundedNetPct": 186.75330037616504,
+              "cagrPct": 23.38142301316042,
+              "geomMonthlyPct": 1.7419689745111322,
+              "maxCompoundedDdPct": 17.452472170079435,
+              "winRatePct": 79.38931297709924,
+              "profitFactor": 2.00637923778629,
+              "liquidationCount": 0,
+              "count": 131,
+              "long": {
+                "count": 65,
+                "wins": 50,
+                "winRatePct": 76.92307692307693,
+                "profitFactor": 1.9277294922528367,
+                "netSumPct": 55.429745605093125
+              },
+              "short": {
+                "count": 66,
+                "wins": 54,
+                "winRatePct": 81.81818181818183,
+                "profitFactor": 2.098800026019284,
+                "netSumPct": 55.86860624771407
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 34,
+            "wins": 26,
+            "winRatePct": 76.47058823529412,
+            "profitFactor": 1.9909836967772991,
+            "netSumPct": 32.027601454563154
+          },
+          "val": {
+            "count": 22,
+            "wins": 18,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 2.475630716545119,
+            "netSumPct": 22.80220148625614
+          },
+          "calVal": {
+            "count": 56,
+            "wins": 44,
+            "winRatePct": 78.57142857142857,
+            "profitFactor": 2.147751060962661,
+            "netSumPct": 54.829802940819285
+          },
+          "holdoutY5": {
+            "count": 9,
+            "wins": 6,
+            "winRatePct": 66.66666666666666,
+            "profitFactor": 1.0500944337637867,
+            "netSumPct": 0.5999426642738506
+          },
+          "full5y": {
+            "count": 65,
+            "wins": 50,
+            "winRatePct": 76.92307692307693,
+            "profitFactor": 1.9277294922528367,
+            "netSumPct": 55.429745605093125
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 27,
+            "wins": 25,
+            "winRatePct": 92.5925925925926,
+            "profitFactor": 5.438094583011669,
+            "netSumPct": 39.962788572581196
+          },
+          "val": {
+            "count": 17,
+            "wins": 14,
+            "winRatePct": 82.35294117647058,
+            "profitFactor": 2.3978613664878625,
+            "netSumPct": 17.43155461604537
+          },
+          "calVal": {
+            "count": 44,
+            "wins": 39,
+            "winRatePct": 88.63636363636364,
+            "profitFactor": 3.6726553185447326,
+            "netSumPct": 57.39434318862657
+          },
+          "holdoutY5": {
+            "count": 21,
+            "wins": 15,
+            "winRatePct": 71.42857142857143,
+            "profitFactor": 1.152833751876519,
+            "netSumPct": 3.6914367701750708
+          },
+          "full5y": {
+            "count": 66,
+            "wins": 54,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 2.098800026019284,
+            "netSumPct": 55.86860624771407
+          }
+        },
+        "qualifiedForBothProfiles": false
+      },
+      "STRICT_TAKER": {
+        "id": "BNB_1h",
+        "coin": "BNBUSDT",
+        "timeframe": "1h",
+        "execProfile": "STRICT_TAKER",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.0392606567906555,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 46.93877551020408,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.417644450061282,
+              "maxMonthlySweepDdPct": 22.072152499843874,
+              "totalSweptNetPct": 50.92377218274212,
+              "compoundedNetPct": 53.0457037203498,
+              "cagrPct": 11.1934301797066,
+              "geomMonthlyPct": 0.8722853017552934,
+              "maxCompoundedDdPct": 20.818764600558698,
+              "winRatePct": 72.31638418079096,
+              "profitFactor": 1.248293100773181,
+              "liquidationCount": 0,
+              "count": 177,
+              "long": {
+                "count": 85,
+                "wins": 61,
+                "winRatePct": 71.76470588235294,
+                "profitFactor": 1.296096767320726,
+                "netSumPct": 31.135264659064852
+              },
+              "short": {
+                "count": 92,
+                "wins": 67,
+                "winRatePct": 72.82608695652173,
+                "profitFactor": 1.2003253616743519,
+                "netSumPct": 20.992627065782404
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -1.2050240072501976,
+              "medianMonthlySweepPct": -0.1954646404584981,
+              "pctPositiveMonths": 38.46153846153847,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -13.107345275110816,
+              "maxMonthlySweepDdPct": 28.420100092028044,
+              "totalSweptNetPct": -15.665312094252569,
+              "compoundedNetPct": -15.863406194958806,
+              "cagrPct": -15.823716849478831,
+              "geomMonthlyPct": -1.3198934624654823,
+              "maxCompoundedDdPct": 30.17703822064668,
+              "winRatePct": 60,
+              "profitFactor": 0.772231449136021,
+              "liquidationCount": 0,
+              "count": 45,
+              "long": {
+                "count": 14,
+                "wins": 7,
+                "winRatePct": 50,
+                "profitFactor": 0.6152770142159265,
+                "netSumPct": -10.03740415527447
+              },
+              "short": {
+                "count": 31,
+                "wins": 20,
+                "winRatePct": 64.51612903225806,
+                "profitFactor": 0.8722708187980865,
+                "netSumPct": -5.228366821066469
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.49835820514073864,
+              "medianMonthlySweepPct": -0.1337446304408907,
+              "pctPositiveMonths": 45.90163934426229,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -13.107345275110816,
+              "maxMonthlySweepDdPct": 39.816012719189736,
+              "totalSweptNetPct": 30.399850513585058,
+              "compoundedNetPct": 22.96196663538783,
+              "cagrPct": 4.20888068443499,
+              "geomMonthlyPct": 0.3394352848982596,
+              "maxCompoundedDdPct": 36.304715342917845,
+              "winRatePct": 69.50672645739911,
+              "profitFactor": 1.114942478191327,
+              "liquidationCount": 0,
+              "count": 223,
+              "long": {
+                "count": 99,
+                "wins": 68,
+                "winRatePct": 68.68686868686868,
+                "profitFactor": 1.1607550584595612,
+                "netSumPct": 21.097860503790383
+              },
+              "short": {
+                "count": 124,
+                "wins": 87,
+                "winRatePct": 70.16129032258065,
+                "profitFactor": 1.0749213611341744,
+                "netSumPct": 11.255763883907013
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 2.143150195018907,
+              "medianMonthlySweepPct": 1.46999262191152,
+              "pctPositiveMonths": 67.74193548387096,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.452184833223219,
+              "maxMonthlySweepDdPct": 7.452184833223214,
+              "totalSweptNetPct": 66.43765604558612,
+              "compoundedNetPct": 86.41531151303168,
+              "cagrPct": 28.202715992853953,
+              "geomMonthlyPct": 2.029371706221239,
+              "maxCompoundedDdPct": 7.699419994870308,
+              "winRatePct": 81.9672131147541,
+              "profitFactor": 2.428010177024679,
+              "liquidationCount": 0,
+              "count": 61,
+              "long": {
+                "count": 34,
+                "wins": 26,
+                "winRatePct": 76.47058823529412,
+                "profitFactor": 1.8401899127695494,
+                "netSumPct": 27.457121871151152
+              },
+              "short": {
+                "count": 27,
+                "wins": 24,
+                "winRatePct": 88.88888888888889,
+                "profitFactor": 3.916395567905835,
+                "netSumPct": 37.640304914491715
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 1.2988904461610915,
+              "medianMonthlySweepPct": 0.38767499999998734,
+              "pctPositiveMonths": 52.63157894736842,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.112308303327575,
+              "maxMonthlySweepDdPct": 7.705995186448789,
+              "totalSweptNetPct": 24.67891847706074,
+              "compoundedNetPct": 25.428561531145366,
+              "cagrPct": 16.258170278794616,
+              "geomMonthlyPct": 1.1995916494636383,
+              "maxCompoundedDdPct": 11.368346459271454,
+              "winRatePct": 76.92307692307693,
+              "profitFactor": 1.59780022357481,
+              "liquidationCount": 0,
+              "count": 39,
+              "long": {
+                "count": 22,
+                "wins": 16,
+                "winRatePct": 72.72727272727273,
+                "profitFactor": 1.2871160855974146,
+                "netSumPct": 8.306918315866737
+              },
+              "short": {
+                "count": 17,
+                "wins": 14,
+                "winRatePct": 82.35294117647058,
+                "profitFactor": 2.3093037599464434,
+                "netSumPct": 16.541117568178276
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.8595219290336091,
+              "medianMonthlySweepPct": 1.2257995576178349,
+              "pctPositiveMonths": 63.26530612244898,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.452184833223219,
+              "maxMonthlySweepDdPct": 7.705995186448803,
+              "totalSweptNetPct": 91.11657452264684,
+              "compoundedNetPct": 133.81804370459943,
+              "cagrPct": 23.58555486166751,
+              "geomMonthlyPct": 1.748525170368076,
+              "maxCompoundedDdPct": 11.368346459271462,
+              "winRatePct": 80,
+              "profitFactor": 2.03205402164814,
+              "liquidationCount": 0,
+              "count": 100,
+              "long": {
+                "count": 56,
+                "wins": 42,
+                "winRatePct": 75,
+                "profitFactor": 1.5804726940756435,
+                "netSumPct": 35.76404018701789
+              },
+              "short": {
+                "count": 44,
+                "wins": 38,
+                "winRatePct": 86.36363636363636,
+                "profitFactor": 3.121436517256724,
+                "netSumPct": 54.18142248266999
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -0.7262168044069182,
+              "medianMonthlySweepPct": 0,
+              "pctPositiveMonths": 38.46153846153847,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.134360568261499,
+              "maxMonthlySweepDdPct": 23.465354102281225,
+              "totalSweptNetPct": -9.440818457289936,
+              "compoundedNetPct": -9.724816502401634,
+              "cagrPct": -9.69959568002392,
+              "geomMonthlyPct": -0.7838928407695511,
+              "maxCompoundedDdPct": 23.01262651972584,
+              "winRatePct": 64.51612903225806,
+              "profitFactor": 0.8078299176088174,
+              "liquidationCount": 0,
+              "count": 31,
+              "long": {
+                "count": 9,
+                "wins": 5,
+                "winRatePct": 55.55555555555556,
+                "profitFactor": 0.5072084145289774,
+                "netSumPct": -7.99770360500809
+              },
+              "short": {
+                "count": 22,
+                "wins": 15,
+                "winRatePct": 68.18181818181817,
+                "profitFactor": 0.9743809146255056,
+                "netSumPct": -0.7504788330070249
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.2476289042341837,
+              "medianMonthlySweepPct": 0.9999261791019398,
+              "pctPositiveMonths": 59.01639344262295,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -7.452184833223219,
+              "maxMonthlySweepDdPct": 24.185352006444546,
+              "totalSweptNetPct": 76.1053631582852,
+              "compoundedNetPct": 99.96630349174754,
+              "cagrPct": 14.82214426223707,
+              "geomMonthlyPct": 1.1425079620957623,
+              "maxCompoundedDdPct": 25.295064617178408,
+              "winRatePct": 75.75757575757575,
+              "profitFactor": 1.5504730738040629,
+              "liquidationCount": 0,
+              "count": 132,
+              "long": {
+                "count": 65,
+                "wins": 47,
+                "winRatePct": 72.3076923076923,
+                "profitFactor": 1.3567043909456948,
+                "netSumPct": 27.766336582009803
+              },
+              "short": {
+                "count": 67,
+                "wins": 53,
+                "winRatePct": 79.1044776119403,
+                "profitFactor": 1.8014469415686019,
+                "netSumPct": 48.165934178063615
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 34,
+            "wins": 26,
+            "winRatePct": 76.47058823529412,
+            "profitFactor": 1.8401899127695494,
+            "netSumPct": 27.457121871151152
+          },
+          "val": {
+            "count": 22,
+            "wins": 16,
+            "winRatePct": 72.72727272727273,
+            "profitFactor": 1.2871160855974146,
+            "netSumPct": 8.306918315866737
+          },
+          "calVal": {
+            "count": 56,
+            "wins": 42,
+            "winRatePct": 75,
+            "profitFactor": 1.5804726940756435,
+            "netSumPct": 35.76404018701789
+          },
+          "holdoutY5": {
+            "count": 9,
+            "wins": 5,
+            "winRatePct": 55.55555555555556,
+            "profitFactor": 0.5072084145289774,
+            "netSumPct": -7.99770360500809
+          },
+          "full5y": {
+            "count": 65,
+            "wins": 47,
+            "winRatePct": 72.3076923076923,
+            "profitFactor": 1.3567043909456948,
+            "netSumPct": 27.766336582009803
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 27,
+            "wins": 24,
+            "winRatePct": 88.88888888888889,
+            "profitFactor": 3.916395567905835,
+            "netSumPct": 37.640304914491715
+          },
+          "val": {
+            "count": 17,
+            "wins": 14,
+            "winRatePct": 82.35294117647058,
+            "profitFactor": 2.3093037599464434,
+            "netSumPct": 16.541117568178276
+          },
+          "calVal": {
+            "count": 44,
+            "wins": 38,
+            "winRatePct": 86.36363636363636,
+            "profitFactor": 3.121436517256724,
+            "netSumPct": 54.18142248266999
+          },
+          "holdoutY5": {
+            "count": 22,
+            "wins": 15,
+            "winRatePct": 68.18181818181817,
+            "profitFactor": 0.9743809146255056,
+            "netSumPct": -0.7504788330070249
+          },
+          "full5y": {
+            "count": 67,
+            "wins": 53,
+            "winRatePct": 79.1044776119403,
+            "profitFactor": 1.8014469415686019,
+            "netSumPct": 48.165934178063615
+          }
+        },
+        "qualifiedForBothProfiles": false
+      }
+    },
+    "BNB_15m": {
+      "EXCHANGE_POST_ONLY": {
+        "id": "BNB_15m",
+        "coin": "BNBUSDT",
+        "timeframe": "15m",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 175808,
+        "splits": {
+          "cal": [
+            0,
+            87904
+          ],
+          "val": [
+            87904,
+            140646
+          ],
+          "holdoutY5": [
+            140646,
+            175808
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.4934052495917571,
+              "medianMonthlySweepPct": 0.37153857825273917,
+              "pctPositiveMonths": 53.06122448979592,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.13084131136398,
+              "maxMonthlySweepDdPct": 18.736489990115935,
+              "totalSweptNetPct": 73.1768572299961,
+              "compoundedNetPct": 86.66006410844156,
+              "cagrPct": 16.835664302987418,
+              "geomMonthlyPct": 1.281858380245282,
+              "maxCompoundedDdPct": 22.336296101970156,
+              "winRatePct": 72.18181818181819,
+              "profitFactor": 1.160916562686094,
+              "liquidationCount": 0,
+              "count": 550,
+              "long": {
+                "count": 209,
+                "wins": 155,
+                "winRatePct": 74.16267942583733,
+                "profitFactor": 1.1395017002967684,
+                "netSumPct": 25.08912858153539
+              },
+              "short": {
+                "count": 341,
+                "wins": 242,
+                "winRatePct": 70.96774193548387,
+                "profitFactor": 1.1734595680908062,
+                "netSumPct": 53.26206687364047
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -1.9738752464923683,
+              "medianMonthlySweepPct": -3.184620967741947,
+              "pctPositiveMonths": 46.15384615384615,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -20.41327342553556,
+              "maxMonthlySweepDdPct": 51.384614448206,
+              "totalSweptNetPct": -25.66037820440079,
+              "compoundedNetPct": -27.912365423846953,
+              "cagrPct": -27.84724803163745,
+              "geomMonthlyPct": -2.4861701923141077,
+              "maxCompoundedDdPct": 43.21176910813199,
+              "winRatePct": 63.970588235294116,
+              "profitFactor": 0.8009707167272061,
+              "liquidationCount": 0,
+              "count": 136,
+              "long": {
+                "count": 31,
+                "wins": 18,
+                "winRatePct": 58.06451612903226,
+                "profitFactor": 0.690068520572524,
+                "netSumPct": -12.178673208781266
+              },
+              "short": {
+                "count": 105,
+                "wins": 69,
+                "winRatePct": 65.71428571428571,
+                "profitFactor": 0.8418379012520079,
+                "netSumPct": -16.86561315537094
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.7748974131654252,
+              "medianMonthlySweepPct": 0.37153857825273917,
+              "pctPositiveMonths": 52.459016393442624,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -20.41327342553556,
+              "maxMonthlySweepDdPct": 49.139168383074995,
+              "totalSweptNetPct": 47.26874220309094,
+              "compoundedNetPct": 34.55882491410635,
+              "cagrPct": 6.098933316936961,
+              "geomMonthlyPct": 0.48779451409037833,
+              "maxCompoundedDdPct": 45.05036901332426,
+              "winRatePct": 70.55393586005832,
+              "profitFactor": 1.0779142667116648,
+              "liquidationCount": 0,
+              "count": 686,
+              "long": {
+                "count": 240,
+                "wins": 173,
+                "winRatePct": 72.08333333333333,
+                "profitFactor": 1.0589134039414092,
+                "netSumPct": 12.910455372754122
+              },
+              "short": {
+                "count": 446,
+                "wins": 311,
+                "winRatePct": 69.73094170403587,
+                "profitFactor": 1.0879794827187375,
+                "netSumPct": 36.39645371826955
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 1.470757697351888,
+              "medianMonthlySweepPct": 0.8701279040737031,
+              "pctPositiveMonths": 58.06451612903226,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.02025508797765,
+              "maxMonthlySweepDdPct": 25.111037256484423,
+              "totalSweptNetPct": 45.593488617908534,
+              "compoundedNetPct": 42.99127547695161,
+              "cagrPct": 15.332599369720711,
+              "geomMonthlyPct": 1.1602712447051244,
+              "maxCompoundedDdPct": 23.356458188967235,
+              "winRatePct": 71.09375,
+              "profitFactor": 1.1750617198636168,
+              "liquidationCount": 0,
+              "count": 256,
+              "long": {
+                "count": 113,
+                "wins": 82,
+                "winRatePct": 72.56637168141593,
+                "profitFactor": 1.2189852035699844,
+                "netSumPct": 26.661813972794132
+              },
+              "short": {
+                "count": 143,
+                "wins": 100,
+                "winRatePct": 69.93006993006993,
+                "profitFactor": 1.1362641990825528,
+                "netSumPct": 18.78233118414711
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 2.6420647472511956,
+              "medianMonthlySweepPct": 1.5016243062308865,
+              "pctPositiveMonths": 68.42105263157895,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -5.3124961167448355,
+              "maxMonthlySweepDdPct": 7.169741848535416,
+              "totalSweptNetPct": 50.199230197772714,
+              "compoundedNetPct": 59.93663383208525,
+              "cagrPct": 36.64429162395106,
+              "geomMonthlyPct": 2.502416185641132,
+              "maxCompoundedDdPct": 15.677331869318856,
+              "winRatePct": 76.04790419161677,
+              "profitFactor": 1.3399023147981806,
+              "liquidationCount": 0,
+              "count": 167,
+              "long": {
+                "count": 94,
+                "wins": 71,
+                "winRatePct": 75.53191489361703,
+                "profitFactor": 1.1290535674422277,
+                "netSumPct": 12.351717212988618
+              },
+              "short": {
+                "count": 73,
+                "wins": 56,
+                "winRatePct": 76.71232876712328,
+                "profitFactor": 1.66963612921697,
+                "netSumPct": 40.98299959660054
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 1.9566656117018635,
+              "medianMonthlySweepPct": 1.3988319126384985,
+              "pctPositiveMonths": 61.224489795918366,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.02025508797765,
+              "maxMonthlySweepDdPct": 25.111037256484423,
+              "totalSweptNetPct": 95.87661497339131,
+              "compoundedNetPct": 128.69543267140017,
+              "cagrPct": 22.90398417889672,
+              "geomMonthlyPct": 1.702536736308935,
+              "maxCompoundedDdPct": 23.356458188967235,
+              "winRatePct": 73.04964539007092,
+              "profitFactor": 1.2371634666414888,
+              "liquidationCount": 0,
+              "count": 423,
+              "long": {
+                "count": 207,
+                "wins": 153,
+                "winRatePct": 73.91304347826086,
+                "profitFactor": 1.1794041728135256,
+                "netSumPct": 39.01353118578277
+              },
+              "short": {
+                "count": 216,
+                "wins": 156,
+                "winRatePct": 72.22222222222221,
+                "profitFactor": 1.3002686916585269,
+                "netSumPct": 59.76533078074766
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -0.9373530433456703,
+              "medianMonthlySweepPct": -2.196542411178626,
+              "pctPositiveMonths": 38.46153846153847,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -15.03158991798813,
+              "maxMonthlySweepDdPct": 29.68967463096498,
+              "totalSweptNetPct": -12.185589563493714,
+              "compoundedNetPct": -16.78179998392664,
+              "cagrPct": -16.739615012006404,
+              "geomMonthlyPct": -1.403171038447304,
+              "maxCompoundedDdPct": 29.740627844895627,
+              "winRatePct": 65.06024096385542,
+              "profitFactor": 0.8543425079736048,
+              "liquidationCount": 0,
+              "count": 83,
+              "long": {
+                "count": 30,
+                "wins": 17,
+                "winRatePct": 56.666666666666664,
+                "profitFactor": 0.6615916979725847,
+                "netSumPct": -17.849066992322946
+              },
+              "short": {
+                "count": 53,
+                "wins": 37,
+                "winRatePct": 69.81132075471697,
+                "profitFactor": 1.0542082320095325,
+                "netSumPct": 2.757386496185028
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 1.3719840231130753,
+              "medianMonthlySweepPct": 0.9593959841417865,
+              "pctPositiveMonths": 57.377049180327866,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -15.03158991798813,
+              "maxMonthlySweepDdPct": 29.689674630964987,
+              "totalSweptNetPct": 83.69102540989759,
+              "compoundedNetPct": 90.3162225881101,
+              "cagrPct": 13.69472815287336,
+              "geomMonthlyPct": 1.0605297971832295,
+              "maxCompoundedDdPct": 32.96521898731631,
+              "winRatePct": 71.73913043478261,
+              "profitFactor": 1.160902258683053,
+              "liquidationCount": 0,
+              "count": 506,
+              "long": {
+                "count": 237,
+                "wins": 170,
+                "winRatePct": 71.72995780590718,
+                "profitFactor": 1.0783271881347773,
+                "netSumPct": 21.164464193459814
+              },
+              "short": {
+                "count": 269,
+                "wins": 193,
+                "winRatePct": 71.74721189591078,
+                "profitFactor": 1.2501848729378213,
+                "netSumPct": 62.52271727693268
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 113,
+            "wins": 82,
+            "winRatePct": 72.56637168141593,
+            "profitFactor": 1.2189852035699844,
+            "netSumPct": 26.661813972794132
+          },
+          "val": {
+            "count": 94,
+            "wins": 71,
+            "winRatePct": 75.53191489361703,
+            "profitFactor": 1.1290535674422277,
+            "netSumPct": 12.351717212988618
+          },
+          "calVal": {
+            "count": 207,
+            "wins": 153,
+            "winRatePct": 73.91304347826086,
+            "profitFactor": 1.1794041728135256,
+            "netSumPct": 39.01353118578277
+          },
+          "holdoutY5": {
+            "count": 30,
+            "wins": 17,
+            "winRatePct": 56.666666666666664,
+            "profitFactor": 0.6615916979725847,
+            "netSumPct": -17.849066992322946
+          },
+          "full5y": {
+            "count": 237,
+            "wins": 170,
+            "winRatePct": 71.72995780590718,
+            "profitFactor": 1.0783271881347773,
+            "netSumPct": 21.164464193459814
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 143,
+            "wins": 100,
+            "winRatePct": 69.93006993006993,
+            "profitFactor": 1.1362641990825528,
+            "netSumPct": 18.78233118414711
+          },
+          "val": {
+            "count": 73,
+            "wins": 56,
+            "winRatePct": 76.71232876712328,
+            "profitFactor": 1.66963612921697,
+            "netSumPct": 40.98299959660054
+          },
+          "calVal": {
+            "count": 216,
+            "wins": 156,
+            "winRatePct": 72.22222222222221,
+            "profitFactor": 1.3002686916585269,
+            "netSumPct": 59.76533078074766
+          },
+          "holdoutY5": {
+            "count": 53,
+            "wins": 37,
+            "winRatePct": 69.81132075471697,
+            "profitFactor": 1.0542082320095325,
+            "netSumPct": 2.757386496185028
+          },
+          "full5y": {
+            "count": 269,
+            "wins": 193,
+            "winRatePct": 71.74721189591078,
+            "profitFactor": 1.2501848729378213,
+            "netSumPct": 62.52271727693268
+          }
+        },
+        "qualifiedForBothProfiles": false
+      },
+      "STRICT_TAKER": {
+        "id": "BNB_15m",
+        "coin": "BNBUSDT",
+        "timeframe": "15m",
+        "execProfile": "STRICT_TAKER",
+        "bars": 175808,
+        "splits": {
+          "cal": [
+            0,
+            87904
+          ],
+          "val": [
+            87904,
+            140646
+          ],
+          "holdoutY5": [
+            140646,
+            175808
+          ]
+        },
+        "qualifiedForLive": false,
+        "summary": {
+          "baseline": {
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 0.498954441662643,
+              "medianMonthlySweepPct": 0.4132208812607896,
+              "pctPositiveMonths": 51.02040816326531,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -10.927794971057736,
+              "maxMonthlySweepDdPct": 26.83261194315351,
+              "totalSweptNetPct": 24.44876764146951,
+              "compoundedNetPct": 16.09953214678772,
+              "cagrPct": 3.7917393406728284,
+              "geomMonthlyPct": 0.30511283674470313,
+              "maxCompoundedDdPct": 34.27537766469582,
+              "winRatePct": 71.58273381294964,
+              "profitFactor": 1.0603674039426572,
+              "liquidationCount": 0,
+              "count": 556,
+              "long": {
+                "count": 210,
+                "wins": 153,
+                "winRatePct": 72.85714285714285,
+                "profitFactor": 1.0328346872414584,
+                "netSumPct": 6.319308938950797
+              },
+              "short": {
+                "count": 346,
+                "wins": 245,
+                "winRatePct": 70.8092485549133,
+                "profitFactor": 1.076959976727657,
+                "netSumPct": 24.57745820500049
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -2.7287726571096758,
+              "medianMonthlySweepPct": -3.2426854838709773,
+              "pctPositiveMonths": 38.46153846153847,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -20.879005609037804,
+              "maxMonthlySweepDdPct": 51.04609081760731,
+              "totalSweptNetPct": -35.47404454242579,
+              "compoundedNetPct": -33.76239012173006,
+              "cagrPct": -33.687075952679656,
+              "geomMonthlyPct": -3.1189539262579946,
+              "maxCompoundedDdPct": 42.76695341289155,
+              "winRatePct": 63.829787234042556,
+              "profitFactor": 0.759490241195697,
+              "liquidationCount": 0,
+              "count": 141,
+              "long": {
+                "count": 33,
+                "wins": 19,
+                "winRatePct": 57.57575757575758,
+                "profitFactor": 0.6762837402335111,
+                "netSumPct": -14.002737233585632
+              },
+              "short": {
+                "count": 108,
+                "wins": 71,
+                "winRatePct": 65.74074074074075,
+                "profitFactor": 0.7916689991307531,
+                "netSumPct": -23.301844945817056
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": -0.18445399971100102,
+              "medianMonthlySweepPct": -0.0937430911243764,
+              "pctPositiveMonths": 49.18032786885246,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -20.879005609037804,
+              "maxMonthlySweepDdPct": 55.70654688760294,
+              "totalSweptNetPct": -11.251693982371062,
+              "compoundedNetPct": -23.098444826114108,
+              "cagrPct": -5.103494885264381,
+              "geomMonthlyPct": -0.42963847777925945,
+              "maxCompoundedDdPct": 50.80942658052139,
+              "winRatePct": 70.01434720229555,
+              "profitFactor": 0.9903919055130126,
+              "liquidationCount": 0,
+              "count": 697,
+              "long": {
+                "count": 243,
+                "wins": 172,
+                "winRatePct": 70.78189300411523,
+                "profitFactor": 0.9674036715932148,
+                "netSumPct": -7.683428294634833
+              },
+              "short": {
+                "count": 454,
+                "wins": 316,
+                "winRatePct": 69.60352422907489,
+                "profitFactor": 1.0029582602188458,
+                "netSumPct": 1.2756132591834417
+              }
+            }
+          },
+          "ml": {
+            "cal": {
+              "totalMonths": 31,
+              "meanMonthlySweepPct": 0.29019496106888387,
+              "medianMonthlySweepPct": 0.3312213409981002,
+              "pctPositiveMonths": 58.06451612903226,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.313171154046145,
+              "maxMonthlySweepDdPct": 26.948708560115165,
+              "totalSweptNetPct": 8.9960437931354,
+              "compoundedNetPct": 1.1994616793167046,
+              "cagrPct": 0.4767444558256617,
+              "geomMonthlyPct": 0.03846949915269349,
+              "maxCompoundedDdPct": 26.734961414221836,
+              "winRatePct": 70.42801556420234,
+              "profitFactor": 1.039318097837705,
+              "liquidationCount": 0,
+              "count": 257,
+              "long": {
+                "count": 115,
+                "wins": 81,
+                "winRatePct": 70.43478260869566,
+                "profitFactor": 1.0291367532935138,
+                "netSumPct": 4.012726513181587
+              },
+              "short": {
+                "count": 142,
+                "wins": 100,
+                "winRatePct": 70.4225352112676,
+                "profitFactor": 1.0495926148335315,
+                "netSumPct": 6.767981018644024
+              }
+            },
+            "val": {
+              "totalMonths": 19,
+              "meanMonthlySweepPct": 1.8086375539637591,
+              "medianMonthlySweepPct": 1.3712887553455122,
+              "pctPositiveMonths": 63.1578947368421,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -6.9616525633277915,
+              "maxMonthlySweepDdPct": 7.8439541521858835,
+              "totalSweptNetPct": 34.364113525311424,
+              "compoundedNetPct": 36.82251615746386,
+              "cagrPct": 23.174882868572944,
+              "geomMonthlyPct": 1.6637647153692647,
+              "maxCompoundedDdPct": 17.7010871305984,
+              "winRatePct": 75.14792899408283,
+              "profitFactor": 1.2269944914196895,
+              "liquidationCount": 0,
+              "count": 169,
+              "long": {
+                "count": 93,
+                "wins": 70,
+                "winRatePct": 75.26881720430107,
+                "profitFactor": 1.1006785864455833,
+                "netSumPct": 9.756202309004447
+              },
+              "short": {
+                "count": 76,
+                "wins": 57,
+                "winRatePct": 75,
+                "profitFactor": 1.402422208403804,
+                "netSumPct": 28.079246831963395
+              }
+            },
+            "calVal": {
+              "totalMonths": 49,
+              "meanMonthlySweepPct": 0.8863544199075937,
+              "medianMonthlySweepPct": 0.6973434309165416,
+              "pctPositiveMonths": 59.183673469387756,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.313171154046145,
+              "maxMonthlySweepDdPct": 26.948708560115165,
+              "totalSweptNetPct": 43.43136657547209,
+              "compoundedNetPct": 38.463649807449585,
+              "cagrPct": 8.451663064953419,
+              "geomMonthlyPct": 0.6663688904085641,
+              "maxCompoundedDdPct": 26.734961414221836,
+              "winRatePct": 72.30046948356808,
+              "profitFactor": 1.1102727188482815,
+              "liquidationCount": 0,
+              "count": 426,
+              "long": {
+                "count": 208,
+                "wins": 151,
+                "winRatePct": 72.59615384615384,
+                "profitFactor": 1.0586848615791469,
+                "netSumPct": 13.768928822186023
+              },
+              "short": {
+                "count": 218,
+                "wins": 157,
+                "winRatePct": 72.01834862385321,
+                "profitFactor": 1.1689585994596077,
+                "netSumPct": 34.84722785060742
+              }
+            },
+            "holdoutY5": {
+              "totalMonths": 13,
+              "meanMonthlySweepPct": -1.3139798742956068,
+              "medianMonthlySweepPct": -2.5475143611310758,
+              "pctPositiveMonths": 38.46153846153847,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.369349709809299,
+              "maxMonthlySweepDdPct": 28.282589303216117,
+              "totalSweptNetPct": -17.081738365842888,
+              "compoundedNetPct": -19.538570812819657,
+              "cagrPct": -19.490301338883988,
+              "geomMonthlyPct": -1.658343674662155,
+              "maxCompoundedDdPct": 28.577626404971223,
+              "winRatePct": 65.9090909090909,
+              "profitFactor": 0.8327656179742875,
+              "liquidationCount": 0,
+              "count": 88,
+              "long": {
+                "count": 32,
+                "wins": 18,
+                "winRatePct": 56.25,
+                "profitFactor": 0.6640067687451274,
+                "netSumPct": -19.23102282573479
+              },
+              "short": {
+                "count": 56,
+                "wins": 40,
+                "winRatePct": 71.42857142857143,
+                "profitFactor": 1.0183683553885265,
+                "netSumPct": 0.9559260712696681
+              }
+            },
+            "full5y": {
+              "totalMonths": 61,
+              "meanMonthlySweepPct": 0.43196111819064265,
+              "medianMonthlySweepPct": 0.3670344363849054,
+              "pctPositiveMonths": 55.73770491803278,
+              "pctMonthsGe30": 0,
+              "worstMonthPct": -14.369349709809299,
+              "maxMonthlySweepDdPct": 28.527584522041284,
+              "totalSweptNetPct": 26.349628209629202,
+              "compoundedNetPct": 11.409831539806415,
+              "cagrPct": 2.178308070978363,
+              "geomMonthlyPct": 0.1772805499473895,
+              "maxCompoundedDdPct": 32.288769101164604,
+              "winRatePct": 71.20622568093385,
+              "profitFactor": 1.0551504853605655,
+              "liquidationCount": 0,
+              "count": 514,
+              "long": {
+                "count": 240,
+                "wins": 169,
+                "winRatePct": 70.41666666666667,
+                "profitFactor": 0.9812853042472324,
+                "netSumPct": -5.462094003548771
+              },
+              "short": {
+                "count": 274,
+                "wins": 197,
+                "winRatePct": 71.8978102189781,
+                "profitFactor": 1.1386165638619985,
+                "netSumPct": 35.80315392187708
+              }
+            }
+          }
+        },
+        "longSummary": {
+          "cal": {
+            "count": 115,
+            "wins": 81,
+            "winRatePct": 70.43478260869566,
+            "profitFactor": 1.0291367532935138,
+            "netSumPct": 4.012726513181587
+          },
+          "val": {
+            "count": 93,
+            "wins": 70,
+            "winRatePct": 75.26881720430107,
+            "profitFactor": 1.1006785864455833,
+            "netSumPct": 9.756202309004447
+          },
+          "calVal": {
+            "count": 208,
+            "wins": 151,
+            "winRatePct": 72.59615384615384,
+            "profitFactor": 1.0586848615791469,
+            "netSumPct": 13.768928822186023
+          },
+          "holdoutY5": {
+            "count": 32,
+            "wins": 18,
+            "winRatePct": 56.25,
+            "profitFactor": 0.6640067687451274,
+            "netSumPct": -19.23102282573479
+          },
+          "full5y": {
+            "count": 240,
+            "wins": 169,
+            "winRatePct": 70.41666666666667,
+            "profitFactor": 0.9812853042472324,
+            "netSumPct": -5.462094003548771
+          }
+        },
+        "shortSummary": {
+          "cal": {
+            "count": 142,
+            "wins": 100,
+            "winRatePct": 70.4225352112676,
+            "profitFactor": 1.0495926148335315,
+            "netSumPct": 6.767981018644024
+          },
+          "val": {
+            "count": 76,
+            "wins": 57,
+            "winRatePct": 75,
+            "profitFactor": 1.402422208403804,
+            "netSumPct": 28.079246831963395
+          },
+          "calVal": {
+            "count": 218,
+            "wins": 157,
+            "winRatePct": 72.01834862385321,
+            "profitFactor": 1.1689585994596077,
+            "netSumPct": 34.84722785060742
+          },
+          "holdoutY5": {
+            "count": 56,
+            "wins": 40,
+            "winRatePct": 71.42857142857143,
+            "profitFactor": 1.0183683553885265,
+            "netSumPct": 0.9559260712696681
+          },
+          "full5y": {
+            "count": 274,
+            "wins": 197,
+            "winRatePct": 71.8978102189781,
+            "profitFactor": 1.1386165638619985,
+            "netSumPct": 35.80315392187708
+          }
+        },
+        "qualifiedForBothProfiles": false
+      }
+    }
+  }
+}

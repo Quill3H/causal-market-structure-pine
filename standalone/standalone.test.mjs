@@ -32,9 +32,12 @@ import {
 import {
   buildDatasetFromCandles,
   computeLiquidationDistance,
+  computeV8MacroRegimeRadar,
   evaluateStrategy,
+  loadOfflineOrDbDataset,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
+  runFrontierPortfolio,
   runV7FrontierPortfolio,
 } from './engine_runtime.mjs';
 import {
@@ -655,6 +658,118 @@ describe('6. v7.0 Risk Tiers, Distance-to-Liquidation Buffer & /api/frontier', (
       assert.equal(takerFrontier.ready, true);
       assert.equal(takerFrontier.execProfile, 'STRICT_TAKER');
       assert.equal(takerFrontier.selectedTier.full5y.liquidationCount, 0);
+    } finally {
+      await srv.stop();
+      store.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('7. v8.0 Macro-Trend Regime Radar, /api/regime & v7/v8 Frontier Toggle', () => {
+  it('computes v8.0 causal Macro-Trend Regime Radar for crypto & equities', async () => {
+    const tmp = makeTmpDir('tt8-radar-');
+    try {
+      const cfg = loadConfig({ cwd: REPO_ROOT, useProcessEnv: false });
+      assert.equal(cfg.executionMode, 'PAPER');
+      assert.equal(cfg.riskTier, 'SAFE_75WR');
+
+      const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+      assert.equal(runtimeSpecs.hasV8RegimeEngine, true);
+      assert.equal(runtimeSpecs.hasV8Models, true);
+      assert.equal(runtimeSpecs.hasV8Frontier, true);
+
+      const btcRadar = computeV8MacroRegimeRadar({
+        repoRoot: REPO_ROOT,
+        runtimeSpecs,
+        symbol: 'BTCUSDT.P',
+        timeframe: '1h',
+      });
+      assert.equal(btcRadar.ready, true);
+      assert.ok(['BULL_TREND', 'BEAR_TREND', 'BEAR_SQUEEZE', 'RANGE_CHOP'].includes(btcRadar.regime));
+      assert.ok(btcRadar.breadthBearPct >= 0 && btcRadar.breadthBearPct <= 100);
+      assert.ok(btcRadar.longSizeMult >= 0 && btcRadar.shortSizeMult >= 0);
+      assert.equal(btcRadar.coinsSummary.length, 4);
+
+      const spyRadar = computeV8MacroRegimeRadar({
+        repoRoot: REPO_ROOT,
+        runtimeSpecs,
+        symbol: 'SPY',
+        timeframe: '1d',
+      });
+      assert.equal(spyRadar.ready, true);
+      assert.ok(['BULL_TREND', 'BEAR_TREND', 'HIGH_VOL_CHOP'].includes(spyRadar.regime));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('serves /api/regime, toggles /api/frontier?version=v7|v8, and evaluates v8 strategy cleanly', async () => {
+    const tmp = makeTmpDir('tt8-http-');
+    const cfg = loadConfig({
+      cwd: REPO_ROOT,
+      useProcessEnv: false,
+      envOverrides: { HOST: '127.0.0.1', PORT: '0', EXECUTION_MODE: 'PAPER', DRY_RUN: 'true', RISK_TIER: 'SAFE_75WR' },
+    });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'v8.sqlite'), allowedBaseDir: tmp });
+    const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+    const srv = createStandaloneServer({ config: cfg, store, runtimeSpecs });
+
+    try {
+      const bound = await srv.start();
+      const base = `http://${bound.host}:${bound.port}`;
+
+      const regimeRes = await fetch(`${base}/api/regime?symbol=BTCUSDT.P&timeframe=1h`);
+      assert.equal(regimeRes.status, 200);
+      const regimeJson = await regimeRes.json();
+      assert.equal(regimeJson.ok, true);
+      assert.equal(regimeJson.radar.ready, true);
+      assert.equal(regimeJson.radar.coinsSummary.length, 4);
+
+      const v7Res = await fetch(`${base}/api/frontier?tier=SAFE_75WR&version=v7`);
+      assert.equal(v7Res.status, 200);
+      const v7Json = await v7Res.json();
+      assert.equal(v7Json.ready, true);
+      assert.equal(v7Json.version, 'v7');
+      assert.equal(v7Json.selectedTier.full5y.liquidationCount, 0);
+
+      const v8Res = await fetch(`${base}/api/frontier?tier=TARGET_30MO_75WR&version=v8`);
+      assert.equal(v8Res.status, 200);
+      const v8Json = await v8Res.json();
+      assert.equal(v8Json.ready, true);
+      assert.equal(v8Json.version, 'v8');
+      assert.equal(v8Json.selectedTier.full5y.liquidationCount, 0);
+      assert.ok(v8Json.selectedTier.calVal_48m.meanMonthlySweepPct >= 30);
+
+      const directV8 = runFrontierPortfolio({ version: 'v8', runtimeSpecs, config: cfg, riskTier: 'SAFE_75WR' });
+      assert.equal(directV8.ready, true);
+      assert.equal(directV8.version, 'v8');
+      assert.equal(directV8.selectedTier.full5y.liquidationCount, 0);
+
+      const loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol: 'BTCUSDT.P', timeframe: '1h' });
+      const evalV8 = evaluateStrategy({
+        dataset: loaded.dataset,
+        fundingRates: loaded.fundingRates,
+        macroData: loaded.macroData,
+        timeframe: '1h',
+        symbol: 'BTCUSDT.P',
+        version: 'v8',
+        config: cfg,
+        runtimeSpecs,
+      });
+      assert.equal(evalV8.summary.modelVersion, 'v8.0-AsymmetricRegime');
+      assert.equal(evalV8.summary.liquidationCount, 0);
+      assert.ok(evalV8.summary.winRatePct >= 75);
+
+      const statusRes = await fetch(`${base}/api/status?symbol=BTCUSDT.P&timeframe=1h`);
+      assert.equal(statusRes.status, 200);
+      const statusJson = await statusRes.json();
+      assert.equal(statusJson.models.v8RegimeEngineReady, true);
+      assert.equal(statusJson.models.v8ModelsReady, true);
+      assert.equal(statusJson.models.v8FrontierReady, true);
+      assert.equal(statusJson.v8Radar.ready, true);
+      assert.equal(statusJson.config.executionMode, 'PAPER');
+      assert.equal(statusJson.config.riskTier, 'SAFE_75WR');
     } finally {
       await srv.stop();
       store.close();

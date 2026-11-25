@@ -11,12 +11,14 @@ import {
   scrubSecrets,
 } from './config.mjs';
 import {
+  computeRegimeTelemetry,
+  computeV8MacroRegimeRadar,
   createExchangeClient,
   evaluateStrategy,
   loadOfflineOrDbDataset,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
-  runV7FrontierPortfolio,
+  runFrontierPortfolio,
   StandaloneTradingDaemon,
 } from './engine_runtime.mjs';
 import { isEquitySymbol, YahooEquitiesClient } from './market_equities.mjs';
@@ -123,6 +125,9 @@ export async function runDoctor({ config } = {}) {
       v7Engine: runtimeSpecs.hasV7Engine,
       v7ModelsReady: runtimeSpecs.hasV7Models,
       v7FrontierReady: runtimeSpecs.hasV7Frontier,
+      v8RegimeEngine: runtimeSpecs.hasV8RegimeEngine,
+      v8ModelsReady: runtimeSpecs.hasV8Models,
+      v8FrontierReady: runtimeSpecs.hasV8Frontier,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
       v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
@@ -131,6 +136,10 @@ export async function runDoctor({ config } = {}) {
       v7BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/models_v7_btc_bnb.json')),
       v7EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/models_v7_eth_sol.json')),
       v7FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/frontier_75wr_30mo_summary.json')),
+      v8RegimeEngineFile: fs.existsSync(path.join(cfg.repoRoot, 'research/regime_engine_v8.mjs')),
+      v8BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/models_v8_btc_bnb.json')),
+      v8EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/models_v8_eth_sol.json')),
+      v8FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v8/maximized_v8_summary.json')),
     },
     connectivity: {
       okxPublic,
@@ -209,12 +218,55 @@ export async function runPortfolio(flags, cfg) {
   const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
   const riskTier = normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR');
   const profile = String(flags.profile || 'EXCHANGE_POST_ONLY').toUpperCase();
-  return runV7FrontierPortfolio({
+  const version = String(flags.version || 'auto').toLowerCase();
+  return runFrontierPortfolio({
+    version,
     runtimeSpecs,
     config: cfg,
     riskTier,
     execProfile: profile,
   });
+}
+
+export async function runRegime(flags, cfg) {
+  const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
+  try {
+    const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
+    const symbol = normalizeAssetSymbol(flags.symbol || cfg.symbols[0] || 'BTCUSDT.P');
+    const isEq = isEquitySymbol(symbol);
+    const timeframe = String(flags.timeframe || (isEq ? '1d' : '1h')).toLowerCase();
+    let loaded = null;
+    try {
+      loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol, timeframe, minBars: 60 });
+    } catch {
+      loaded = null;
+    }
+    const radar = computeV8MacroRegimeRadar({
+      repoRoot: cfg.repoRoot,
+      runtimeSpecs,
+      dataset: loaded?.dataset || null,
+      fundingRates: loaded?.fundingRates || [],
+      macroData: loaded?.macroData || null,
+      symbol,
+      timeframe,
+    });
+    const telemetry = computeRegimeTelemetry({
+      repoRoot: cfg.repoRoot,
+      runtimeSpecs,
+      dataset: loaded?.dataset || null,
+      fundingRates: loaded?.fundingRates || [],
+      macroData: loaded?.macroData || null,
+      symbol,
+      timeframe,
+    });
+    return {
+      source: loaded?.source || 'local-fallback',
+      radar,
+      telemetry,
+    };
+  } finally {
+    store.close();
+  }
 }
 
 export async function runServe(flags, cfg) {
@@ -271,10 +323,13 @@ async function main() {
   } else if (cmd === 'portfolio') {
     const res = await runPortfolio(flags, cfg);
     console.log(JSON.stringify({ ok: true, ...res }, null, 2));
+  } else if (cmd === 'regime') {
+    const res = await runRegime(flags, cfg);
+    console.log(JSON.stringify({ ok: true, ...res }, null, 2));
   } else if (cmd === 'serve') {
     await runServe(flags, cfg);
   } else {
-    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|serve>`);
+    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|regime|serve>`);
     process.exitCode = 1;
   }
 }

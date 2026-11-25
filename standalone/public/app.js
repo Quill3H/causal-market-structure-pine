@@ -9,10 +9,12 @@
     timeframe: '1h',
     profile: 'EXCHANGE_POST_ONLY',
     riskTier: 'SAFE_75WR',
+    frontierVersion: 'auto',
     candles: [],
     overlay: null,
     summary: null,
     regime: null,
+    radar: null,
     liquidationDistance: null,
     frontier: null,
     signals: [],
@@ -93,7 +95,87 @@
     }
 
     const subtitle = el('model-subtitle');
-    subtitle.textContent = `v7.0 High-WR Frontier (${state.riskTier}) • ${status.models?.activeModelVersion || 'v6.0/v5.0'}`;
+    subtitle.textContent = `v8.0 Macro-Regime Radar (${state.riskTier}) • ${status.models?.activeModelVersion || 'v7.0/v6.0'}`;
+  }
+
+  function renderRegimeRadar() {
+    const rad = state.radar || state.regime?.v8Radar || state.status?.v8Radar || null;
+    const badge = el('radar-regime-badge');
+    const actionEl = el('radar-action-text');
+    const breadthText = el('radar-breadth-text');
+    const breadthBar = el('radar-breadth-bar');
+    const coinsRow = el('radar-coins-row');
+    const longEl = el('radar-long-mult');
+    const shortEl = el('radar-short-mult');
+    const dl = el('radar-stats-list');
+
+    clearNode(coinsRow);
+    clearNode(dl);
+
+    if (!rad || !rad.ready) {
+      badge.textContent = rad?.regime || 'PENDING';
+      badge.className = 'badge badge-neutral';
+      actionEl.textContent = rad?.regimeActionLabel || 'Waiting for regime_engine_v8 data...';
+      breadthText.textContent = '--%';
+      breadthBar.style.width = '0%';
+      longEl.textContent = '--x';
+      shortEl.textContent = '--x';
+      return;
+    }
+
+    const reg = String(rad.regime || 'UNKNOWN');
+    badge.textContent = reg;
+    badge.className = `badge ${
+      reg === 'BULL_TREND'
+        ? 'badge-safe'
+        : reg === 'BEAR_TREND'
+          ? 'badge-danger'
+          : 'badge-warn'
+    }`;
+    actionEl.textContent = rad.regimeActionLabel || reg;
+
+    const bearPct = rad.breadthBearPct !== null && rad.breadthBearPct !== undefined
+      ? Number(rad.breadthBearPct)
+      : null;
+    if (bearPct !== null && Number.isFinite(bearPct)) {
+      breadthText.textContent = `${fmtNum(bearPct, 0)}% < 1D EMA50`;
+      breadthBar.style.width = `${Math.max(0, Math.min(100, bearPct))}%`;
+    } else {
+      breadthText.textContent = rad.assetClass === 'EQUITY_ETF' ? 'Macro ETF Regime' : '--%';
+      breadthBar.style.width = '0%';
+    }
+
+    for (const c of rad.coinsSummary || []) {
+      const pill = document.createElement('span');
+      pill.className = `coin-pill ${c.bearEma50 ? 'coin-pill-bear' : 'coin-pill-bull'}`;
+      pill.textContent = `${c.coin}: ${c.bearEma50 ? '<EMA50' : '>EMA50'}`;
+      coinsRow.appendChild(pill);
+    }
+
+    longEl.textContent = `${fmtNum(rad.longSizeMult, 2)}x`;
+    shortEl.textContent = `${fmtNum(rad.shortSizeMult, 2)}x`;
+
+    const pairs = [
+      ['Trend Score', fmtNum(rad.trendScore, 3)],
+    ];
+    if (rad.assetClass === 'EQUITY_ETF') {
+      pairs.push(['VIX Level', fmtNum(rad.vixLevel, 2)]);
+      pairs.push(['VIX 5d Spike', fmtPct(rad.vixSpike5d, 1)]);
+      pairs.push(['TNX 20d Shock', fmtPct(rad.tnxShock20d, 1)]);
+    } else {
+      pairs.push(['D1 Dist EMA50', `${fmtNum(rad.d1Ema50DistAtr, 2)} ATR`]);
+      pairs.push(['D1 Slope', `${fmtNum(rad.d1SlopeAtr, 2)} ATR`]);
+      pairs.push(['4H Rally Exhaustion', rad.h4RallyExh ? 'EXHAUSTED (1)' : 'NONE (0)']);
+    }
+
+    for (const [k, v] of pairs) {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    }
   }
 
   function renderScoreboard(sourceLabel) {
@@ -142,12 +224,14 @@
     const regEl = el('kpi-regime');
     const regSub = el('kpi-regime-sub');
     if (r) {
+      const rad = state.radar || r.v8Radar;
+      const v8Part = rad?.ready ? rad.regime : null;
       const vixPart = r.vix !== null && r.vix !== undefined ? `VIX ${fmtNum(r.vix, 1)} (${r.vixRegime})` : 'VIX --';
       const tnxPart = r.tnx !== null && r.tnx !== undefined ? `TNX ${fmtNum(r.tnx, 2)}%` : 'TNX --';
-      regEl.textContent = `${vixPart} • ${tnxPart}`;
+      regEl.textContent = v8Part ? `${v8Part} • ${vixPart}` : `${vixPart} • ${tnxPart}`;
       const fundPart = r.fundingRateBps !== null && r.fundingRateBps !== undefined ? `Fund ${fmtNum(r.fundingRateBps, 2)}bps` : 'Fund --';
       const cvdPart = r.cvd24hPct !== null && r.cvd24hPct !== undefined ? `CVD24h ${fmtPct(r.cvd24hPct, 1)}` : 'CVD --';
-      regSub.textContent = `${fundPart} | ${cvdPart}`;
+      regSub.textContent = `${tnxPart} | ${fundPart} | ${cvdPart}`;
     }
   }
 
@@ -478,28 +562,34 @@
 
   async function refreshAll() {
     const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}`;
-    const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}`;
+    const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}&version=${encodeURIComponent(state.frontierVersion)}`;
     el('chart-title').textContent = `${state.symbol} • ${state.timeframe} Closed Candles & Order Levels`;
 
-    const [statusData, candleData, tradeData, sigData, frontierData] = await Promise.all([
+    const [statusData, candleData, tradeData, sigData, frontierData, regimeData] = await Promise.all([
       apiGet(`/api/status?${q}`),
       apiGet(`/api/candles?${q}&limit=160`),
       apiGet(`/api/trades?${q}&limit=60`),
       apiGet(`/api/signals?${q}&limit=40`),
       apiGet(`/api/frontier?${fq}`),
+      apiGet(`/api/regime?${q}`),
     ]);
 
     state.status = statusData;
     state.candles = candleData.candles || [];
     state.overlay = candleData.overlay || statusData.activeOverlay || null;
-    state.regime = candleData.regime || statusData.regime || null;
+    state.regime = regimeData.telemetry || candleData.regime || statusData.regime || null;
+    state.radar = regimeData.radar || statusData.v8Radar || null;
     state.liquidationDistance = statusData.liquidationDistance || null;
     state.frontier = frontierData;
+    if (frontierData.version) {
+      el('frontier-version-select').value = frontierData.version;
+    }
     state.trades = tradeData.trades || [];
     state.summary = tradeData.summary || statusData.summary || null;
     state.signals = sigData.signals || [];
 
     renderBadges();
+    renderRegimeRadar();
     renderScoreboard(candleData.source);
     renderOverlayDetails();
     drawMlGauge();
@@ -554,6 +644,16 @@
           body: JSON.stringify({ riskTier: state.riskTier }),
         });
         await refreshAll();
+      } catch (err) {
+        el('mode-status-msg').textContent = err.message;
+      }
+    });
+    el('frontier-version-select').addEventListener('change', async e => {
+      state.frontierVersion = e.target.value;
+      try {
+        const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}&version=${encodeURIComponent(state.frontierVersion)}`;
+        state.frontier = await apiGet(`/api/frontier?${fq}`);
+        drawSweepGauge();
       } catch (err) {
         el('mode-status-msg').textContent = err.message;
       }

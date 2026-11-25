@@ -14,11 +14,12 @@ import {
 import {
   computeLiquidationDistance,
   computeRegimeTelemetry,
+  computeV8MacroRegimeRadar,
   createExchangeClient,
   evaluateStrategy,
   loadOfflineOrDbDataset,
   normalizeAssetSymbol,
-  runV7FrontierPortfolio,
+  runFrontierPortfolio,
 } from './engine_runtime.mjs';
 import { isEquitySymbol } from './market_equities.mjs';
 
@@ -157,11 +158,27 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
         const activeOverlay = snap?.activeOverlay || paperRecord?.state?.activeOverlay || null;
         const regime = snap?.regime || paperRecord?.state?.regime || computeRegimeTelemetry({
           repoRoot: config.repoRoot,
+          runtimeSpecs,
           symbol,
+          timeframe,
         });
+        let v8Radar = regime?.v8Radar || null;
+        if (!v8Radar && runtimeSpecs?.hasV8RegimeEngine) {
+          try {
+            v8Radar = computeV8MacroRegimeRadar({
+              repoRoot: config.repoRoot,
+              runtimeSpecs,
+              symbol,
+              timeframe,
+            });
+          } catch {
+            v8Radar = null;
+          }
+        }
         const liquidationDistance = snap?.liquidationDistance ||
           computeLiquidationDistance(activeOverlay, activeOverlay?.entry ?? activeOverlay?.limitPrice ?? 0);
-        const frontier = runV7FrontierPortfolio({
+        const frontier = runFrontierPortfolio({
+          version: 'auto',
           runtimeSpecs,
           config,
           riskTier: config.riskTier,
@@ -182,7 +199,10 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             v7EngineReady: Boolean(runtimeSpecs?.hasV7Engine),
             v7ModelsReady: Boolean(runtimeSpecs?.hasV7Models),
             v7FrontierReady: Boolean(runtimeSpecs?.hasV7Frontier),
-            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
+            v8RegimeEngineReady: Boolean(runtimeSpecs?.hasV8RegimeEngine),
+            v8ModelsReady: Boolean(runtimeSpecs?.hasV8Models),
+            v8FrontierReady: Boolean(runtimeSpecs?.hasV8Frontier),
+            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV8Models ? 'v8.0-RegimeMax' : runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
           },
           daemon: {
             lastSyncAt: daemon?.lastSyncAt || null,
@@ -190,6 +210,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             lastError: daemon?.lastError || null,
           },
           regime,
+          v8Radar,
           liquidationDistance,
           frontierSummary: frontier,
           summary,
@@ -198,10 +219,48 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
         return;
       }
 
+      if (req.method === 'GET' && pathname === '/api/regime') {
+        let loaded = null;
+        try {
+          loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 60 });
+        } catch {
+          loaded = null;
+        }
+        const radar = computeV8MacroRegimeRadar({
+          repoRoot: config.repoRoot,
+          runtimeSpecs,
+          dataset: loaded?.dataset || null,
+          fundingRates: loaded?.fundingRates || [],
+          macroData: loaded?.macroData || null,
+          symbol,
+          timeframe,
+        });
+        const telemetry = computeRegimeTelemetry({
+          repoRoot: config.repoRoot,
+          runtimeSpecs,
+          dataset: loaded?.dataset || null,
+          fundingRates: loaded?.fundingRates || [],
+          macroData: loaded?.macroData || null,
+          symbol,
+          timeframe,
+        });
+        sendJson(res, 200, {
+          ok: true,
+          symbol,
+          timeframe,
+          source: loaded?.source || 'local-fallback',
+          radar,
+          telemetry,
+        });
+        return;
+      }
+
       if (req.method === 'GET' && pathname === '/api/frontier') {
         const tier = parsed.searchParams.get('tier') || config.riskTier || 'SAFE_75WR';
         const profile = (parsed.searchParams.get('profile') || 'EXCHANGE_POST_ONLY').toUpperCase();
-        const frontier = runV7FrontierPortfolio({
+        const version = (parsed.searchParams.get('version') || 'auto').toLowerCase();
+        const frontier = runFrontierPortfolio({
+          version,
           runtimeSpecs,
           config,
           riskTier: tier,
