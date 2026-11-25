@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>TRADING-TOOL v5.0 Standalone Command Center</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-group">
+      <div class="brand-mark" aria-hidden="true">TT5</div>
+      <div>
+        <h1 class="brand-title">TRADING-TOOL Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">Off-TradingView ML &amp; Execution Engine</p>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <label class="control-field">
+        <span class="control-label">Symbol</span>
+        <select id="symbol-select" aria-label="Trading Symbol">
+          <option value="BTCUSDT.P">BTCUSDT.P</option>
+          <option value="ETHUSDT.P">ETHUSDT.P</option>
+          <option value="SOLUSDT.P">SOLUSDT.P</option>
+        </select>
+      </label>
+
+      <label class="control-field">
+        <span class="control-label">TF</span>
+        <select id="timeframe-select" aria-label="Timeframe">
+          <option value="1h">1h</option>
+          <option value="15m">15m</option>
+        </select>
+      </label>
+
+      <label class="control-field">
+        <span class="control-label">Profile</span>
+        <select id="profile-select" aria-label="Execution Profile">
+          <option value="EXCHANGE_POST_ONLY">EXCHANGE_POST_ONLY</option>
+          <option value="STRICT_TAKER">STRICT_TAKER</option>
+        </select>
+      </label>
+
+      <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
+    </div>
+
+    <div class="badges-group">
+      <span id="api-badge" class="badge badge-neutral">API: Checking...</span>
+      <span id="mode-badge" class="badge badge-safe">MODE: PAPER</span>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <section class="scoreboard" aria-label="Performance Scoreboard">
+      <article class="kpi-card">
+        <span class="kpi-label">Win Rate (W/L)</span>
+        <strong class="kpi-value" id="kpi-winrate">--</strong>
+        <span class="kpi-meta" id="kpi-wilson">Wilson95: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Profit Factor</span>
+        <strong class="kpi-value" id="kpi-pf">--</strong>
+        <span class="kpi-meta" id="kpi-trades">Trades: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Total Net (Add)</span>
+        <strong class="kpi-value" id="kpi-total-net">--</strong>
+        <span class="kpi-meta" id="kpi-comp-net">Compounded: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Max Drawdown</span>
+        <strong class="kpi-value" id="kpi-dd">--</strong>
+        <span class="kpi-meta" id="kpi-funding">Funding Drag: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Engine &amp; Model</span>
+        <strong class="kpi-value" id="kpi-model">--</strong>
+        <span class="kpi-meta" id="kpi-source">Source: --</span>
+      </article>
+    </section>
+
+    <section class="workspace-grid">
+      <article class="panel chart-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title" id="chart-title">BTCUSDT.P • 1h Closed Candles &amp; Order Levels</h2>
+            <p class="panel-meta" id="chart-hover-info">Hover chart to inspect OHLC &amp; active LMT/SL/BE+/TP levels</p>
+          </div>
+          <div class="legend-row">
+            <span class="legend-chip chip-lmt">LMT</span>
+            <span class="legend-chip chip-entry">ENTRY</span>
+            <span class="legend-chip chip-sl">SL</span>
+            <span class="legend-chip chip-be">BE+</span>
+            <span class="legend-chip chip-tp">TP</span>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="candle-canvas"></canvas>
+        </div>
+      </article>
+
+      <aside class="side-rail">
+        <article class="panel gauge-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Live ML Probability Gauge</h2>
+            <span class="badge badge-neutral" id="ml-decision-badge">--</span>
+          </div>
+          <div class="gauge-wrap">
+            <canvas id="ml-gauge-canvas"></canvas>
+            <div class="gauge-readout">
+              <strong id="ml-prob-text">--%</strong>
+              <span id="ml-threshold-text">Threshold tau: --</span>
+            </div>
+          </div>
+          <dl class="overlay-list" id="active-levels-list"></dl>
+        </article>
+
+        <article class="panel mode-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Execution Safety Interlock</h2>
+          </div>
+          <form id="mode-form" class="mode-form">
+            <label class="form-row">
+              <span>Execution Mode</span>
+              <select id="mode-select" name="executionMode">
+                <option value="PAPER">PAPER (Simulated Only)</option>
+                <option value="LIVE_ARMED">LIVE_ARMED (Requires Token + Keys)</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>LIVE_CONFIRM_TOKEN</span>
+              <input id="confirm-token-input" type="password" autocomplete="off" placeholder="Required only for LIVE_ARMED">
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Apply Mode</button>
+              <button type="button" id="run-backtest-btn" class="btn btn-secondary">Run Offline Replay</button>
+            </div>
+            <p class="form-status" id="mode-status-msg" role="status" aria-live="polite"></p>
+          </form>
+        </article>
+      </aside>
+    </section>
+
+    <section class="tables-grid">
+      <article class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title" id="signals-table-caption">Recent Signals Audit (Causal + ML)</h2>
+        </div>
+        <div tabindex="0" role="region" aria-labelledby="signals-table-caption" class="table-wrapper">
+          <table id="signals-table">
+            <thead>
+              <tr>
+                <th>Time (UTC)</th>
+                <th>Side</th>
+                <th>Decision</th>
+                <th>ProbWin</th>
+                <th>SizeMult</th>
+                <th>Limit Price</th>
+                <th>Model</th>
+              </tr>
+            </thead>
+            <tbody id="signals-tbody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title" id="trades-table-caption">Simulated / Paper Trades Ledger</h2>
+        </div>
+        <div tabindex="0" role="region" aria-labelledby="trades-table-caption" class="table-wrapper">
+          <table id="trades-table">
+            <thead>
+              <tr>
+                <th>Entry (UTC)</th>
+                <th>Side</th>
+                <th>Entry</th>
+                <th>Exit</th>
+                <th>Reason</th>
+                <th>Lev</th>
+                <th>ProbWin</th>
+                <th>Net %</th>
+              </tr>
+            </thead>
+            <tbody id="trades-tbody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

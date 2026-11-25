@@ -1,0 +1,1627 @@
+{
+  "schema": "smc-v5-btc-alpha-summary-v1",
+  "generatedAt": "2026-11-25T08:05:00.046Z",
+  "symbol": "OKX:BTCUSDT.P",
+  "modelMetadata": {
+    "1h": {
+      "selectedId": "seq:htf_streak:LR_C0.25_unw|t=0.5874|sc=linear_0.85_1.45",
+      "labelSet": "seq",
+      "calCvAuc": 0.6208,
+      "calInAuc": 0.6539,
+      "valRocAuc": 0.6,
+      "valCorrNet": 0.2056,
+      "calRange": [
+        0,
+        8760
+      ],
+      "valRange": [
+        8760,
+        17520
+      ],
+      "holdoutRangeUntouched": [
+        17520,
+        26280
+      ],
+      "calTrainSamples": 77,
+      "eligibleOnVal": true,
+      "valBaseline": {
+        "count": 83,
+        "winRatePct": 78.3132530120482,
+        "profitFactor": 1.6491392065468948,
+        "totalNetPct": 58.53539722755319,
+        "compoundedNetPct": 69.65130886810434,
+        "compoundedMaxDrawdownPct": 19.17806398407094,
+        "retToDd": 3.631821696181421
+      },
+      "valSelected": {
+        "count": 76,
+        "winRatePct": 81.57894736842105,
+        "profitFactor": 2.085393117481433,
+        "totalNetPct": 82.85865015901638,
+        "compoundedNetPct": 114.93059687295401,
+        "compoundedMaxDrawdownPct": 17.317659305236923,
+        "retToDd": 6.636612653431667
+      }
+    },
+    "15m": {
+      "selectedId": "seq:wick_adv_only:LR_C0.02_unw|t=0.6793|sc=linear_0.85_1.45",
+      "labelSet": "seq",
+      "calCvAuc": 0.55,
+      "calInAuc": 0.5496,
+      "valRocAuc": 0.618,
+      "valCorrNet": 0.1554,
+      "calRange": [
+        0,
+        35040
+      ],
+      "valRange": [
+        35040,
+        70080
+      ],
+      "holdoutRangeUntouched": [
+        70080,
+        105120
+      ],
+      "calTrainSamples": 145,
+      "eligibleOnVal": true,
+      "valBaseline": {
+        "count": 157,
+        "winRatePct": 70.70063694267516,
+        "profitFactor": 1.3248201696906448,
+        "totalNetPct": 36.45278038505069,
+        "compoundedNetPct": 38.26105007433811,
+        "compoundedMaxDrawdownPct": 15.570721717248343,
+        "retToDd": 2.457243200997853
+      },
+      "valSelected": {
+        "count": 116,
+        "winRatePct": 74.13793103448276,
+        "profitFactor": 1.702533287151845,
+        "totalNetPct": 57.52986284851989,
+        "compoundedNetPct": 70.9798864824669,
+        "compoundedMaxDrawdownPct": 12.120640582919414,
+        "retToDd": 5.856116761889037
+      }
+    }
+  },
+  "signalCounts": {
+    "1h": {
+      "raw": 499,
+      "mlFiltered": 463
+    },
+    "15m": {
+      "raw": 670,
+      "mlFiltered": 489
+    }
+  },
+  "tracks": {
+    "STRICT_TAKER": {
+      "btc_1h": {
+        "v41_baseline": {
+          "cal": {
+            "range": [
+              0,
+              8760
+            ],
+            "count": 79,
+            "wins": 58,
+            "losses": 21,
+            "ties": 0,
+            "winRatePct": 73.42,
+            "wilsonLower95Pct": 62.76,
+            "profitFactor": 1.7,
+            "totalNetPct": 81.45,
+            "compoundedNetPct": 106.66,
+            "maxDrawdownPct": 22.64,
+            "compoundedMaxDrawdownPct": 21.12,
+            "retToDd": 3.6,
+            "compRetToDd": 5.05,
+            "avgLev": 2.26,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 4.55
+          },
+          "val": {
+            "range": [
+              8760,
+              17520
+            ],
+            "count": 86,
+            "wins": 67,
+            "losses": 19,
+            "ties": 0,
+            "winRatePct": 77.91,
+            "wilsonLower95Pct": 68.05,
+            "profitFactor": 1.4,
+            "totalNetPct": 39.6,
+            "compoundedNetPct": 40.49,
+            "maxDrawdownPct": 21.08,
+            "compoundedMaxDrawdownPct": 19.76,
+            "retToDd": 1.88,
+            "compRetToDd": 2.05,
+            "avgLev": 2.45,
+            "worstTradePct": -5.5,
+            "fundingDragPct": 6.26
+          },
+          "calVal": {
+            "range": [
+              0,
+              17520
+            ],
+            "count": 165,
+            "wins": 125,
+            "losses": 40,
+            "ties": 0,
+            "winRatePct": 75.76,
+            "wilsonLower95Pct": 68.68,
+            "profitFactor": 1.56,
+            "totalNetPct": 121.05,
+            "compoundedNetPct": 190.34,
+            "maxDrawdownPct": 31.73,
+            "compoundedMaxDrawdownPct": 30.15,
+            "retToDd": 3.82,
+            "compRetToDd": 6.31,
+            "avgLev": 2.36,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 10.81
+          },
+          "holdoutY3": {
+            "range": [
+              17520,
+              26280
+            ],
+            "count": 87,
+            "wins": 62,
+            "losses": 25,
+            "ties": 0,
+            "winRatePct": 71.26,
+            "wilsonLower95Pct": 61.02,
+            "profitFactor": 1.24,
+            "totalNetPct": 30.49,
+            "compoundedNetPct": 26.45,
+            "maxDrawdownPct": 20.18,
+            "compoundedMaxDrawdownPct": 18.72,
+            "retToDd": 1.51,
+            "compRetToDd": 1.41,
+            "avgLev": 2.45,
+            "worstTradePct": -5.48,
+            "fundingDragPct": 6.38
+          },
+          "full3y": {
+            "range": [
+              0,
+              26280
+            ],
+            "count": 252,
+            "wins": 187,
+            "losses": 65,
+            "ties": 0,
+            "winRatePct": 74.21,
+            "wilsonLower95Pct": 68.47,
+            "profitFactor": 1.44,
+            "totalNetPct": 151.54,
+            "compoundedNetPct": 267.14,
+            "maxDrawdownPct": 31.73,
+            "compoundedMaxDrawdownPct": 30.15,
+            "retToDd": 4.78,
+            "compRetToDd": 8.86,
+            "avgLev": 2.39,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 17.19
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "range": [
+              0,
+              8760
+            ],
+            "count": 79,
+            "wins": 58,
+            "losses": 21,
+            "ties": 0,
+            "winRatePct": 73.42,
+            "wilsonLower95Pct": 62.76,
+            "profitFactor": 1.82,
+            "totalNetPct": 101.41,
+            "compoundedNetPct": 147.69,
+            "maxDrawdownPct": 22.87,
+            "compoundedMaxDrawdownPct": 21.7,
+            "retToDd": 4.43,
+            "compRetToDd": 6.81,
+            "avgLev": 2.5,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 4.88
+          },
+          "val": {
+            "range": [
+              8760,
+              17520
+            ],
+            "count": 79,
+            "wins": 64,
+            "losses": 15,
+            "ties": 0,
+            "winRatePct": 81.01,
+            "wilsonLower95Pct": 71.01,
+            "profitFactor": 1.72,
+            "totalNetPct": 61.83,
+            "compoundedNetPct": 74.21,
+            "maxDrawdownPct": 20.43,
+            "compoundedMaxDrawdownPct": 19.03,
+            "retToDd": 3.03,
+            "compRetToDd": 3.9,
+            "avgLev": 2.67,
+            "worstTradePct": -7.78,
+            "fundingDragPct": 6.56
+          },
+          "calVal": {
+            "range": [
+              0,
+              17520
+            ],
+            "count": 158,
+            "wins": 122,
+            "losses": 36,
+            "ties": 0,
+            "winRatePct": 77.22,
+            "wilsonLower95Pct": 70.07,
+            "profitFactor": 1.78,
+            "totalNetPct": 163.23,
+            "compoundedNetPct": 331.51,
+            "maxDrawdownPct": 31.01,
+            "compoundedMaxDrawdownPct": 28.47,
+            "retToDd": 5.26,
+            "compRetToDd": 11.64,
+            "avgLev": 2.59,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 11.44
+          },
+          "holdoutY3": {
+            "range": [
+              17520,
+              26280
+            ],
+            "count": 84,
+            "wins": 59,
+            "losses": 25,
+            "ties": 0,
+            "winRatePct": 70.24,
+            "wilsonLower95Pct": 59.75,
+            "profitFactor": 1.12,
+            "totalNetPct": 16.22,
+            "compoundedNetPct": 8.35,
+            "maxDrawdownPct": 23.19,
+            "compoundedMaxDrawdownPct": 22.08,
+            "retToDd": 0.7,
+            "compRetToDd": 0.38,
+            "avgLev": 2.68,
+            "worstTradePct": -7.57,
+            "fundingDragPct": 6.62
+          },
+          "full3y": {
+            "range": [
+              0,
+              26280
+            ],
+            "count": 242,
+            "wins": 181,
+            "losses": 61,
+            "ties": 0,
+            "winRatePct": 74.79,
+            "wilsonLower95Pct": 68.96,
+            "profitFactor": 1.51,
+            "totalNetPct": 179.46,
+            "compoundedNetPct": 367.56,
+            "maxDrawdownPct": 31.01,
+            "compoundedMaxDrawdownPct": 28.47,
+            "retToDd": 5.79,
+            "compRetToDd": 12.91,
+            "avgLev": 2.62,
+            "worstTradePct": -12.08,
+            "fundingDragPct": 18.06
+          }
+        }
+      },
+      "btc_15m": {
+        "v41_baseline": {
+          "cal": {
+            "range": [
+              0,
+              35040
+            ],
+            "count": 146,
+            "wins": 98,
+            "losses": 48,
+            "ties": 0,
+            "winRatePct": 67.12,
+            "wilsonLower95Pct": 59.15,
+            "profitFactor": 1.06,
+            "totalNetPct": 7.16,
+            "compoundedNetPct": 3.78,
+            "maxDrawdownPct": 35.43,
+            "compoundedMaxDrawdownPct": 31.14,
+            "retToDd": 0.2,
+            "compRetToDd": 0.12,
+            "avgLev": 0.92,
+            "worstTradePct": -4.34,
+            "fundingDragPct": 3.45
+          },
+          "val": {
+            "range": [
+              35040,
+              70080
+            ],
+            "count": 158,
+            "wins": 112,
+            "losses": 46,
+            "ties": 0,
+            "winRatePct": 70.89,
+            "wilsonLower95Pct": 63.37,
+            "profitFactor": 1.22,
+            "totalNetPct": 24.65,
+            "compoundedNetPct": 23.12,
+            "maxDrawdownPct": 22.28,
+            "compoundedMaxDrawdownPct": 20.81,
+            "retToDd": 1.11,
+            "compRetToDd": 1.11,
+            "avgLev": 1.07,
+            "worstTradePct": -4.54,
+            "fundingDragPct": 4.21
+          },
+          "calVal": {
+            "range": [
+              0,
+              70080
+            ],
+            "count": 304,
+            "wins": 210,
+            "losses": 94,
+            "ties": 0,
+            "winRatePct": 69.08,
+            "wilsonLower95Pct": 63.67,
+            "profitFactor": 1.14,
+            "totalNetPct": 31.81,
+            "compoundedNetPct": 27.78,
+            "maxDrawdownPct": 35.43,
+            "compoundedMaxDrawdownPct": 31.14,
+            "retToDd": 0.9,
+            "compRetToDd": 0.89,
+            "avgLev": 1,
+            "worstTradePct": -4.54,
+            "fundingDragPct": 7.67
+          },
+          "holdoutY3": {
+            "range": [
+              70080,
+              105120
+            ],
+            "count": 151,
+            "wins": 94,
+            "losses": 57,
+            "ties": 0,
+            "winRatePct": 62.25,
+            "wilsonLower95Pct": 54.31,
+            "profitFactor": 0.94,
+            "totalNetPct": -8.02,
+            "compoundedNetPct": -11.07,
+            "maxDrawdownPct": 34.81,
+            "compoundedMaxDrawdownPct": 30.55,
+            "retToDd": -0.23,
+            "compRetToDd": -0.36,
+            "avgLev": 1.04,
+            "worstTradePct": -3.85,
+            "fundingDragPct": 4.12
+          },
+          "full3y": {
+            "range": [
+              0,
+              105120
+            ],
+            "count": 455,
+            "wins": 304,
+            "losses": 151,
+            "ties": 0,
+            "winRatePct": 66.81,
+            "wilsonLower95Pct": 62.36,
+            "profitFactor": 1.07,
+            "totalNetPct": 23.8,
+            "compoundedNetPct": 13.64,
+            "maxDrawdownPct": 35.43,
+            "compoundedMaxDrawdownPct": 31.14,
+            "retToDd": 0.67,
+            "compRetToDd": 0.44,
+            "avgLev": 1.01,
+            "worstTradePct": -4.54,
+            "fundingDragPct": 11.78
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "range": [
+              0,
+              35040
+            ],
+            "count": 112,
+            "wins": 77,
+            "losses": 35,
+            "ties": 0,
+            "winRatePct": 68.75,
+            "wilsonLower95Pct": 59.66,
+            "profitFactor": 1.2,
+            "totalNetPct": 18.09,
+            "compoundedNetPct": 15.68,
+            "maxDrawdownPct": 30.15,
+            "compoundedMaxDrawdownPct": 27.1,
+            "retToDd": 0.6,
+            "compRetToDd": 0.58,
+            "avgLev": 1.05,
+            "worstTradePct": -4.34,
+            "fundingDragPct": 3.29
+          },
+          "val": {
+            "range": [
+              35040,
+              70080
+            ],
+            "count": 115,
+            "wins": 85,
+            "losses": 30,
+            "ties": 0,
+            "winRatePct": 73.91,
+            "wilsonLower95Pct": 65.21,
+            "profitFactor": 1.58,
+            "totalNetPct": 46.63,
+            "compoundedNetPct": 53.74,
+            "maxDrawdownPct": 14.29,
+            "compoundedMaxDrawdownPct": 14.1,
+            "retToDd": 3.26,
+            "compRetToDd": 3.81,
+            "avgLev": 1.21,
+            "worstTradePct": -4.57,
+            "fundingDragPct": 3.49
+          },
+          "calVal": {
+            "range": [
+              0,
+              70080
+            ],
+            "count": 227,
+            "wins": 162,
+            "losses": 65,
+            "ties": 0,
+            "winRatePct": 71.37,
+            "wilsonLower95Pct": 65.17,
+            "profitFactor": 1.38,
+            "totalNetPct": 64.72,
+            "compoundedNetPct": 77.84,
+            "maxDrawdownPct": 30.15,
+            "compoundedMaxDrawdownPct": 27.1,
+            "retToDd": 2.15,
+            "compRetToDd": 2.87,
+            "avgLev": 1.13,
+            "worstTradePct": -4.57,
+            "fundingDragPct": 6.78
+          },
+          "holdoutY3": {
+            "range": [
+              70080,
+              105120
+            ],
+            "count": 118,
+            "wins": 75,
+            "losses": 43,
+            "ties": 0,
+            "winRatePct": 63.56,
+            "wilsonLower95Pct": 54.58,
+            "profitFactor": 0.96,
+            "totalNetPct": -3.86,
+            "compoundedNetPct": -7.05,
+            "maxDrawdownPct": 47.36,
+            "compoundedMaxDrawdownPct": 38.5,
+            "retToDd": -0.08,
+            "compRetToDd": -0.18,
+            "avgLev": 1.15,
+            "worstTradePct": -3.46,
+            "fundingDragPct": 3.9
+          },
+          "full3y": {
+            "range": [
+              0,
+              105120
+            ],
+            "count": 345,
+            "wins": 237,
+            "losses": 108,
+            "ties": 0,
+            "winRatePct": 68.7,
+            "wilsonLower95Pct": 63.62,
+            "profitFactor": 1.22,
+            "totalNetPct": 60.86,
+            "compoundedNetPct": 65.31,
+            "maxDrawdownPct": 47.36,
+            "compoundedMaxDrawdownPct": 38.5,
+            "retToDd": 1.29,
+            "compRetToDd": 1.7,
+            "avgLev": 1.14,
+            "worstTradePct": -4.57,
+            "fundingDragPct": 10.68
+          }
+        }
+      },
+      "portfolio_btc_1h_15m": {
+        "v41_baseline": {
+          "cal": {
+            "count": 225,
+            "wins": 156,
+            "losses": 69,
+            "winRatePct": 69.33,
+            "wilsonLower95Pct": 63.03,
+            "profitFactor": 1.39,
+            "totalNetPct": 88.55,
+            "compoundedNetPct": 114.38,
+            "maxDrawdownPct": 33.11,
+            "compoundedMaxDrawdownPct": 29.33,
+            "retToDd": 3.9,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 4,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 79,
+                "executedCount": 79,
+                "wins": 58,
+                "losses": 21,
+                "totalNetPct": 81.38736609393285,
+                "scaledByCapCount": 1,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 146,
+                "executedCount": 146,
+                "wins": 98,
+                "losses": 48,
+                "totalNetPct": 7.16762950205075,
+                "scaledByCapCount": 3,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "val": {
+            "count": 244,
+            "wins": 179,
+            "losses": 65,
+            "winRatePct": 73.36,
+            "wilsonLower95Pct": 67.48,
+            "profitFactor": 1.3,
+            "totalNetPct": 62.75,
+            "compoundedNetPct": 70.62,
+            "maxDrawdownPct": 29.32,
+            "compoundedMaxDrawdownPct": 27.05,
+            "retToDd": 2.61,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 15,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 86,
+                "executedCount": 86,
+                "wins": 67,
+                "losses": 19,
+                "totalNetPct": 39.56023357265147,
+                "scaledByCapCount": 10,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 158,
+                "executedCount": 158,
+                "wins": 112,
+                "losses": 46,
+                "totalNetPct": 23.193691388618664,
+                "scaledByCapCount": 5,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "holdoutY3": {
+            "count": 238,
+            "wins": 156,
+            "losses": 82,
+            "winRatePct": 65.55,
+            "wilsonLower95Pct": 59.3,
+            "profitFactor": 1.09,
+            "totalNetPct": 23.64,
+            "compoundedNetPct": 13.93,
+            "maxDrawdownPct": 41.74,
+            "compoundedMaxDrawdownPct": 35.46,
+            "retToDd": 0.39,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 20,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 87,
+                "executedCount": 87,
+                "wins": 62,
+                "losses": 25,
+                "totalNetPct": 30.749333292848675,
+                "scaledByCapCount": 8,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 151,
+                "executedCount": 151,
+                "wins": 94,
+                "losses": 57,
+                "totalNetPct": -7.111065333675759,
+                "scaledByCapCount": 12,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "full3y": {
+            "count": 707,
+            "wins": 491,
+            "losses": 216,
+            "winRatePct": 69.45,
+            "wilsonLower95Pct": 65.96,
+            "profitFactor": 1.25,
+            "totalNetPct": 174.95,
+            "compoundedNetPct": 316.72,
+            "maxDrawdownPct": 41.74,
+            "compoundedMaxDrawdownPct": 35.46,
+            "retToDd": 8.93,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 39,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 252,
+                "executedCount": 252,
+                "wins": 187,
+                "losses": 65,
+                "totalNetPct": 151.6969329594329,
+                "scaledByCapCount": 19,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 455,
+                "executedCount": 455,
+                "wins": 304,
+                "losses": 151,
+                "totalNetPct": 23.25025555699366,
+                "scaledByCapCount": 20,
+                "skippedByCapCount": 0
+              }
+            }
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "count": 191,
+            "wins": 135,
+            "losses": 56,
+            "winRatePct": 70.68,
+            "wilsonLower95Pct": 63.87,
+            "profitFactor": 1.57,
+            "totalNetPct": 121.29,
+            "compoundedNetPct": 192.17,
+            "maxDrawdownPct": 34,
+            "compoundedMaxDrawdownPct": 29.73,
+            "retToDd": 6.46,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 10,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 79,
+                "executedCount": 79,
+                "wins": 58,
+                "losses": 21,
+                "totalNetPct": 102.52085751653037,
+                "scaledByCapCount": 6,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 112,
+                "executedCount": 112,
+                "wins": 77,
+                "losses": 35,
+                "totalNetPct": 18.770036962007623,
+                "scaledByCapCount": 4,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "val": {
+            "count": 194,
+            "wins": 149,
+            "losses": 45,
+            "winRatePct": 76.8,
+            "wilsonLower95Pct": 70.38,
+            "profitFactor": 1.65,
+            "totalNetPct": 107.14,
+            "compoundedNetPct": 164.83,
+            "maxDrawdownPct": 21.76,
+            "compoundedMaxDrawdownPct": 20.26,
+            "retToDd": 8.13,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 16,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 79,
+                "executedCount": 79,
+                "wins": 64,
+                "losses": 15,
+                "totalNetPct": 62.30756468293554,
+                "scaledByCapCount": 10,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 115,
+                "executedCount": 115,
+                "wins": 85,
+                "losses": 30,
+                "totalNetPct": 44.831763612964885,
+                "scaledByCapCount": 6,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "holdoutY3": {
+            "count": 202,
+            "wins": 134,
+            "losses": 68,
+            "winRatePct": 66.34,
+            "wilsonLower95Pct": 59.57,
+            "profitFactor": 1.06,
+            "totalNetPct": 15.02,
+            "compoundedNetPct": 3.72,
+            "maxDrawdownPct": 59.17,
+            "compoundedMaxDrawdownPct": 47.47,
+            "retToDd": 0.08,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 22,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 84,
+                "executedCount": 84,
+                "wins": 59,
+                "losses": 25,
+                "totalNetPct": 14.990657146780196,
+                "scaledByCapCount": 7,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 118,
+                "executedCount": 118,
+                "wins": 75,
+                "losses": 43,
+                "totalNetPct": 0.02784525327705678,
+                "scaledByCapCount": 15,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "full3y": {
+            "count": 587,
+            "wins": 418,
+            "losses": 169,
+            "winRatePct": 71.21,
+            "wilsonLower95Pct": 67.42,
+            "profitFactor": 1.39,
+            "totalNetPct": 243.45,
+            "compoundedNetPct": 702.52,
+            "maxDrawdownPct": 59.17,
+            "compoundedMaxDrawdownPct": 47.47,
+            "retToDd": 14.8,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 48,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 242,
+                "executedCount": 242,
+                "wins": 181,
+                "losses": 61,
+                "totalNetPct": 179.81907934624613,
+                "scaledByCapCount": 23,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 345,
+                "executedCount": 345,
+                "wins": 237,
+                "losses": 108,
+                "totalNetPct": 63.62964582824957,
+                "scaledByCapCount": 25,
+                "skippedByCapCount": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "EXCHANGE_POST_ONLY": {
+      "btc_1h": {
+        "v41_baseline": {
+          "cal": {
+            "range": [
+              0,
+              8760
+            ],
+            "count": 77,
+            "wins": 56,
+            "losses": 21,
+            "ties": 0,
+            "winRatePct": 72.73,
+            "wilsonLower95Pct": 61.88,
+            "profitFactor": 1.8,
+            "totalNetPct": 90.82,
+            "compoundedNetPct": 126.6,
+            "maxDrawdownPct": 22.3,
+            "compoundedMaxDrawdownPct": 20.83,
+            "retToDd": 4.07,
+            "compRetToDd": 6.08,
+            "avgLev": 2.25,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -1.44
+          },
+          "val": {
+            "range": [
+              8760,
+              17520
+            ],
+            "count": 83,
+            "wins": 65,
+            "losses": 18,
+            "ties": 0,
+            "winRatePct": 78.31,
+            "wilsonLower95Pct": 68.3,
+            "profitFactor": 1.65,
+            "totalNetPct": 58.54,
+            "compoundedNetPct": 69.65,
+            "maxDrawdownPct": 20.72,
+            "compoundedMaxDrawdownPct": 19.18,
+            "retToDd": 2.82,
+            "compRetToDd": 3.63,
+            "avgLev": 2.45,
+            "worstTradePct": -5.35,
+            "fundingDragPct": 0.38
+          },
+          "calVal": {
+            "range": [
+              0,
+              17520
+            ],
+            "count": 160,
+            "wins": 121,
+            "losses": 39,
+            "ties": 0,
+            "winRatePct": 75.63,
+            "wilsonLower95Pct": 68.42,
+            "profitFactor": 1.73,
+            "totalNetPct": 149.36,
+            "compoundedNetPct": 284.43,
+            "maxDrawdownPct": 28.06,
+            "compoundedMaxDrawdownPct": 26.69,
+            "retToDd": 5.32,
+            "compRetToDd": 10.66,
+            "avgLev": 2.35,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -1.06
+          },
+          "holdoutY3": {
+            "range": [
+              17520,
+              26280
+            ],
+            "count": 88,
+            "wins": 64,
+            "losses": 24,
+            "ties": 0,
+            "winRatePct": 72.73,
+            "wilsonLower95Pct": 62.62,
+            "profitFactor": 1.46,
+            "totalNetPct": 54.29,
+            "compoundedNetPct": 60.19,
+            "maxDrawdownPct": 19.32,
+            "compoundedMaxDrawdownPct": 17.99,
+            "retToDd": 2.81,
+            "compRetToDd": 3.35,
+            "avgLev": 2.46,
+            "worstTradePct": -5.28,
+            "fundingDragPct": 0.22
+          },
+          "full3y": {
+            "range": [
+              0,
+              26280
+            ],
+            "count": 248,
+            "wins": 185,
+            "losses": 63,
+            "ties": 0,
+            "winRatePct": 74.6,
+            "wilsonLower95Pct": 68.83,
+            "profitFactor": 1.63,
+            "totalNetPct": 203.64,
+            "compoundedNetPct": 515.81,
+            "maxDrawdownPct": 28.06,
+            "compoundedMaxDrawdownPct": 26.69,
+            "retToDd": 7.26,
+            "compRetToDd": 19.33,
+            "avgLev": 2.39,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -0.84
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "range": [
+              0,
+              8760
+            ],
+            "count": 77,
+            "wins": 56,
+            "losses": 21,
+            "ties": 0,
+            "winRatePct": 72.73,
+            "wilsonLower95Pct": 61.88,
+            "profitFactor": 1.94,
+            "totalNetPct": 112.77,
+            "compoundedNetPct": 176.71,
+            "maxDrawdownPct": 22.38,
+            "compoundedMaxDrawdownPct": 20.89,
+            "retToDd": 5.04,
+            "compRetToDd": 8.46,
+            "avgLev": 2.5,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -1.66
+          },
+          "val": {
+            "range": [
+              8760,
+              17520
+            ],
+            "count": 76,
+            "wins": 62,
+            "losses": 14,
+            "ties": 0,
+            "winRatePct": 81.58,
+            "wilsonLower95Pct": 71.42,
+            "profitFactor": 2.09,
+            "totalNetPct": 82.86,
+            "compoundedNetPct": 114.93,
+            "maxDrawdownPct": 18.4,
+            "compoundedMaxDrawdownPct": 17.32,
+            "retToDd": 4.5,
+            "compRetToDd": 6.64,
+            "avgLev": 2.66,
+            "worstTradePct": -7.64,
+            "fundingDragPct": 0.37
+          },
+          "calVal": {
+            "range": [
+              0,
+              17520
+            ],
+            "count": 153,
+            "wins": 118,
+            "losses": 35,
+            "ties": 0,
+            "winRatePct": 77.12,
+            "wilsonLower95Pct": 69.85,
+            "profitFactor": 2,
+            "totalNetPct": 195.63,
+            "compoundedNetPct": 494.75,
+            "maxDrawdownPct": 27.88,
+            "compoundedMaxDrawdownPct": 26.18,
+            "retToDd": 7.02,
+            "compRetToDd": 18.9,
+            "avgLev": 2.58,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -1.29
+          },
+          "holdoutY3": {
+            "range": [
+              17520,
+              26280
+            ],
+            "count": 84,
+            "wins": 60,
+            "losses": 24,
+            "ties": 0,
+            "winRatePct": 71.43,
+            "wilsonLower95Pct": 61,
+            "profitFactor": 1.35,
+            "totalNetPct": 46.25,
+            "compoundedNetPct": 45.97,
+            "maxDrawdownPct": 20.01,
+            "compoundedMaxDrawdownPct": 19.35,
+            "retToDd": 2.31,
+            "compRetToDd": 2.38,
+            "avgLev": 2.68,
+            "worstTradePct": -7.49,
+            "fundingDragPct": 0.25
+          },
+          "full3y": {
+            "range": [
+              0,
+              26280
+            ],
+            "count": 237,
+            "wins": 178,
+            "losses": 59,
+            "ties": 0,
+            "winRatePct": 75.11,
+            "wilsonLower95Pct": 69.23,
+            "profitFactor": 1.74,
+            "totalNetPct": 241.88,
+            "compoundedNetPct": 768.14,
+            "maxDrawdownPct": 27.88,
+            "compoundedMaxDrawdownPct": 26.18,
+            "retToDd": 8.68,
+            "compRetToDd": 29.34,
+            "avgLev": 2.62,
+            "worstTradePct": -11.89,
+            "fundingDragPct": -1.04
+          }
+        }
+      },
+      "btc_15m": {
+        "v41_baseline": {
+          "cal": {
+            "range": [
+              0,
+              35040
+            ],
+            "count": 145,
+            "wins": 99,
+            "losses": 46,
+            "ties": 0,
+            "winRatePct": 68.28,
+            "wilsonLower95Pct": 60.31,
+            "profitFactor": 1.18,
+            "totalNetPct": 18.86,
+            "compoundedNetPct": 16.62,
+            "maxDrawdownPct": 27.65,
+            "compoundedMaxDrawdownPct": 25.48,
+            "retToDd": 0.68,
+            "compRetToDd": 0.65,
+            "avgLev": 0.92,
+            "worstTradePct": -4.28,
+            "fundingDragPct": 2.05
+          },
+          "val": {
+            "range": [
+              35040,
+              70080
+            ],
+            "count": 157,
+            "wins": 111,
+            "losses": 46,
+            "ties": 0,
+            "winRatePct": 70.7,
+            "wilsonLower95Pct": 63.15,
+            "profitFactor": 1.32,
+            "totalNetPct": 36.45,
+            "compoundedNetPct": 38.26,
+            "maxDrawdownPct": 15.78,
+            "compoundedMaxDrawdownPct": 15.57,
+            "retToDd": 2.31,
+            "compRetToDd": 2.46,
+            "avgLev": 1.08,
+            "worstTradePct": -4.52,
+            "fundingDragPct": 0.2
+          },
+          "calVal": {
+            "range": [
+              0,
+              70080
+            ],
+            "count": 302,
+            "wins": 210,
+            "losses": 92,
+            "ties": 0,
+            "winRatePct": 69.54,
+            "wilsonLower95Pct": 64.13,
+            "profitFactor": 1.25,
+            "totalNetPct": 55.31,
+            "compoundedNetPct": 61.23,
+            "maxDrawdownPct": 27.65,
+            "compoundedMaxDrawdownPct": 25.48,
+            "retToDd": 2,
+            "compRetToDd": 2.4,
+            "avgLev": 1,
+            "worstTradePct": -4.52,
+            "fundingDragPct": 2.25
+          },
+          "holdoutY3": {
+            "range": [
+              70080,
+              105120
+            ],
+            "count": 150,
+            "wins": 93,
+            "losses": 57,
+            "ties": 0,
+            "winRatePct": 62,
+            "wilsonLower95Pct": 54.02,
+            "profitFactor": 1.05,
+            "totalNetPct": 6.28,
+            "compoundedNetPct": 2.45,
+            "maxDrawdownPct": 29.18,
+            "compoundedMaxDrawdownPct": 26.54,
+            "retToDd": 0.22,
+            "compRetToDd": 0.09,
+            "avgLev": 1.04,
+            "worstTradePct": -3.81,
+            "fundingDragPct": -0.3
+          },
+          "full3y": {
+            "range": [
+              0,
+              105120
+            ],
+            "count": 452,
+            "wins": 303,
+            "losses": 149,
+            "ties": 0,
+            "winRatePct": 67.04,
+            "wilsonLower95Pct": 62.57,
+            "profitFactor": 1.18,
+            "totalNetPct": 61.59,
+            "compoundedNetPct": 65.18,
+            "maxDrawdownPct": 29.18,
+            "compoundedMaxDrawdownPct": 26.54,
+            "retToDd": 2.11,
+            "compRetToDd": 2.46,
+            "avgLev": 1.01,
+            "worstTradePct": -4.52,
+            "fundingDragPct": 1.95
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "range": [
+              0,
+              35040
+            ],
+            "count": 110,
+            "wins": 76,
+            "losses": 34,
+            "ties": 0,
+            "winRatePct": 69.09,
+            "wilsonLower95Pct": 59.93,
+            "profitFactor": 1.31,
+            "totalNetPct": 27.14,
+            "compoundedNetPct": 26.66,
+            "maxDrawdownPct": 23.93,
+            "compoundedMaxDrawdownPct": 22.37,
+            "retToDd": 1.13,
+            "compRetToDd": 1.19,
+            "avgLev": 1.05,
+            "worstTradePct": -4.28,
+            "fundingDragPct": 2.05
+          },
+          "val": {
+            "range": [
+              35040,
+              70080
+            ],
+            "count": 116,
+            "wins": 86,
+            "losses": 30,
+            "ties": 0,
+            "winRatePct": 74.14,
+            "wilsonLower95Pct": 65.49,
+            "profitFactor": 1.7,
+            "totalNetPct": 57.53,
+            "compoundedNetPct": 70.98,
+            "maxDrawdownPct": 12,
+            "compoundedMaxDrawdownPct": 12.12,
+            "retToDd": 4.8,
+            "compRetToDd": 5.86,
+            "avgLev": 1.21,
+            "worstTradePct": -4.53,
+            "fundingDragPct": 0.35
+          },
+          "calVal": {
+            "range": [
+              0,
+              70080
+            ],
+            "count": 226,
+            "wins": 162,
+            "losses": 64,
+            "ties": 0,
+            "winRatePct": 71.68,
+            "wilsonLower95Pct": 65.48,
+            "profitFactor": 1.5,
+            "totalNetPct": 84.67,
+            "compoundedNetPct": 116.56,
+            "maxDrawdownPct": 23.93,
+            "compoundedMaxDrawdownPct": 22.37,
+            "retToDd": 3.54,
+            "compRetToDd": 5.21,
+            "avgLev": 1.13,
+            "worstTradePct": -4.53,
+            "fundingDragPct": 2.4
+          },
+          "holdoutY3": {
+            "range": [
+              70080,
+              105120
+            ],
+            "count": 117,
+            "wins": 74,
+            "losses": 43,
+            "ties": 0,
+            "winRatePct": 63.25,
+            "wilsonLower95Pct": 54.22,
+            "profitFactor": 1.11,
+            "totalNetPct": 11.39,
+            "compoundedNetPct": 8.02,
+            "maxDrawdownPct": 43.28,
+            "compoundedMaxDrawdownPct": 35.92,
+            "retToDd": 0.26,
+            "compRetToDd": 0.22,
+            "avgLev": 1.15,
+            "worstTradePct": -3.44,
+            "fundingDragPct": -0.56
+          },
+          "full3y": {
+            "range": [
+              0,
+              105120
+            ],
+            "count": 343,
+            "wins": 236,
+            "losses": 107,
+            "ties": 0,
+            "winRatePct": 68.8,
+            "wilsonLower95Pct": 63.72,
+            "profitFactor": 1.35,
+            "totalNetPct": 96.06,
+            "compoundedNetPct": 133.92,
+            "maxDrawdownPct": 43.28,
+            "compoundedMaxDrawdownPct": 35.92,
+            "retToDd": 2.22,
+            "compRetToDd": 3.73,
+            "avgLev": 1.14,
+            "worstTradePct": -4.53,
+            "fundingDragPct": 1.84
+          }
+        }
+      },
+      "portfolio_btc_1h_15m": {
+        "v41_baseline": {
+          "cal": {
+            "count": 222,
+            "wins": 155,
+            "losses": 67,
+            "winRatePct": 69.82,
+            "wilsonLower95Pct": 63.49,
+            "profitFactor": 1.5,
+            "totalNetPct": 109.55,
+            "compoundedNetPct": 163.9,
+            "maxDrawdownPct": 31.79,
+            "compoundedMaxDrawdownPct": 28.32,
+            "retToDd": 5.79,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 2,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 77,
+                "executedCount": 77,
+                "wins": 56,
+                "losses": 21,
+                "totalNetPct": 90.82359686201413,
+                "scaledByCapCount": 0,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 145,
+                "executedCount": 145,
+                "wins": 99,
+                "losses": 46,
+                "totalNetPct": 18.722866690362945,
+                "scaledByCapCount": 2,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "val": {
+            "count": 240,
+            "wins": 176,
+            "losses": 64,
+            "winRatePct": 73.33,
+            "wilsonLower95Pct": 67.4,
+            "profitFactor": 1.46,
+            "totalNetPct": 92.65,
+            "compoundedNetPct": 129.52,
+            "maxDrawdownPct": 26.17,
+            "compoundedMaxDrawdownPct": 24.73,
+            "retToDd": 5.24,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 15,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 83,
+                "executedCount": 83,
+                "wins": 65,
+                "losses": 18,
+                "totalNetPct": 57.65612998130829,
+                "scaledByCapCount": 11,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 157,
+                "executedCount": 157,
+                "wins": 111,
+                "losses": 46,
+                "totalNetPct": 34.99248246986418,
+                "scaledByCapCount": 4,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "holdoutY3": {
+            "count": 238,
+            "wins": 157,
+            "losses": 81,
+            "winRatePct": 65.97,
+            "wilsonLower95Pct": 59.74,
+            "profitFactor": 1.26,
+            "totalNetPct": 61.33,
+            "compoundedNetPct": 65.6,
+            "maxDrawdownPct": 36.03,
+            "compoundedMaxDrawdownPct": 31.66,
+            "retToDd": 2.07,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 21,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 88,
+                "executedCount": 88,
+                "wins": 64,
+                "losses": 24,
+                "totalNetPct": 54.445057625415686,
+                "scaledByCapCount": 8,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 150,
+                "executedCount": 150,
+                "wins": 93,
+                "losses": 57,
+                "totalNetPct": 6.88432659116102,
+                "scaledByCapCount": 13,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "full3y": {
+            "count": 700,
+            "wins": 488,
+            "losses": 212,
+            "winRatePct": 69.71,
+            "wilsonLower95Pct": 66.21,
+            "profitFactor": 1.4,
+            "totalNetPct": 263.52,
+            "compoundedNetPct": 903.04,
+            "maxDrawdownPct": 36.03,
+            "compoundedMaxDrawdownPct": 31.66,
+            "retToDd": 28.52,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 38,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 248,
+                "executedCount": 248,
+                "wins": 185,
+                "losses": 63,
+                "totalNetPct": 202.92478446873807,
+                "scaledByCapCount": 19,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 452,
+                "executedCount": 452,
+                "wins": 303,
+                "losses": 149,
+                "totalNetPct": 60.599675751388055,
+                "scaledByCapCount": 19,
+                "skippedByCapCount": 0
+              }
+            }
+          }
+        },
+        "v50_ml": {
+          "cal": {
+            "count": 187,
+            "wins": 132,
+            "losses": 55,
+            "winRatePct": 70.59,
+            "wilsonLower95Pct": 63.7,
+            "profitFactor": 1.69,
+            "totalNetPct": 141.48,
+            "compoundedNetPct": 256.38,
+            "maxDrawdownPct": 33.15,
+            "compoundedMaxDrawdownPct": 29.11,
+            "retToDd": 8.81,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 8,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 77,
+                "executedCount": 77,
+                "wins": 56,
+                "losses": 21,
+                "totalNetPct": 114.55236420773508,
+                "scaledByCapCount": 5,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 110,
+                "executedCount": 110,
+                "wins": 76,
+                "losses": 34,
+                "totalNetPct": 26.930027486382958,
+                "scaledByCapCount": 3,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "val": {
+            "count": 192,
+            "wins": 148,
+            "losses": 44,
+            "winRatePct": 77.08,
+            "wilsonLower95Pct": 70.64,
+            "profitFactor": 1.87,
+            "totalNetPct": 136.75,
+            "compoundedNetPct": 255.2,
+            "maxDrawdownPct": 21.3,
+            "compoundedMaxDrawdownPct": 19.88,
+            "retToDd": 12.84,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 15,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 76,
+                "executedCount": 76,
+                "wins": 62,
+                "losses": 14,
+                "totalNetPct": 81.06220074298955,
+                "scaledByCapCount": 10,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 116,
+                "executedCount": 116,
+                "wins": 86,
+                "losses": 30,
+                "totalNetPct": 55.6922629027508,
+                "scaledByCapCount": 5,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "holdoutY3": {
+            "count": 201,
+            "wins": 134,
+            "losses": 67,
+            "winRatePct": 66.67,
+            "wilsonLower95Pct": 59.89,
+            "profitFactor": 1.26,
+            "totalNetPct": 59.73,
+            "compoundedNetPct": 61.46,
+            "maxDrawdownPct": 46.44,
+            "compoundedMaxDrawdownPct": 40.35,
+            "retToDd": 1.52,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 22,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 84,
+                "executedCount": 84,
+                "wins": 60,
+                "losses": 24,
+                "totalNetPct": 44.85873420111528,
+                "scaledByCapCount": 7,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 117,
+                "executedCount": 117,
+                "wins": 74,
+                "losses": 43,
+                "totalNetPct": 14.870904629817078,
+                "scaledByCapCount": 15,
+                "skippedByCapCount": 0
+              }
+            }
+          },
+          "full3y": {
+            "count": 580,
+            "wins": 414,
+            "losses": 166,
+            "winRatePct": 71.38,
+            "wilsonLower95Pct": 67.57,
+            "profitFactor": 1.57,
+            "totalNetPct": 337.97,
+            "compoundedNetPct": 1943.8,
+            "maxDrawdownPct": 46.44,
+            "compoundedMaxDrawdownPct": 40.35,
+            "retToDd": 48.17,
+            "peakOpenLev": 4,
+            "scaledByCapCount": 45,
+            "skippedByCapCount": 0,
+            "perStream": {
+              "BTC_1H": {
+                "id": "BTC_1H",
+                "inputCount": 237,
+                "executedCount": 237,
+                "wins": 178,
+                "losses": 59,
+                "totalNetPct": 240.47329915183997,
+                "scaledByCapCount": 22,
+                "skippedByCapCount": 0
+              },
+              "BTC_15M": {
+                "id": "BTC_15M",
+                "inputCount": 343,
+                "executedCount": 343,
+                "wins": 236,
+                "losses": 107,
+                "totalNetPct": 97.49319501895087,
+                "scaledByCapCount": 23,
+                "skippedByCapCount": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

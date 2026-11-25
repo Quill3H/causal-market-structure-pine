@@ -1,0 +1,331 @@
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  assertLoopbackHost,
+  hasExchangeCredentials,
+  redactConfig,
+  timingSafeTokenEqual,
+} from './config.mjs';
+import {
+  createExchangeClient,
+  evaluateStrategy,
+  loadOfflineOrDbDataset,
+} from './engine_runtime.mjs';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const PUBLIC_DIR = path.join(HERE, 'public');
+
+const MIME_TYPES = Object.freeze({
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+});
+
+const SECURITY_HEADERS = Object.freeze({
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Content-Security-Policy':
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+});
+
+function sendJson(res, statusCode, payload) {
+  const body = JSON.stringify(payload);
+  res.writeHead(statusCode, {
+    ...SECURITY_HEADERS,
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+  });
+  res.end(body);
+}
+
+function sendError(res, statusCode, message) {
+  sendJson(res, statusCode, { ok: false, error: String(message) });
+}
+
+function readJsonBody(req, maxBytes = 16384) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(new Error('Request body too large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      try {
+        const text = Buffer.concat(chunks).toString('utf8');
+        resolve(text ? JSON.parse(text) : {});
+      } catch {
+        reject(new Error('Invalid JSON payload'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function serveStaticFile(res, urlPath) {
+  const rel = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
+  if (rel.includes('..') || rel.includes('\0')) {
+    sendError(res, 403, 'Forbidden');
+    return;
+  }
+  const resolved = path.resolve(PUBLIC_DIR, rel);
+  if (!resolved.startsWith(PUBLIC_DIR + path.sep) && resolved !== path.join(PUBLIC_DIR, 'index.html')) {
+    sendError(res, 403, 'Forbidden');
+    return;
+  }
+  if (!fs.existsSync(resolved) || fs.statSync(resolved).isDirectory()) {
+    sendError(res, 404, 'Not found');
+    return;
+  }
+  const ext = path.extname(resolved).toLowerCase();
+  const mime = MIME_TYPES[ext] || 'application/octet-stream';
+  res.writeHead(200, {
+    ...SECURITY_HEADERS,
+    'Content-Type': mime,
+    'Cache-Control': 'no-cache',
+  });
+  fs.createReadStream(resolved).pipe(res);
+}
+
+export function createStandaloneServer({ config, store, runtimeSpecs, daemon, checkAccountHealth = false } = {}) {
+  const host = assertLoopbackHost(config.host || '127.0.0.1');
+  const port = Number(config.port ?? 4180);
+
+  let cachedHealth = {
+    checkedAt: null,
+    exchange: config.exchange,
+    configured: hasExchangeCredentials(config),
+    connected: false,
+    simulated: config.exchange === 'OKX' ? config.okx?.simulated : config.binance?.testnet,
+    reason: hasExchangeCredentials(config)
+      ? 'API credentials loaded (health pending)'
+      : 'Public-market + PAPER mode (no API keys)',
+  };
+
+  async function refreshAccountHealthIfNeeded() {
+    if (!checkAccountHealth || !hasExchangeCredentials(config)) return cachedHealth;
+    try {
+      const client = createExchangeClient(config);
+      const health = await client.getAccountHealth();
+      cachedHealth = { ...health, checkedAt: new Date().toISOString() };
+    } catch (err) {
+      cachedHealth = {
+        ...cachedHealth,
+        connected: false,
+        reason: err.message,
+        checkedAt: new Date().toISOString(),
+      };
+    }
+    return cachedHealth;
+  }
+
+  const server = http.createServer(async (req, res) => {
+    try {
+      const parsed = new URL(req.url || '/', `http://${host}:${port}`);
+      const pathname = parsed.pathname;
+      const symbol = (parsed.searchParams.get('symbol') || config.symbols[0] || 'BTCUSDT.P').toUpperCase();
+      const timeframe = (parsed.searchParams.get('timeframe') || config.timeframes[0] || '1h').toLowerCase();
+      const limit = Math.min(2000, Math.max(10, Number(parsed.searchParams.get('limit') || 240)));
+
+      if (req.method === 'GET' && pathname === '/api/status') {
+        const accountHealth = await refreshAccountHealthIfNeeded();
+        const paperRecord = store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`);
+        const snap = daemon?.latestSnapshots?.get(`${symbol}:${timeframe}`);
+        const summary = snap?.summary || paperRecord?.state?.summary || null;
+        const activeOverlay = snap?.activeOverlay || paperRecord?.state?.activeOverlay || null;
+        sendJson(res, 200, {
+          ok: true,
+          timestamp: new Date().toISOString(),
+          config: redactConfig(config),
+          accountHealth,
+          models: {
+            v5EngineReady: Boolean(runtimeSpecs?.hasV5Engine),
+            v5MlReady: Boolean(runtimeSpecs?.hasV5Ml),
+            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
+          },
+          daemon: {
+            lastSyncAt: daemon?.lastSyncAt || null,
+            lastEvalAt: daemon?.lastEvalAt || null,
+            lastError: daemon?.lastError || null,
+          },
+          summary,
+          activeOverlay,
+        });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/candles') {
+        let candles = store.getCandles({ exchange: config.exchange, symbol, timeframe, limit });
+        let overlay = daemon?.latestSnapshots?.get(`${symbol}:${timeframe}`)?.activeOverlay ||
+          store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`)?.state?.activeOverlay ||
+          null;
+        let source = 'sqlite';
+
+        if (candles.length === 0) {
+          const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
+          candles = loaded.dataset.rows.slice(-limit);
+          source = loaded.source;
+          if (!overlay) {
+            const evalRes = evaluateStrategy({
+              dataset: loaded.dataset,
+              fundingRates: loaded.fundingRates,
+              timeframe,
+              symbol,
+              exchange: config.exchange,
+              config,
+              runtimeSpecs,
+            });
+            overlay = evalRes.activeOverlay;
+          }
+        }
+        sendJson(res, 200, { ok: true, symbol, timeframe, source, count: candles.length, candles, overlay });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/trades') {
+        let trades = store.getTradesHistory({ exchange: config.exchange, symbol, timeframe, limit });
+        let summary = store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`)?.state?.summary || null;
+        if (trades.length === 0) {
+          const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
+          const evalRes = evaluateStrategy({
+            dataset: loaded.dataset,
+            fundingRates: loaded.fundingRates,
+            timeframe,
+            symbol,
+            exchange: config.exchange,
+            config,
+            runtimeSpecs,
+          });
+          trades = evalRes.trades.slice(-limit).reverse();
+          summary = evalRes.summary;
+        }
+        sendJson(res, 200, { ok: true, symbol, timeframe, count: trades.length, summary, trades });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/signals') {
+        let signals = store.getSignalsAudit({ exchange: config.exchange, symbol, timeframe, limit });
+        if (signals.length === 0) {
+          const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
+          const evalRes = evaluateStrategy({
+            dataset: loaded.dataset,
+            fundingRates: loaded.fundingRates,
+            timeframe,
+            symbol,
+            exchange: config.exchange,
+            config,
+            runtimeSpecs,
+          });
+          signals = evalRes.signalsAudit.slice(-limit).reverse();
+        }
+        sendJson(res, 200, { ok: true, symbol, timeframe, count: signals.length, signals });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/backtest') {
+        const profile = (parsed.searchParams.get('profile') || 'EXCHANGE_POST_ONLY').toUpperCase();
+        const mlEnabled = parsed.searchParams.get('ml') !== '0';
+        const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 300 });
+        const evalRes = evaluateStrategy({
+          dataset: loaded.dataset,
+          fundingRates: loaded.fundingRates,
+          timeframe,
+          symbol,
+          exchange: config.exchange,
+          execProfile: profile,
+          mlEnabled,
+          config,
+          runtimeSpecs,
+        });
+        sendJson(res, 200, {
+          ok: true,
+          source: loaded.source,
+          summary: evalRes.summary,
+          execOptions: evalRes.execOptions,
+          equityCurve: evalRes.equityCurve.slice(-300),
+          recentTrades: evalRes.trades.slice(-40).reverse(),
+        });
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/mode') {
+        const fetchSite = req.headers['sec-fetch-site'];
+        if (fetchSite && !['same-origin', 'none'].includes(String(fetchSite))) {
+          sendError(res, 403, 'Cross-site mode mutation rejected');
+          return;
+        }
+        const body = await readJsonBody(req);
+        const targetMode = String(body.executionMode || 'PAPER').trim().toUpperCase();
+        const targetDryRun = body.dryRun !== undefined ? Boolean(body.dryRun) : targetMode !== 'LIVE_ARMED';
+
+        if (!['PAPER', 'LIVE_ARMED'].includes(targetMode)) {
+          sendError(res, 400, 'executionMode must be PAPER or LIVE_ARMED');
+          return;
+        }
+
+        if (targetMode === 'LIVE_ARMED' || targetDryRun === false) {
+          if (!config.liveConfirmToken) {
+            sendError(res, 403, 'LIVE_CONFIRM_TOKEN is not configured in server environment');
+            return;
+          }
+          if (!timingSafeTokenEqual(config.liveConfirmToken, body.confirmToken)) {
+            sendError(res, 403, 'Invalid LIVE_CONFIRM_TOKEN');
+            return;
+          }
+          if (!hasExchangeCredentials(config, config.exchange)) {
+            sendError(res, 403, `Exchange API credentials missing for ${config.exchange}`);
+            return;
+          }
+        }
+
+        config.executionMode = targetMode;
+        config.dryRun = targetMode === 'PAPER' ? true : targetDryRun;
+        sendJson(res, 200, {
+          ok: true,
+          config: redactConfig(config),
+        });
+        return;
+      }
+
+      if (req.method === 'GET') {
+        serveStaticFile(res, pathname);
+        return;
+      }
+
+      sendError(res, 404, 'Endpoint not found');
+    } catch (err) {
+      sendError(res, 500, err.message);
+    }
+  });
+
+  return {
+    server,
+    host,
+    port,
+    start() {
+      return new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(port, host, () => {
+          const addr = server.address();
+          resolve({ host: addr.address, port: addr.port });
+        });
+      });
+    },
+    stop() {
+      return new Promise(resolve => {
+        server.close(() => resolve());
+      });
+    },
+  };
+}

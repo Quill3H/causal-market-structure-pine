@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 data/*
 !data/manifest.json
+
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db

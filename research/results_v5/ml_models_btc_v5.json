@@ -1,0 +1,165 @@
+{
+  "schema": "smc-v5-btc-ml-models-v1",
+  "generatedAt": "2026-11-25T08:04:55.248414+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 1/3 Cal (Y1), 1/3 Val (Y2), 1/3 Blind Holdout (Y3)",
+    "purging": "Purged all Cal/Val boundary-overlapping trades",
+    "fitScope": "Imputer + StandardScaler + parsimonious Classifier (2-6 stationary features) fit strictly on Cal (Y1) sequential trades; gated by Cal inner-CV AUC >= 0.52 and Val ROC-AUC >= 0.57; threshold tau & sizeCurve selected strictly on Val (Y2); Holdout Y3 never accessed by trainer"
+  },
+  "models": {
+    "1h": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "h4_ema20_dist_atr",
+        "ret_48_dir_atr",
+        "recent_dir_sl_streak"
+      ],
+      "threshold": 0.5874,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.45,
+        "pMax": 0.8048
+      },
+      "imputer": {
+        "medians": [
+          0.05781353831498246,
+          0.1204097779574121,
+          2.0
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.058642820285058635,
+          0.39794013942430867,
+          2.155844155844156
+        ],
+        "scale": [
+          0.7225938722737387,
+          3.02241865090573,
+          1.845070195862653
+        ]
+      },
+      "classifier": {
+        "coef": [
+          -0.0930845148793887,
+          0.383559713815253,
+          0.24783551546300087
+        ],
+        "intercept": 1.022138209830834
+      },
+      "selectionMeta": {
+        "selectedId": "seq:htf_streak:LR_C0.25_unw|t=0.5874|sc=linear_0.85_1.45",
+        "labelSet": "seq",
+        "calCvAuc": 0.6208,
+        "calInAuc": 0.6539,
+        "valRocAuc": 0.6,
+        "valCorrNet": 0.2056,
+        "calRange": [
+          0,
+          8760
+        ],
+        "valRange": [
+          8760,
+          17520
+        ],
+        "holdoutRangeUntouched": [
+          17520,
+          26280
+        ],
+        "calTrainSamples": 77,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 83,
+          "winRatePct": 78.3132530120482,
+          "profitFactor": 1.6491392065468948,
+          "totalNetPct": 58.53539722755319,
+          "compoundedNetPct": 69.65130886810434,
+          "compoundedMaxDrawdownPct": 19.17806398407094,
+          "retToDd": 3.631821696181421
+        },
+        "valSelected": {
+          "count": 76,
+          "winRatePct": 81.57894736842105,
+          "profitFactor": 2.085393117481433,
+          "totalNetPct": 82.85865015901638,
+          "compoundedNetPct": 114.93059687295401,
+          "compoundedMaxDrawdownPct": 17.317659305236923,
+          "retToDd": 6.636612653431667
+        }
+      }
+    },
+    "15m": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "wick_adv_atr"
+      ],
+      "threshold": 0.6793,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.45,
+        "pMax": 0.6971
+      },
+      "imputer": {
+        "medians": [
+          0.23064329829120286
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.29758829938200465
+        ],
+        "scale": [
+          0.2907902286484068
+        ]
+      },
+      "classifier": {
+        "coef": [
+          -0.06879099356134039
+        ],
+        "intercept": 0.7670924559249659
+      },
+      "selectionMeta": {
+        "selectedId": "seq:wick_adv_only:LR_C0.02_unw|t=0.6793|sc=linear_0.85_1.45",
+        "labelSet": "seq",
+        "calCvAuc": 0.55,
+        "calInAuc": 0.5496,
+        "valRocAuc": 0.618,
+        "valCorrNet": 0.1554,
+        "calRange": [
+          0,
+          35040
+        ],
+        "valRange": [
+          35040,
+          70080
+        ],
+        "holdoutRangeUntouched": [
+          70080,
+          105120
+        ],
+        "calTrainSamples": 145,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 157,
+          "winRatePct": 70.70063694267516,
+          "profitFactor": 1.3248201696906448,
+          "totalNetPct": 36.45278038505069,
+          "compoundedNetPct": 38.26105007433811,
+          "compoundedMaxDrawdownPct": 15.570721717248343,
+          "retToDd": 2.457243200997853
+        },
+        "valSelected": {
+          "count": 116,
+          "winRatePct": 74.13793103448276,
+          "profitFactor": 1.702533287151845,
+          "totalNetPct": 57.52986284851989,
+          "compoundedNetPct": 70.9798864824669,
+          "compoundedMaxDrawdownPct": 12.120640582919414,
+          "retToDd": 5.856116761889037
+        }
+      }
+    }
+  }
+}
