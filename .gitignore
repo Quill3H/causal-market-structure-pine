@@ -6,6 +6,8 @@ data/*
 .env
 .env.*
 !.env.example
+.local-vault.secret
+.local-vault.secret.*
 *.sqlite
 *.sqlite-*
 *.db

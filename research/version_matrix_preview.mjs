@@ -579,15 +579,16 @@ function extractV80(repoRoot) {
 
 function extractV90(repoRoot) {
   const s9 = readJsonIfExists(path.join(repoRoot, 'research', 'results_v9', 'ensemble_v9_crypto_5y.json'));
+  const m9 = readJsonIfExists(path.join(repoRoot, 'research', 'results_v9', 'models_v9_crypto.json'));
   if (!s9) {
     return {
       version: 'v9.0',
-      label: 'v9.0 (Walk-Forward Regime-Barbell Stacking Ensemble + Causal DD Guard)',
-      era: '5Y 15m+1h Crypto Expanding Walk-Forward Stacking + Causal DD Guard',
+      label: 'v9.0 (3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard)',
+      era: '5Y 15m+1h Crypto 3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard',
       sourceArtifact: 'research/results_v9/ensemble_v9_crypto_5y.json',
       verifiedFromArtifact: false,
       status: 'PENDING_V9_ARTIFACTS',
-      executionModel: 'Causal Expanding Walk-Forward Stacking + Causal Closed-Trade DD Guard',
+      executionModel: '3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal Closed-Trade DD Guard',
       assetUniverse: ['BTCUSDT, BNBUSDT, ETHUSDT, SOLUSDT (15m + 1h)'],
       metrics: null,
       strengths: ['Awaiting locked v9 summary artifact from @ml-alpha-btc.'],
@@ -604,16 +605,20 @@ function extractV90(repoRoot) {
   };
   const streamsSummary = {};
   for (const [sk, sv] of Object.entries(s9.streams ?? {})) {
-    const poMl = sv.profiles?.EXCHANGE_POST_ONLY?.ml;
+    const poNode = sv.EXCHANGE_POST_ONLY ?? sv.profiles?.EXCHANGE_POST_ONLY ?? sv;
+    const poMl = poNode.summary?.ml ?? poNode.ml ?? sv.profiles?.EXCHANGE_POST_ONLY?.ml ?? null;
+    const foldSrc = poNode.foldSummary ?? poMl ?? null;
+    const selMeta = m9?.models?.[sk]?.selectionMeta ?? null;
+
     streamsSummary[sk] = {
-      qualifiedForLive: sv.qualifiedForLive ?? sv.qualified ?? null,
-      shortEnabled: sv.shortEnabled ?? null,
-      cvRocAuc: sv.cvRocAuc ?? null,
-      cvWrPct: sv.cvWrPct ?? sv.cvWr ?? null,
-      foldSummary: sv.profiles?.EXCHANGE_POST_ONLY?.ml ? {
-        f1Bear2022: poMl.f1Bear2022 ?? null,
-        f2Recov2023: poMl.f2Recov2023 ?? null,
-        f3Val: poMl.f3Val ?? null,
+      qualifiedForLive: poNode.qualifiedForLive ?? sv.qualifiedForLive ?? sv.qualified ?? selMeta?.qualifiedOnCalValFolds ?? null,
+      shortEnabled: poNode.shortEnabled ?? sv.shortEnabled ?? selMeta?.shortEnabled ?? null,
+      cvRocAuc: sv.cvRocAuc ?? poNode.cvRocAuc ?? selMeta?.calCvAuc ?? null,
+      cvWrPct: sv.cvWrPct ?? sv.cvWr ?? poMl?.calVal?.winRatePct ?? selMeta?.foldSelected?.cv?.winRatePct ?? null,
+      foldSummary: foldSrc ? {
+        f1Bear2022: foldSrc.f1Bear2022 ?? null,
+        f2Recov2023: foldSrc.f2Recov2023 ?? null,
+        f3Val: foldSrc.f3Val ?? null,
       } : null,
       holdoutY5PostOnly: poMl?.holdoutY5 ?? null,
       full5yPostOnly: poMl?.full5y ?? null,
@@ -622,12 +627,12 @@ function extractV90(repoRoot) {
 
   return {
     version: 'v9.0',
-    label: 'v9.0 (Walk-Forward Regime-Barbell Ensemble + Causal DD Guard)',
-    era: '5Y 15m+1h Crypto Expanding Walk-Forward Stacking (3-Fold Purged) + Causal DD Guard',
+    label: 'v9.0 (3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard)',
+    era: '5Y 15m+1h Crypto 3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard',
     sourceArtifact: 'research/results_v9/ensemble_v9_crypto_5y.json',
     verifiedFromArtifact: true,
     status: 'VERIFIED_WF_ENSEMBLE_ZERO_LIQ',
-    executionModel: 'Purged 3-Fold Walk-Forward Stacking + Bear-Fold Short Gating + Causal Closed-Trade DD Guard (15%->0.70x until <8%) + Two-Stage TP1',
+    executionModel: '3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Bear-Fold Short Gating + Causal Closed-Trade DD Guard (15%->0.70x until <8%) + Two-Stage TP1',
     assetUniverse: [
       `Qualified (${s9.qualifiedStreams?.length ?? 0}/${s9.allStreamsCount ?? 8}): ${(s9.qualifiedStreams ?? []).join(', ')}`,
       'Gated out by strict CV/fold bar: SOL_1h, BNB_15m (Shorts disabled on BNB_1h & ETH_15m by F1 Bear gate)',

@@ -128,12 +128,14 @@ export function buildBinanceReduceOnlySlTpOrders({
   stopPrice,
   takeProfitPrice,
   workingType = 'MARK_PRICE',
+  slClientOrderId,
 }) {
   const sym = toBinanceSymbol(symbol);
   const closeSide = entrySide === 1 || String(entrySide).toUpperCase() === 'BUY' ? 'SELL' : 'BUY';
+  const hasClId = typeof slClientOrderId === 'string' && slClientOrderId.length > 0;
   const orders = [];
   if (stopPrice !== undefined && stopPrice !== null) {
-    orders.push({
+    const slOrder = {
       symbol: sym,
       side: closeSide,
       type: 'STOP_MARKET',
@@ -141,10 +143,12 @@ export function buildBinanceReduceOnlySlTpOrders({
       quantity: String(quantity),
       reduceOnly: 'true',
       workingType,
-    });
+    };
+    if (hasClId) slOrder.newClientOrderId = String(slClientOrderId);
+    orders.push(slOrder);
   }
   if (takeProfitPrice !== undefined && takeProfitPrice !== null) {
-    orders.push({
+    const tpOrder = {
       symbol: sym,
       side: closeSide,
       type: 'TAKE_PROFIT_MARKET',
@@ -152,7 +156,9 @@ export function buildBinanceReduceOnlySlTpOrders({
       quantity: String(quantity),
       reduceOnly: 'true',
       workingType: 'CONTRACT_PRICE',
-    });
+    };
+    if (hasClId) tpOrder.newClientOrderId = `${String(slClientOrderId).slice(0, 30)}TP`;
+    orders.push(tpOrder);
   }
   return orders;
 }
@@ -202,7 +208,13 @@ export class BinanceFuturesClient {
       headers,
       signal: AbortSignal.timeout(15000),
     });
-    const payload = await res.json();
+    const rawText = await res.text();
+    let payload = null;
+    try {
+      payload = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      payload = { msg: rawText.slice(0, 200) };
+    }
     if (!res.ok) {
       throw new Error(`Binance private HTTP ${res.status}: ${payload?.msg || 'unknown'}`);
     }
@@ -315,6 +327,15 @@ export class BinanceFuturesClient {
           unrealizedProfit: Number(p.unrealizedProfit),
           leverage: Number(p.leverage),
         })),
+    };
+  }
+
+  async getApiKeyPermissions() {
+    const acct = await this._requestPrivate('GET', '/fapi/v2/account');
+    return {
+      enableReading: true,
+      enableFutures: Boolean(acct?.enableFutures ?? acct?.canTrade ?? true),
+      enableWithdrawals: Boolean(acct?.enableWithdrawals ?? acct?.canWithdraw ?? false),
     };
   }
 

@@ -1,534 +1,1155 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v10.0 Commercial &amp; Standalone</title>
+  <meta name="color-scheme" content="light dark">
+  <title>Giao dịch Tự động v12.5</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='2' y='2' width='24' height='24' rx='6' fill='%230d665f'/%3E%3Cpath d='M7.5 18.5L12 13L15.5 16L20.5 9.5' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT10</div>
-      <div>
-        <h1 class="brand-title">TRADING-TOOL v10.0 Commercial &amp; Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">Encrypted Auto-Trade Vault • Account Sizing Simulator • Multi-Version Alpha</p>
+    <div class="topbar-row">
+      <div class="brand-group">
+        <svg class="brand-mark-svg" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="24" height="24" rx="6" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M7.5 18.5L12 13L15.5 16L20.5 9.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20.5" cy="9.5" r="2" fill="currentColor"/>
+        </svg>
+        <div class="brand-copy">
+          <h1 class="brand-title">Giao dịch Tự động</h1>
+          <p class="brand-sub" id="model-subtitle">Tự động giao dịch an toàn · Không bao giờ có quyền rút tiền</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span id="topbar-autopilot-pill" class="status-dot-label">Chưa bật</span>
+        <button id="topbar-emergency-stop-btn" class="btn btn-danger btn-sm is-hidden" type="button">Dừng ngay</button>
+        <button id="pro-mode-toggle-btn" class="btn btn-ghost btn-sm" type="button" aria-pressed="false">Chế độ chuyên gia</button>
+        <button id="theme-toggle-btn" class="btn btn-ghost btn-sm" type="button" aria-label="Chuyển giao diện Sáng hoặc Tối">Giao diện: Sáng</button>
       </div>
     </div>
 
-    <div class="controls-group">
-      <label class="control-field">
-        <span class="control-label">Engine</span>
-        <select id="symbol-select" aria-label="Trading Engine Asset">
-          <option value="BTCUSDT.P">BTC (BTCUSDT.P)</option>
-          <option value="ETHUSDT.P">ETH (ETHUSDT.P)</option>
-          <option value="SOLUSDT.P">SOL (SOLUSDT.P)</option>
-          <option value="BNBUSDT.P">BNB (BNBUSDT.P)</option>
-          <option value="SPY">S&amp;P 500 (SPY / ^GSPC)</option>
-          <option value="DIA">Dow Jones (DIA / ^DJI)</option>
-          <option value="QQQ">Nasdaq 100 (QQQ / ^NDX)</option>
-        </select>
-      </label>
-
-      <label class="control-field">
-        <span class="control-label">TF</span>
-        <select id="timeframe-select" aria-label="Timeframe">
-          <option value="1h">1h</option>
-          <option value="15m">15m</option>
-          <option value="1d">1d</option>
-        </select>
-      </label>
-
-      <label class="control-field">
-        <span class="control-label">Profile</span>
-        <select id="profile-select" aria-label="Execution Profile">
-          <option value="EXCHANGE_POST_ONLY">EXCHANGE_POST_ONLY</option>
-          <option value="STRICT_TAKER">STRICT_TAKER</option>
-          <option value="EQUITY_ETF">EQUITY_ETF</option>
-        </select>
-      </label>
-
-      <label class="control-field">
-        <span class="control-label">Version</span>
-        <select id="version-select" aria-label="Strategy Version">
-          <option value="auto">auto (Best)</option>
-          <option value="v9">v9.0 Ensemble</option>
-          <option value="v8">v8.0 Regime</option>
-          <option value="v7">v7.0 High-WR</option>
-          <option value="v6">v6.0 Multi-Asset</option>
-          <option value="v5">v5.0 ML</option>
-          <option value="v4.1">v4.1 Lock</option>
-        </select>
-      </label>
-
-      <label class="control-field">
-        <span class="control-label">Tier</span>
-        <select id="tier-select" aria-label="Risk Tier">
-          <option value="SAFE_75WR">Safe (75%+ WR)</option>
-          <option value="BALANCED_75WR">Balanced (75%+ WR)</option>
-          <option value="TARGET_30MO_75WR">30%/Mo Frontier</option>
-        </select>
-      </label>
-
-      <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
-    </div>
-
-    <div class="badges-group">
-      <span id="api-badge" class="badge badge-neutral">API: Checking...</span>
-      <span id="mode-badge" class="badge badge-safe">MODE: PAPER</span>
-    </div>
+    <nav id="workspace-tabs-nav" class="workspace-tabs is-hidden" role="tablist" aria-label="Không gian làm việc">
+      <button
+        id="view-tab-autopilot"
+        class="tab-btn"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="e2e-autopilot-view"
+      >Tự động Trade</button>
+      <button
+        id="view-tab-flow"
+        class="tab-btn"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="e2e-flow-view"
+      >Sơ đồ Luồng</button>
+      <button
+        id="view-tab-quant"
+        class="tab-btn"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="quant-pro-view"
+      >Quant Pro Terminal</button>
+    </nav>
   </header>
 
   <main class="dashboard">
-    <section class="scoreboard" aria-label="Performance Scoreboard">
-      <article class="kpi-card">
-        <span class="kpi-label">Win Rate (W/L)</span>
-        <strong class="kpi-value" id="kpi-winrate">--</strong>
-        <span class="kpi-meta" id="kpi-wilson">Wilson95: --</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Profit Factor</span>
-        <strong class="kpi-value" id="kpi-pf">--</strong>
-        <span class="kpi-meta" id="kpi-trades">Trades: --</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Compounded Return</span>
-        <strong class="kpi-value" id="kpi-comp-net-main">--</strong>
-        <span class="kpi-meta" id="kpi-total-net-sub">Additive: --</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Max Drawdown</span>
-        <strong class="kpi-value" id="kpi-dd">--</strong>
-        <span class="kpi-meta" id="kpi-funding">Funding Drag: --</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Distance-to-Liquidation</span>
-        <strong class="kpi-value" id="kpi-liq-buffer">--</strong>
-        <span class="kpi-meta" id="kpi-liq-sub">Liq Px: -- • MMR 0.5%</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Macro &amp; Orderflow Regime</span>
-        <strong class="kpi-value regime-val" id="kpi-regime">--</strong>
-        <span class="kpi-meta" id="kpi-regime-sub">VIX / TNX / CVD / Funding</span>
-      </article>
-      <article class="kpi-card">
-        <span class="kpi-label">Engine &amp; Model</span>
-        <strong class="kpi-value" id="kpi-model">--</strong>
-        <span class="kpi-meta" id="kpi-source">Source: --</span>
-      </article>
-    </section>
+    <!-- TAB 1: E2E AUTOPILOT (CONSUMER DEFAULT + EXPERT EXPANDABLE) -->
+    <section id="e2e-autopilot-view" class="view-panel" role="tabpanel" aria-labelledby="view-tab-autopilot">
+      <section id="e2e-status-banner" class="surface-block e2e-status-strip is-hidden">
+        <div class="e2e-status-copy">
+          <div class="e2e-status-head">
+            <span id="e2e-status-badge" class="status-dot-label">Chưa bật</span>
+            <h2 id="e2e-status-headline" class="section-heading">Bắt đầu giao dịch tự động</h2>
+          </div>
+          <p id="e2e-status-detail" class="mono-meta">Chu kỳ: 0 · Không có quyền rút tiền</p>
+        </div>
+        <div id="e2e-banner-actions" class="action-row">
+          <button id="e2e-toggle-wizard-btn" class="btn btn-secondary is-hidden" type="button">Cấu hình lại API</button>
+          <button id="e2e-lock-session-btn" class="btn btn-secondary is-hidden" type="button">Khóa phiên</button>
+          <button id="e2e-emergency-stop-btn" class="btn btn-danger is-hidden" type="button">Dừng ngay</button>
+        </div>
+      </section>
 
-    <section class="workspace-grid">
-      <article class="panel chart-panel">
-        <div class="panel-header">
+      <!-- Screen 2: Friendly Unlock Card -->
+      <section id="e2e-saved-profiles-card" class="surface-block is-hidden" aria-label="Mở khóa hồ sơ đã lưu">
+        <div class="section-header">
           <div>
-            <h2 class="panel-title" id="chart-title">BTCUSDT.P • 1h Closed Candles &amp; Order Levels</h2>
-            <p class="panel-meta" id="chart-hover-info">Hover chart to inspect OHLC &amp; active LMT/SL/BE+/TP levels</p>
+            <h2 class="section-heading">Chào mừng quay lại</h2>
+            <p class="section-desc">Chọn tài khoản của bạn để tiếp tục.</p>
           </div>
-          <div class="legend-row">
-            <span class="legend-chip chip-lmt">LMT</span>
-            <span class="legend-chip chip-entry">ENTRY</span>
-            <span class="legend-chip chip-sl">SL</span>
-            <span class="legend-chip chip-be">BE+</span>
-            <span class="legend-chip chip-tp">TP</span>
-          </div>
+          <span id="e2e-saved-count-badge" class="status-dot-label status-warn">Cần mở khóa</span>
         </div>
-        <div class="canvas-wrap">
-          <canvas id="candle-canvas"></canvas>
+        <form id="e2e-unlock-form" class="unlock-grid">
+          <label class="form-row">
+            <span>Tài khoản của bạn</span>
+            <select id="e2e-saved-profile-select"></select>
+          </label>
+          <label id="e2e-unlock-pin-row" class="form-row">
+            <span>Mã PIN bảo vệ</span>
+            <div class="input-with-eye">
+              <input id="e2e-unlock-pin-input" type="password" autocomplete="off" minlength="4" maxlength="16" placeholder="Nhập mã PIN của bạn">
+              <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-unlock-pin-input" aria-label="Hiện hoặc ẩn mã PIN">Hiện</button>
+            </div>
+          </label>
+          <label class="checkbox-row">
+            <input id="e2e-unlock-autostart" type="checkbox" checked>
+            <span>Tự động tiếp tục chạy 24/7 sau khi mở khóa</span>
+          </label>
+          <div class="action-row unlock-actions">
+            <button id="e2e-unlock-btn" class="btn btn-primary" type="submit">Mở khóa &amp; Tiếp tục</button>
+            <button id="e2e-quick-delete-profile-btn" class="btn btn-danger-outline" type="button">Xóa hồ sơ</button>
+          </div>
+        </form>
+        <p id="e2e-unlock-status" class="form-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <!-- Screen 1A: Welcome Card (2 clean action buttons) -->
+      <section id="e2e-onboarding-hero" class="surface-block onboarding-hero" aria-label="Bắt đầu giao dịch tự động">
+        <div class="onboarding-hero-copy">
+          <h2 class="hero-heading">Bắt đầu giao dịch tự động</h2>
+          <p class="section-desc">Hệ thống tự theo dõi thị trường 24/7 và đặt lệnh kèm mức chốt lời, cắt lỗ bảo vệ sẵn cho bạn.</p>
         </div>
-      </article>
-
-      <aside class="side-rail">
-        <article class="panel radar-panel" id="regime-radar-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Macro-Trend Regime Radar</h2>
-            <span class="badge badge-neutral" id="radar-regime-badge">--</span>
-          </div>
-          <p class="radar-action-banner" id="radar-action-text">Loading causal regime...</p>
-          <div class="radar-meter-block">
-            <div class="radar-meter-head">
-              <span>4-Coin Breadth (&lt; 1D EMA50)</span>
-              <strong id="radar-breadth-text">--%</strong>
-            </div>
-            <div class="meter-track" aria-hidden="true">
-              <div class="meter-fill meter-bear" id="radar-breadth-bar"></div>
-            </div>
-            <div class="radar-coins-row" id="radar-coins-row"></div>
-          </div>
-          <div class="radar-mult-grid">
-            <div class="radar-mult-card">
-              <span class="radar-mult-label">LONG SizeMult</span>
-              <strong class="pos" id="radar-long-mult">--x</strong>
-            </div>
-            <div class="radar-mult-card">
-              <span class="radar-mult-label">SHORT SizeMult</span>
-              <strong class="neg" id="radar-short-mult">--x</strong>
-            </div>
-          </div>
-          <dl class="overlay-list" id="radar-stats-list"></dl>
-        </article>
-
-        <article class="panel gauge-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Live ML Probability Gauge</h2>
-            <span class="badge badge-neutral" id="ml-decision-badge">--</span>
-          </div>
-          <div class="gauge-wrap">
-            <canvas id="ml-gauge-canvas"></canvas>
-            <div class="gauge-readout">
-              <strong id="ml-prob-text">--%</strong>
-              <span id="ml-threshold-text">Threshold tau: --</span>
-            </div>
-          </div>
-          <dl class="overlay-list" id="active-levels-list"></dl>
-        </article>
-
-        <article class="panel gauge-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Monthly Profit-Sweep Gauge</h2>
-            <div class="frontier-controls">
-              <select id="frontier-version-select" aria-label="Frontier Version">
-                <option value="v9">v9.0 Ensemble</option>
-                <option value="v8">v8.0 Regime</option>
-                <option value="v7">v7.0 High-WR</option>
-              </select>
-              <span class="badge badge-safe" id="frontier-tier-badge">SAFE_75WR</span>
-            </div>
-          </div>
-          <div class="gauge-wrap">
-            <canvas id="sweep-gauge-canvas"></canvas>
-            <div class="gauge-readout">
-              <strong id="sweep-mo-text">--%/mo</strong>
-              <span id="sweep-meta-text">MaxDD: -- • Liq: 0</span>
-            </div>
-          </div>
-          <dl class="overlay-list" id="frontier-stats-list"></dl>
-        </article>
-
-        <article class="panel mode-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Execution Safety Interlock</h2>
-          </div>
-          <form id="mode-form" class="mode-form">
-            <label class="form-row">
-              <span>Execution Mode</span>
-              <select id="mode-select" name="executionMode">
-                <option value="PAPER">PAPER (Simulated Only)</option>
-                <option value="LIVE_ARMED">LIVE_ARMED (Requires Token + Keys)</option>
-              </select>
-            </label>
-            <label class="form-row">
-              <span>LIVE_CONFIRM_TOKEN</span>
-              <input id="confirm-token-input" type="password" autocomplete="off" placeholder="Required only for LIVE_ARMED">
-            </label>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Apply Mode</button>
-              <button type="button" id="run-backtest-btn" class="btn btn-secondary">Run Offline Replay</button>
-            </div>
-            <p class="form-status" id="mode-status-msg" role="status" aria-live="polite"></p>
-          </form>
-        </article>
-      </aside>
-    </section>
-
-    <section class="tables-grid">
-      <article class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title" id="signals-table-caption">Recent Signals Audit (Causal + ML)</h2>
+        <div class="action-row">
+          <button id="e2e-paper-sandbox-btn" class="btn btn-primary btn-lg" type="button">Chạy thử miễn phí với $1,000 ảo</button>
+          <button id="e2e-show-connect-btn" class="btn btn-secondary btn-lg" type="button">Kết nối tài khoản sàn của tôi</button>
         </div>
-        <div tabindex="0" role="region" aria-labelledby="signals-table-caption" class="table-wrapper">
-          <table id="signals-table">
-            <thead>
-              <tr>
-                <th>Time (UTC)</th>
-                <th>Side</th>
-                <th>Decision</th>
-                <th>ProbWin</th>
-                <th>SizeMult</th>
-                <th>Limit Price</th>
-                <th>Model</th>
-              </tr>
-            </thead>
-            <tbody id="signals-tbody"></tbody>
-          </table>
-        </div>
-      </article>
+        <p id="e2e-sandbox-status" class="form-status" role="status" aria-live="polite"></p>
+      </section>
 
-      <article class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title" id="trades-table-caption">Simulated / Paper Trades Ledger</h2>
-        </div>
-        <div tabindex="0" role="region" aria-labelledby="trades-table-caption" class="table-wrapper">
-          <table id="trades-table">
-            <thead>
-              <tr>
-                <th>Entry (UTC)</th>
-                <th>Side</th>
-                <th>Entry</th>
-                <th>Exit</th>
-                <th>Reason</th>
-                <th>Lev</th>
-                <th>ProbWin</th>
-                <th>Net %</th>
-              </tr>
-            </thead>
-            <tbody id="trades-tbody"></tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-
-    <section class="tables-grid">
-      <article class="panel" id="order-router-panel">
-        <div class="panel-header">
+      <!-- Screen 1B: Focused 4-Field Connect Wizard (Hidden until #e2e-show-connect-btn clicked) -->
+      <section id="e2e-wizard-panel" class="surface-block is-hidden" aria-label="Kết nối tài khoản sàn">
+        <div class="section-header">
           <div>
-            <h2 class="panel-title">Off-TradingView Order Router &amp; OKX API Key Guide</h2>
-            <p class="panel-meta" id="router-reason-text">Checking router state...</p>
+            <h2 class="section-heading">Kết nối tài khoản sàn của tôi</h2>
+            <p class="section-desc">Khóa giao dịch được mã hóa ngay trên máy của bạn và không bao giờ lưu dưới dạng chữ thường.</p>
           </div>
-          <span class="badge badge-safe" id="router-mode-badge">PAPER_ZERO_KEY</span>
+          <div class="action-row">
+            <button id="e2e-hide-connect-btn" class="btn btn-ghost btn-sm" type="button">Quay lại</button>
+            <button id="e2e-collapse-wizard-btn" class="btn btn-ghost btn-sm is-hidden" type="button">Thu gọn</button>
+          </div>
         </div>
-        <div class="guide-grid" id="okx-key-guide-grid"></div>
-        <div tabindex="0" role="region" aria-label="Order Router Log" class="table-wrapper">
-          <table id="orders-table">
-            <thead>
-              <tr>
-                <th>clOrdId (OKX &lt;=32)</th>
-                <th>Exchange</th>
-                <th>Symbol</th>
-                <th>Mode</th>
-                <th>Type</th>
-                <th>Side</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="orders-tbody"></tbody>
-          </table>
+
+        <div id="e2e-wizard-collapsed-summary" class="hairline-summary is-hidden">
+          <div class="summary-copy">
+            <strong id="e2e-summary-title">Đang vận hành tự động</strong>
+            <span id="e2e-summary-meta" class="mono-meta">OKX · Thử nghiệm an toàn</span>
+          </div>
+          <button id="e2e-expand-wizard-btn" class="btn btn-secondary btn-sm" type="button">Mở rộng</button>
         </div>
-      </article>
 
-      <article class="panel" id="versions-matrix-panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">All-Versions Preview Matrix (v1.4 -&gt; v9.0)</h2>
-            <p class="panel-meta" id="versions-source-text">Loading version matrix...</p>
-          </div>
-          <span class="badge badge-neutral" id="versions-status-badge">--</span>
-        </div>
-        <div tabindex="0" role="region" aria-labelledby="versions-matrix-panel" class="table-wrapper">
-          <table id="versions-table">
-            <thead>
-              <tr>
-                <th>Version</th>
-                <th>Era / Architecture</th>
-                <th>Win Rate</th>
-                <th>Monthly Sweep</th>
-                <th>Full / OOS Return</th>
-                <th>Max DD</th>
-                <th>OOS &amp; Notes</th>
-              </tr>
-            </thead>
-            <tbody id="versions-tbody"></tbody>
-          </table>
-        </div>
-        <div class="recs-grid" id="versions-recs-grid"></div>
-      </article>
-    </section>
-
-    <section class="commercial-hub" id="commercial-hub-section" aria-label="Commercial SaaS Hub">
-      <div class="tables-grid">
-        <article class="panel" id="commercial-sim-panel">
-          <div class="panel-header">
-            <div>
-              <h2 class="panel-title">Account Scanner &amp; Personalized Signal Sizing Simulator</h2>
-              <p class="panel-meta" id="comm-sim-meta">Zero-key contract sizing preview (OKX SWAP ctVal / Binance stepSize &amp; 85% margin cap)</p>
-            </div>
-            <span class="badge badge-neutral" id="comm-sim-bracket-badge">BRACKET: --</span>
-          </div>
-          <form id="commercial-sim-form" class="comm-form-grid">
+        <div id="e2e-wizard-body" class="wizard-vertical">
+          <div class="fields-grid fields-2">
             <label class="form-row">
-              <span>Account Capital (USDT)</span>
-              <input id="comm-sim-equity" type="number" min="10" step="10" value="1500">
-            </label>
-            <label class="form-row">
-              <span>Exchange</span>
-              <select id="comm-sim-exchange">
-                <option value="OKX">OKX SWAP</option>
-                <option value="BINANCE">BINANCE USD-M</option>
-              </select>
-            </label>
-            <label class="form-row">
-              <span>Model Version</span>
-              <select id="comm-sim-version">
-                <option value="v9">v9.0 Ensemble</option>
-                <option value="v8">v8.0 Regime</option>
-                <option value="v6">v6.0 Multi-Asset</option>
-              </select>
-            </label>
-            <label class="form-row">
-              <span>Risk per Trade (%)</span>
-              <input id="comm-sim-risk" type="number" min="0.25" max="5" step="0.25" value="1.0">
-            </label>
-            <div class="comm-form-actions">
-              <button type="submit" id="comm-sim-btn" class="btn btn-primary">Simulate Account Sizing</button>
-            </div>
-          </form>
-          <p class="form-status" id="comm-sim-status" role="status" aria-live="polite"></p>
-          <div tabindex="0" role="region" aria-label="Simulated Contract Sizing Table" class="table-wrapper">
-            <table id="comm-sim-table">
-              <thead>
-                <tr>
-                  <th>Coin</th>
-                  <th>Status</th>
-                  <th>Regime</th>
-                  <th>Side</th>
-                  <th>sz / Qty</th>
-                  <th>Notional</th>
-                  <th>USD Risk</th>
-                  <th>USD Profit</th>
-                  <th>Liq Px</th>
-                  <th>Feasible</th>
-                </tr>
-              </thead>
-              <tbody id="comm-sim-tbody"></tbody>
-            </table>
-          </div>
-        </article>
-
-        <article class="panel" id="commercial-vault-portal">
-          <div class="panel-header">
-            <div>
-              <h2 class="panel-title">Buyer Onboarding &amp; Auto-Trade Vault Portal</h2>
-              <p class="panel-meta" id="comm-vault-meta">AES-256-GCM Encrypted API Vault • Withdraw Permission Hard-Blocked</p>
-            </div>
-            <div class="badges-group">
-              <span class="badge badge-safe" id="comm-cb-badge">CB: OK</span>
-              <span class="badge badge-safe" id="comm-ks-badge">KS: OK</span>
-            </div>
-          </div>
-
-          <p class="vault-notice" id="comm-withdraw-notice">
-            Security Notice: Connect Read + Trade ONLY keys. Keep Withdrawals DISABLED (onboarding automatically rejects withdraw-enabled keys).
-          </p>
-
-          <form id="commercial-onboard-form" class="comm-form-grid">
-            <label class="form-row">
-              <span>Subscriber Name</span>
-              <input id="comm-name-input" type="text" placeholder="Alice Trader">
-            </label>
-            <label class="form-row">
-              <span>Email</span>
-              <input id="comm-email-input" type="email" placeholder="buyer@example.com">
-            </label>
-            <label class="form-row comm-span-2">
-              <span>Commercial License (TT10...)</span>
-              <input id="comm-license-input" type="text" autocomplete="off" placeholder="TT10.<payload>.<hmac24>">
-            </label>
-            <label class="form-row">
-              <span>Exchange</span>
-              <select id="comm-ex-select">
+              <span>Sàn giao dịch</span>
+              <select id="e2e-ex-select">
                 <option value="OKX">OKX</option>
-                <option value="BINANCE">BINANCE</option>
+                <option value="BINANCE">Binance</option>
               </select>
             </label>
-            <label class="form-row">
-              <span>Demo / Testnet</span>
-              <select id="comm-sim-toggle">
-                <option value="1">Demo / Simulated (Recommended)</option>
-                <option value="0">Live Exchange (Requires >=32-char Master Key)</option>
-              </select>
-            </label>
-            <label class="form-row">
-              <span>API Key (Optional for Scan)</span>
-              <input id="comm-apikey-input" type="password" autocomplete="off" placeholder="Read+Trade Key">
-            </label>
-            <label class="form-row">
-              <span>API Secret</span>
-              <input id="comm-apisecret-input" type="password" autocomplete="off" placeholder="Encrypted at rest">
-            </label>
-            <label class="form-row">
-              <span>OKX Passphrase</span>
-              <input id="comm-passphrase-input" type="password" autocomplete="off" placeholder="OKX only">
-            </label>
-            <label class="form-row">
-              <span>Arming PIN (4-16 chars)</span>
-              <input id="comm-pin-input" type="password" autocomplete="off" placeholder="Required to arm auto-trade">
-            </label>
-            <div class="comm-form-actions comm-span-2">
-              <button type="submit" id="comm-onboard-btn" class="btn btn-primary">Connect &amp; Onboard Vault</button>
-              <button type="button" id="comm-scan-btn" class="btn btn-secondary">Scan Account</button>
-            </div>
-          </form>
 
-          <div class="comm-controls-bar">
-            <label class="control-field">
-              <span class="control-label">Sub Mode</span>
-              <select id="comm-mode-select" aria-label="Subscriber Execution Mode">
-                <option value="SCAN_AND_SIGNAL_ONLY">SCAN_AND_SIGNAL_ONLY</option>
-                <option value="DEMO_AUTO_TRADE">DEMO_AUTO_TRADE</option>
-                <option value="LIVE_AUTO_TRADE">LIVE_AUTO_TRADE</option>
-              </select>
+            <label class="form-row">
+              <span>Tạo mã PIN bảo vệ (từ 4 ký tự)</span>
+              <div class="input-with-eye">
+                <input id="e2e-pin-input" type="password" autocomplete="off" minlength="4" maxlength="16" placeholder="Ví dụ: 2468">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-pin-input" aria-label="Hiện hoặc ẩn mã PIN">Hiện</button>
+              </div>
             </label>
-            <button type="button" id="comm-mode-btn" class="btn btn-secondary">Update Mode</button>
-            <button type="button" id="comm-runcycle-btn" class="btn btn-primary">Run Auto-Trade Cycle</button>
+
+            <label class="form-row">
+              <span>API Key</span>
+              <div class="input-with-eye">
+                <input id="e2e-apikey-input" type="password" autocomplete="off" placeholder="Dán API Key từ sàn">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-apikey-input" aria-label="Hiện hoặc ẩn API Key">Hiện</button>
+              </div>
+            </label>
+
+            <label class="form-row">
+              <span>Mã bí mật (API Secret)</span>
+              <div class="input-with-eye">
+                <input id="e2e-apisecret-input" type="password" autocomplete="off" placeholder="Được mã hóa ngay khi gửi">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-apisecret-input" aria-label="Hiện hoặc ẩn mã bí mật">Hiện</button>
+              </div>
+            </label>
+
+            <label id="e2e-passphrase-wrap" class="form-row span-2">
+              <span>Mật khẩu API OKX</span>
+              <div class="input-with-eye">
+                <input id="e2e-passphrase-input" type="password" autocomplete="off" placeholder="Nhập Passphrase bạn tạo trên OKX">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-passphrase-input" aria-label="Hiện hoặc ẩn mật khẩu API OKX">Hiện</button>
+              </div>
+            </label>
           </div>
-          <p class="form-status" id="comm-vault-status" role="status" aria-live="polite"></p>
-        </article>
+
+          <p class="inline-rule">Chỉ bật quyền Đọc (Read) và Giao dịch (Trade). Tắt tuyệt đối quyền Rút tiền (Withdraw).</p>
+
+          <details id="e2e-wizard-advanced-details" class="advanced-details">
+            <summary class="details-summary">
+              <span>Tùy chọn nâng cao (mặc định: Thử nghiệm an toàn)</span>
+            </summary>
+            <div class="advanced-details-body">
+              <div class="fields-grid fields-2">
+                <label class="form-row">
+                  <span>Môi trường</span>
+                  <select id="e2e-env-select">
+                    <option value="1">Thử nghiệm trên sàn (Demo / Testnet)</option>
+                    <option value="0">Giao dịch tiền thật (Live)</option>
+                  </select>
+                </label>
+                <label class="form-row">
+                  <span>Tên tài khoản</span>
+                  <input id="e2e-account-name" type="text" placeholder="Tài khoản của tôi" value="Tài khoản của tôi">
+                </label>
+                <label class="form-row">
+                  <span>Chiến lược</span>
+                  <select id="e2e-strategy-select">
+                    <option value="SAFE_75WR|v9">Ưu tiên an toàn</option>
+                    <option value="BALANCED_75WR|v8">Cân bằng</option>
+                    <option value="TARGET_30MO_75WR|v9">Tăng trưởng</option>
+                  </select>
+                </label>
+                <label class="form-row">
+                  <span>Vốn thử nghiệm (USDT, tùy chọn)</span>
+                  <input id="e2e-sim-equity-input" type="number" min="10" step="10" placeholder="Để trống nếu đọc từ sàn">
+                </label>
+                <label class="form-row">
+                  <span>Tự nghỉ trong ngày nếu lỗ tới (%)</span>
+                  <input id="e2e-daily-loss-input" type="number" min="0.5" max="25" step="0.5" value="5">
+                </label>
+                <label class="form-row">
+                  <span>Dừng khẩn cấp nếu hụt vốn (%)</span>
+                  <input id="e2e-max-dd-input" type="number" min="2" max="50" step="1" value="20">
+                </label>
+                <label class="form-row">
+                  <span>Chu kỳ quét (giây)</span>
+                  <input id="e2e-interval-input" type="number" min="5" max="3600" step="5" value="60">
+                </label>
+                <div class="form-row span-2">
+                  <label class="checkbox-row">
+                    <input id="e2e-local-quickstart" type="checkbox" checked>
+                    <span>Tự động cấp quyền sử dụng trên máy này</span>
+                  </label>
+                </div>
+                <label id="e2e-license-wrap" class="form-row span-2 is-hidden">
+                  <span>Mã bản quyền (nếu có)</span>
+                  <input id="e2e-license-input" type="text" autocomplete="off" placeholder="TT10.&lt;payload&gt;.&lt;hmac24&gt;">
+                </label>
+              </div>
+
+              <div class="action-row">
+                <button id="e2e-verify-btn" class="btn btn-secondary btn-sm" type="button">Kiểm tra kết nối &amp; Xem thử cỡ lệnh</button>
+                <span id="e2e-verify-status" class="form-status" role="status" aria-live="polite"></span>
+              </div>
+
+              <div id="e2e-preflight-result" class="preflight-section is-hidden">
+                <div class="hairline-metrics">
+                  <div class="metric-cell">
+                    <span class="metric-label">Khả dụng / Tổng vốn</span>
+                    <strong id="e2e-pf-equity" class="metric-value">$0.00</strong>
+                  </div>
+                  <div class="metric-cell">
+                    <span class="metric-label">Phân tầng vốn</span>
+                    <strong id="e2e-pf-bracket" class="metric-value">-</strong>
+                  </div>
+                  <div class="metric-cell">
+                    <span class="metric-label">Chặn rút tiền</span>
+                    <strong id="e2e-pf-withdraw" class="metric-value pos">ĐÃ KHÓA AN TOÀN</strong>
+                  </div>
+                  <div class="metric-cell">
+                    <span class="metric-label">Khóa nhận diện</span>
+                    <strong id="e2e-pf-keymask" class="metric-value">-</strong>
+                  </div>
+                </div>
+                <div tabindex="0" role="region" aria-label="Bảng xem thử cỡ lệnh" class="table-wrapper">
+                  <table class="tbl-preflight">
+                    <thead>
+                      <tr>
+                        <th>Coin</th>
+                        <th>Trạng thái</th>
+                        <th>Regime</th>
+                        <th>Chiều</th>
+                        <th>Cỡ lệnh</th>
+                        <th>Notional</th>
+                        <th>Rủi ro / Lời</th>
+                        <th>Khả thi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="e2e-preflight-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="action-row">
+            <button id="e2e-connect-start-btn" class="btn btn-primary btn-lg" type="button">Kết nối &amp; Bắt đầu tự động</button>
+          </div>
+          <p id="e2e-wizard-status" class="form-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Screen 3: Calm Personal Wealth Cockpit -->
+      <section id="e2e-cockpit-panel" class="cockpit-stack is-hidden" aria-label="Bảng theo dõi tài khoản">
+        <!-- Card 1: Calm Wealth Card -->
+        <section id="e2e-portfolio-hero" class="surface-block portfolio-hero">
+          <div class="cockpit-top-meta">
+            <span id="e2e-cockpit-live-badge" class="status-dot-label status-safe">Đang tự động giao dịch</span>
+            <span id="e2e-cockpit-account-label" class="mono-meta">Tài khoản dùng thử · OKX</span>
+          </div>
+
+          <div class="portfolio-hero-top">
+            <div class="portfolio-balance-col">
+              <span class="metric-label">Tổng tài sản</span>
+              <div class="portfolio-figure-row">
+                <strong id="e2e-kpi-equity" class="hero-figure">$0.00</strong>
+                <span id="e2e-hero-pnl" class="hero-pnl pos">Hôm nay: +$0.00 (+0.00%)</span>
+              </div>
+            </div>
+            <div class="portfolio-sparkline-col">
+              <span class="metric-label">Biến động tài sản</span>
+              <div id="e2e-equity-sparkline" class="sparkline-host" aria-label="Đồ thị biến động tài sản"></div>
+            </div>
+          </div>
+
+          <div class="hairline-metrics">
+            <div class="metric-cell">
+              <span class="metric-label">Chế độ</span>
+              <strong id="e2e-hero-mode" class="metric-value">Dùng thử tiền ảo ($1,000)</strong>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-label">Bảo vệ vốn</span>
+              <strong id="e2e-kpi-safety" class="metric-value pos">Đang bật an toàn</strong>
+              <span id="e2e-kpi-safety-sub" class="metric-sub">Tự nghỉ hôm nay nếu lỗ tới 5%</span>
+            </div>
+          </div>
+
+          <div class="action-row cockpit-actions">
+            <button id="e2e-pause-btn" class="btn btn-secondary" type="button">Tạm dừng</button>
+            <button id="e2e-resume-btn" class="btn btn-primary is-hidden" type="button">Tiếp tục chạy tự động</button>
+            <button id="e2e-open-settings-btn" class="btn btn-secondary" type="button">Cài đặt</button>
+            <button id="e2e-switch-account-btn" class="btn btn-ghost" type="button">Đổi tài khoản</button>
+          </div>
+          <p id="e2e-cockpit-action-status" class="form-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- Card 2: Plain-Vietnamese Recent Activity -->
+        <section id="e2e-simple-activity-card" class="surface-block" aria-label="Giao dịch gần đây">
+          <div class="section-header">
+            <div>
+              <h2 class="section-heading">Giao dịch gần đây</h2>
+              <p class="section-desc">Tóm tắt các lệnh mua bán và trạng thái bảo vệ hiện tại.</p>
+            </div>
+            <span id="e2e-simple-activity-badge" class="status-dot-label">Đang theo dõi</span>
+          </div>
+          <div id="e2e-simple-activity-list" class="simple-activity-list"></div>
+        </section>
+
+        <!-- Collapsed Technical Accordion (Zero nested cards inside) -->
+        <details id="e2e-tech-details" class="surface-block tech-details">
+          <summary class="details-summary">
+            <span>Xem thông số kỹ thuật &amp; sổ lệnh chi tiết</span>
+            <span id="e2e-tech-summary-badge" class="status-dot-label">Dành cho chuyên gia</span>
+          </summary>
+
+          <div class="tech-details-body">
+            <div class="tech-toolbar">
+              <button id="e2e-scan-now-btn" class="btn btn-secondary btn-sm" type="button">Quét thị trường ngay</button>
+              <span id="e2e-kpi-bracket" class="mono-meta">Phân tầng: STANDARD</span>
+            </div>
+
+            <div class="hairline-metrics">
+              <div class="metric-cell">
+                <span class="metric-label">Nhịp quét tiếp theo</span>
+                <strong id="e2e-kpi-heartbeat" class="metric-value">60s</strong>
+                <span id="e2e-kpi-cycles" class="metric-sub">Chu kỳ: 0</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Xu hướng thị trường</span>
+                <strong id="e2e-kpi-regime" class="metric-value">Đang tải</strong>
+                <span id="e2e-kpi-regime-sub" class="metric-sub">Radar v8 + ML v9</span>
+              </div>
+            </div>
+
+            <!-- Exception-first Guardrails inside <details> (hairline, no card border) -->
+            <details id="e2e-guardrails-details" class="tech-subsection guardrails-details">
+              <summary class="details-summary">
+                <span id="e2e-guardrails-summary" class="guardrails-summary-text">7/7 Chốt chặn an toàn đang hoạt động bình thường</span>
+                <span id="e2e-guardrails-summary-badge" class="status-dot-label status-safe">7/7 Đạt chuẩn</span>
+              </summary>
+              <div id="e2e-guardrails-list" class="guardrails-list"></div>
+            </details>
+
+            <!-- Active Positions (hairline subsection, no card border) -->
+            <section id="e2e-positions-section" class="tech-subsection is-hidden" aria-label="Vị thế đang mở">
+              <div class="section-header">
+                <h3 class="wizard-step-heading">Vị thế đang mở</h3>
+                <span id="e2e-positions-badge" class="status-dot-label">0 vị thế</span>
+              </div>
+              <div tabindex="0" role="region" aria-label="Bảng vị thế đang mở" class="table-wrapper">
+                <table id="e2e-positions-table" class="tbl-positions">
+                  <thead>
+                    <tr>
+                      <th>Coin</th>
+                      <th>Chiều</th>
+                      <th>Khối lượng</th>
+                      <th>Giá vào</th>
+                      <th>Giá hiện tại</th>
+                      <th>Đòn bẩy</th>
+                      <th>PnL (USDT)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="e2e-positions-tbody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Tickets & Orders (hairline subsections, zero nested cards) -->
+            <section class="tech-subsection" aria-label="Phiếu tín hiệu cá nhân hóa">
+              <div class="section-header">
+                <h3 class="wizard-step-heading">Phiếu Tín Hiệu Cá Nhân Hóa</h3>
+                <span id="e2e-tickets-badge" class="status-dot-label">0 phiếu</span>
+              </div>
+              <div tabindex="0" role="region" aria-label="Phiếu tín hiệu cá nhân hóa" class="table-wrapper">
+                <table id="e2e-tickets-table" class="tbl-tickets">
+                  <thead>
+                    <tr>
+                      <th>Coin</th>
+                      <th>Trạng thái</th>
+                      <th>Regime</th>
+                      <th>Chiều</th>
+                      <th>Cỡ lệnh</th>
+                      <th>Notional</th>
+                      <th>Rủi ro / Lời</th>
+                      <th>Khả thi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="e2e-tickets-tbody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="tech-subsection" aria-label="Sổ lệnh tự động">
+              <div class="section-header">
+                <h3 class="wizard-step-heading">Sổ Lệnh Tự Động</h3>
+                <span id="e2e-orders-badge" class="status-dot-label">0 lệnh</span>
+              </div>
+              <div tabindex="0" role="region" aria-label="Sổ lệnh tự động" class="table-wrapper">
+                <table id="e2e-orders-table" class="tbl-orders">
+                  <thead>
+                    <tr>
+                      <th>Mã lệnh</th>
+                      <th>Sàn</th>
+                      <th>Coin</th>
+                      <th>Chế độ</th>
+                      <th>Loại</th>
+                      <th>Chiều</th>
+                      <th>Khối lượng</th>
+                      <th>Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody id="e2e-orders-tbody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <details class="tech-subsection events-details">
+              <summary class="details-summary">
+                <span>Nhật ký sự kiện Autopilot</span>
+                <span id="e2e-events-badge" class="status-dot-label">0 sự kiện</span>
+              </summary>
+              <div id="e2e-events-list" class="events-list"></div>
+            </details>
+          </div>
+        </details>
+      </section>
+    </section>
+
+    <!-- TAB 2: SYSTEM FLOW VIEW (EXPERT MODE) -->
+    <section id="e2e-flow-view" class="view-panel is-hidden" role="tabpanel" aria-labelledby="view-tab-flow">
+      <div class="section-header">
+        <div>
+          <h2 class="section-heading">Kiến trúc &amp; Luồng Vận hành E2E 6 Giai đoạn</h2>
+          <p class="section-desc">Chọn từng giai đoạn để xem cơ chế kiểm tra quyền API, phân tầng vốn và điều phối lệnh 24/7.</p>
+        </div>
+        <span id="e2e-flow-live-badge" class="status-dot-label">Chưa bật</span>
       </div>
 
-      <div class="tables-grid">
-        <article class="panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Subscriber Personalized Signal Tickets</h2>
-            <span class="badge badge-neutral" id="comm-sub-badge">Not Connected</span>
+      <div id="e2e-flow-stages" class="flow-stage-strip"></div>
+
+      <section id="e2e-flow-inspector" class="surface-block" aria-label="Chi tiết giai đoạn">
+        <div class="section-header">
+          <strong id="e2e-flow-inspector-title">01. Két sắt AES-256-GCM</strong>
+          <span id="e2e-flow-inspector-status" class="status-dot-label">Sẵn sàng</span>
+        </div>
+        <p id="e2e-flow-inspector-desc" class="section-desc"></p>
+        <dl id="e2e-flow-inspector-meta" class="overlay-list"></dl>
+      </section>
+
+      <section class="surface-block" aria-label="Lộ trình phiên bản">
+        <div class="section-header">
+          <div>
+            <h2 class="section-heading">Lộ trình Tiến hóa Hệ thống (v1.4 đến v12.5)</h2>
+            <p class="section-desc">Tổng hợp bước tiến từ lõi phân tích đến giao diện tiêu dùng tối giản.</p>
           </div>
-          <div tabindex="0" role="region" aria-label="Subscriber Signal Tickets" class="table-wrapper">
-            <table id="comm-tickets-table">
+        </div>
+        <div tabindex="0" role="region" aria-label="Bảng tiến hóa phiên bản" class="table-wrapper table-wrapper-full">
+          <table id="e2e-evolution-table" class="tbl-evo">
+            <thead>
+              <tr>
+                <th>Phiên bản</th>
+                <th>Cột mốc</th>
+                <th>Kỹ thuật cốt lõi</th>
+                <th>Bảo vệ &amp; Vận hành</th>
+              </tr>
+            </thead>
+            <tbody id="e2e-evolution-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- TAB 3: QUANT PRO TERMINAL (ALL 109 LEGACY IDS PRESERVED) -->
+    <section id="quant-pro-view" class="view-panel is-hidden" role="tabpanel" aria-labelledby="view-tab-quant">
+      <section class="surface-block quant-controls-bar">
+        <div class="controls-group">
+          <label class="control-field">
+            <span class="control-label">Engine</span>
+            <select id="symbol-select" aria-label="Trading Engine Asset">
+              <option value="BTCUSDT.P">BTC (BTCUSDT.P)</option>
+              <option value="ETHUSDT.P">ETH (ETHUSDT.P)</option>
+              <option value="SOLUSDT.P">SOL (SOLUSDT.P)</option>
+              <option value="BNBUSDT.P">BNB (BNBUSDT.P)</option>
+              <option value="SPY">S&amp;P 500 (SPY / ^GSPC)</option>
+              <option value="DIA">Dow Jones (DIA / ^DJI)</option>
+              <option value="QQQ">Nasdaq 100 (QQQ / ^NDX)</option>
+            </select>
+          </label>
+
+          <label class="control-field">
+            <span class="control-label">TF</span>
+            <select id="timeframe-select" aria-label="Timeframe">
+              <option value="1h">1h</option>
+              <option value="15m">15m</option>
+              <option value="1d">1d</option>
+            </select>
+          </label>
+
+          <label class="control-field">
+            <span class="control-label">Profile</span>
+            <select id="profile-select" aria-label="Execution Profile">
+              <option value="EXCHANGE_POST_ONLY">EXCHANGE_POST_ONLY</option>
+              <option value="STRICT_TAKER">STRICT_TAKER</option>
+              <option value="EQUITY_ETF">EQUITY_ETF</option>
+            </select>
+          </label>
+
+          <label class="control-field">
+            <span class="control-label">Version</span>
+            <select id="version-select" aria-label="Strategy Version">
+              <option value="auto">auto (Best)</option>
+              <option value="v9">v9.0 Ensemble</option>
+              <option value="v8">v8.0 Regime</option>
+              <option value="v7">v7.0 High-WR</option>
+              <option value="v6">v6.0 Multi-Asset</option>
+              <option value="v5">v5.0 ML</option>
+              <option value="v4.1">v4.1 Lock</option>
+            </select>
+          </label>
+
+          <label class="control-field">
+            <span class="control-label">Tier</span>
+            <select id="tier-select" aria-label="Risk Tier">
+              <option value="SAFE_75WR">Safe (75%+ WR)</option>
+              <option value="BALANCED_75WR">Balanced (75%+ WR)</option>
+              <option value="TARGET_30MO_75WR">30%/Mo Frontier</option>
+            </select>
+          </label>
+
+          <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
+        </div>
+
+        <div class="quant-status-inline">
+          <span id="api-badge" class="status-dot-label">API: Checking...</span>
+          <span id="mode-badge" class="status-dot-label status-safe">MODE: PAPER</span>
+        </div>
+      </section>
+
+      <section class="scoreboard" aria-label="Performance Scoreboard">
+        <div class="kpi-card">
+          <span class="kpi-label">Win Rate (W/L)</span>
+          <strong class="kpi-value" id="kpi-winrate">-</strong>
+          <span class="kpi-meta" id="kpi-wilson">Wilson95: -</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Profit Factor</span>
+          <strong class="kpi-value" id="kpi-pf">-</strong>
+          <span class="kpi-meta" id="kpi-trades">Trades: -</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Compounded Return</span>
+          <strong class="kpi-value" id="kpi-comp-net-main">-</strong>
+          <span class="kpi-meta" id="kpi-total-net-sub">Additive: -</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Max Drawdown</span>
+          <strong class="kpi-value" id="kpi-dd">-</strong>
+          <span class="kpi-meta" id="kpi-funding">Funding Drag: -</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Distance-to-Liquidation</span>
+          <strong class="kpi-value" id="kpi-liq-buffer">-</strong>
+          <span class="kpi-meta" id="kpi-liq-sub">Liq Px: - · MMR 0.5%</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Macro &amp; Orderflow Regime</span>
+          <strong class="kpi-value regime-val" id="kpi-regime">-</strong>
+          <span class="kpi-meta" id="kpi-regime-sub">VIX / TNX / CVD / Funding</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Engine &amp; Model</span>
+          <strong class="kpi-value" id="kpi-model">-</strong>
+          <span class="kpi-meta" id="kpi-source">Source: -</span>
+        </div>
+      </section>
+
+      <section class="workspace-grid">
+        <section class="surface-block chart-panel">
+          <div class="section-header">
+            <div>
+              <h2 class="section-heading" id="chart-title">BTCUSDT.P · 1h Closed Candles &amp; Order Levels</h2>
+              <p class="panel-meta" id="chart-hover-info">Hover chart to inspect OHLC &amp; active LMT/SL/BE+/TP levels</p>
+            </div>
+            <div class="legend-row">
+              <span class="legend-chip chip-lmt">LMT</span>
+              <span class="legend-chip chip-entry">ENTRY</span>
+              <span class="legend-chip chip-sl">SL</span>
+              <span class="legend-chip chip-be">BE+</span>
+              <span class="legend-chip chip-tp">TP</span>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="candle-canvas"></canvas>
+          </div>
+        </section>
+
+        <aside class="side-rail">
+          <section class="surface-block radar-panel" id="regime-radar-panel">
+            <div class="section-header">
+              <h2 class="section-heading">Macro-Trend Regime Radar</h2>
+              <span class="status-dot-label" id="radar-regime-badge">-</span>
+            </div>
+            <p class="radar-action-banner" id="radar-action-text">Loading causal regime...</p>
+            <div class="radar-meter-block">
+              <div class="radar-meter-head">
+                <span>4-Coin Breadth (&lt; 1D EMA50)</span>
+                <strong id="radar-breadth-text">-%</strong>
+              </div>
+              <div class="meter-track" aria-hidden="true">
+                <div class="meter-fill meter-bear" id="radar-breadth-bar"></div>
+              </div>
+              <div class="radar-coins-row" id="radar-coins-row"></div>
+            </div>
+            <div class="hairline-metrics">
+              <div class="metric-cell">
+                <span class="metric-label">LONG SizeMult</span>
+                <strong class="pos" id="radar-long-mult">-x</strong>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">SHORT SizeMult</span>
+                <strong class="neg" id="radar-short-mult">-x</strong>
+              </div>
+            </div>
+            <dl class="overlay-list" id="radar-stats-list"></dl>
+          </section>
+
+          <section class="surface-block gauge-panel">
+            <div class="section-header">
+              <h2 class="section-heading">Live ML Probability Gauge</h2>
+              <span class="status-dot-label" id="ml-decision-badge">-</span>
+            </div>
+            <div class="gauge-wrap">
+              <canvas id="ml-gauge-canvas"></canvas>
+              <div class="gauge-readout">
+                <strong id="ml-prob-text">-%</strong>
+                <span id="ml-threshold-text">Threshold tau: -</span>
+              </div>
+            </div>
+            <dl class="overlay-list" id="active-levels-list"></dl>
+          </section>
+
+          <section class="surface-block gauge-panel">
+            <div class="section-header">
+              <h2 class="section-heading">Monthly Profit-Sweep Gauge</h2>
+              <div class="frontier-controls">
+                <select id="frontier-version-select" aria-label="Frontier Version">
+                  <option value="v9">v9.0 Ensemble</option>
+                  <option value="v8">v8.0 Regime</option>
+                  <option value="v7">v7.0 High-WR</option>
+                </select>
+                <span class="status-dot-label status-safe" id="frontier-tier-badge">SAFE_75WR</span>
+              </div>
+            </div>
+            <div class="gauge-wrap">
+              <canvas id="sweep-gauge-canvas"></canvas>
+              <div class="gauge-readout">
+                <strong id="sweep-mo-text">-%/mo</strong>
+                <span id="sweep-meta-text">MaxDD: - · Liq: 0</span>
+              </div>
+            </div>
+            <dl class="overlay-list" id="frontier-stats-list"></dl>
+          </section>
+
+          <section class="surface-block mode-panel">
+            <div class="section-header">
+              <h2 class="section-heading">Execution Safety Interlock</h2>
+            </div>
+            <form id="mode-form" class="mode-form">
+              <label class="form-row">
+                <span>Execution Mode</span>
+                <select id="mode-select" name="executionMode">
+                  <option value="PAPER">PAPER (Simulated Only)</option>
+                  <option value="LIVE_ARMED">LIVE_ARMED (Requires Token + Keys)</option>
+                </select>
+              </label>
+              <label class="form-row">
+                <span>LIVE_CONFIRM_TOKEN</span>
+                <input id="confirm-token-input" type="password" autocomplete="off" placeholder="Required only for LIVE_ARMED">
+              </label>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Apply Mode</button>
+                <button type="button" id="run-backtest-btn" class="btn btn-secondary">Run Offline Replay</button>
+              </div>
+              <p class="form-status" id="mode-status-msg" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+        </aside>
+      </section>
+
+      <section class="tables-grid">
+        <section class="surface-block">
+          <div class="section-header">
+            <h2 class="section-heading" id="signals-table-caption">Recent Signals Audit (Causal + ML)</h2>
+          </div>
+          <div tabindex="0" role="region" aria-labelledby="signals-table-caption" class="table-wrapper">
+            <table id="signals-table" class="tbl-signals">
               <thead>
                 <tr>
-                  <th>Symbol</th>
-                  <th>Status</th>
-                  <th>Regime</th>
+                  <th>Time (UTC)</th>
                   <th>Side</th>
-                  <th>sz / Qty</th>
-                  <th>Notional</th>
-                  <th>Risk / Profit</th>
-                  <th>Feasible</th>
+                  <th>Decision</th>
+                  <th>ProbWin</th>
+                  <th>SizeMult</th>
+                  <th>Limit Price</th>
+                  <th>Model</th>
                 </tr>
               </thead>
-              <tbody id="comm-tickets-tbody"></tbody>
+              <tbody id="signals-tbody"></tbody>
             </table>
           </div>
-        </article>
+        </section>
 
-        <article class="panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Subscriber Tenant Auto-Trade Orders</h2>
-            <span class="badge badge-neutral" id="comm-plans-badge">3 Plans • 7 Guardrails</span>
+        <section class="surface-block">
+          <div class="section-header">
+            <h2 class="section-heading" id="trades-table-caption">Simulated / Paper Trades Ledger</h2>
           </div>
-          <div tabindex="0" role="region" aria-label="Subscriber Orders Ledger" class="table-wrapper">
-            <table id="comm-orders-table">
+          <div tabindex="0" role="region" aria-labelledby="trades-table-caption" class="table-wrapper">
+            <table id="trades-table" class="tbl-trades">
               <thead>
                 <tr>
-                  <th>Tenant clOrdId</th>
+                  <th>Entry (UTC)</th>
+                  <th>Side</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Reason</th>
+                  <th>Lev</th>
+                  <th>ProbWin</th>
+                  <th>Net %</th>
+                </tr>
+              </thead>
+              <tbody id="trades-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="tables-grid">
+        <section class="surface-block" id="order-router-panel">
+          <div class="section-header">
+            <div>
+              <h2 class="section-heading">Off-TradingView Order Router &amp; OKX API Key Guide</h2>
+              <p class="panel-meta" id="router-reason-text">Checking router state...</p>
+            </div>
+            <span class="status-dot-label status-safe" id="router-mode-badge">PAPER_ZERO_KEY</span>
+          </div>
+          <div class="guide-grid" id="okx-key-guide-grid"></div>
+          <div tabindex="0" role="region" aria-label="Order Router Log" class="table-wrapper">
+            <table id="orders-table" class="tbl-router-orders">
+              <thead>
+                <tr>
+                  <th>clOrdId (OKX &lt;=32)</th>
                   <th>Exchange</th>
                   <th>Symbol</th>
                   <th>Mode</th>
                   <th>Type</th>
                   <th>Side</th>
+                  <th>Price</th>
                   <th>Qty</th>
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody id="comm-orders-tbody"></tbody>
+              <tbody id="orders-tbody"></tbody>
             </table>
           </div>
-        </article>
-      </div>
+        </section>
+
+        <section class="surface-block" id="versions-matrix-panel">
+          <div class="section-header">
+            <div>
+              <h2 class="section-heading">All-Versions Preview Matrix (v1.4 to v9.0)</h2>
+              <p class="panel-meta" id="versions-source-text">Loading version matrix...</p>
+            </div>
+            <span class="status-dot-label" id="versions-status-badge">-</span>
+          </div>
+          <div tabindex="0" role="region" aria-labelledby="versions-matrix-panel" class="table-wrapper">
+            <table id="versions-table" class="tbl-versions">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Era / Architecture</th>
+                  <th>Win Rate</th>
+                  <th>Monthly Sweep</th>
+                  <th>Full / OOS Return</th>
+                  <th>Max DD</th>
+                  <th>OOS &amp; Notes</th>
+                </tr>
+              </thead>
+              <tbody id="versions-tbody"></tbody>
+            </table>
+          </div>
+          <div class="recs-grid" id="versions-recs-grid"></div>
+        </section>
+      </section>
+
+      <section class="commercial-hub" id="commercial-hub-section" aria-label="Commercial SaaS Hub">
+        <div class="tables-grid">
+          <section class="surface-block" id="commercial-sim-panel">
+            <div class="section-header">
+              <div>
+                <h2 class="section-heading">Account Scanner &amp; Personalized Signal Sizing Simulator</h2>
+                <p class="panel-meta" id="comm-sim-meta">Zero-key contract sizing preview (OKX SWAP ctVal / Binance stepSize &amp; 85% margin cap)</p>
+              </div>
+              <span class="status-dot-label" id="comm-sim-bracket-badge">BRACKET: -</span>
+            </div>
+            <form id="commercial-sim-form" class="comm-form-grid">
+              <label class="form-row">
+                <span>Account Capital (USDT)</span>
+                <input id="comm-sim-equity" type="number" min="10" step="10" value="1500">
+              </label>
+              <label class="form-row">
+                <span>Exchange</span>
+                <select id="comm-sim-exchange">
+                  <option value="OKX">OKX SWAP</option>
+                  <option value="BINANCE">BINANCE USD-M</option>
+                </select>
+              </label>
+              <label class="form-row">
+                <span>Model Version</span>
+                <select id="comm-sim-version">
+                  <option value="v9">v9.0 Ensemble</option>
+                  <option value="v8">v8.0 Regime</option>
+                  <option value="v6">v6.0 Multi-Asset</option>
+                </select>
+              </label>
+              <label class="form-row">
+                <span>Risk per Trade (%)</span>
+                <input id="comm-sim-risk" type="number" min="0.25" max="5" step="0.25" value="1.0">
+              </label>
+              <div class="comm-form-actions">
+                <button type="submit" id="comm-sim-btn" class="btn btn-primary">Simulate Account Sizing</button>
+              </div>
+            </form>
+            <p class="form-status" id="comm-sim-status" role="status" aria-live="polite"></p>
+            <div tabindex="0" role="region" aria-label="Simulated Contract Sizing Table" class="table-wrapper">
+              <table id="comm-sim-table" class="tbl-comm-sim">
+                <thead>
+                  <tr>
+                    <th>Coin</th>
+                    <th>Status</th>
+                    <th>Regime</th>
+                    <th>Side</th>
+                    <th>sz / Qty</th>
+                    <th>Notional</th>
+                    <th>USD Risk</th>
+                    <th>USD Profit</th>
+                    <th>Liq Px</th>
+                    <th>Feasible</th>
+                  </tr>
+                </thead>
+                <tbody id="comm-sim-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="surface-block" id="commercial-vault-portal">
+            <div class="section-header">
+              <div>
+                <h2 class="section-heading">Buyer Onboarding &amp; Auto-Trade Vault Portal</h2>
+                <p class="panel-meta" id="comm-vault-meta">AES-256-GCM Encrypted API Vault · Withdraw Permission Hard-Blocked</p>
+              </div>
+              <div class="quant-status-inline">
+                <span class="status-dot-label status-safe" id="comm-cb-badge">CB: OK</span>
+                <span class="status-dot-label status-safe" id="comm-ks-badge">KS: OK</span>
+              </div>
+            </div>
+
+            <p class="vault-notice" id="comm-withdraw-notice">
+              Security Notice: Connect Read + Trade ONLY keys. Keep Withdrawals DISABLED (onboarding automatically rejects withdraw-enabled keys).
+            </p>
+
+            <form id="commercial-onboard-form" class="comm-form-grid">
+              <label class="form-row">
+                <span>Subscriber Name</span>
+                <input id="comm-name-input" type="text" placeholder="Alice Trader">
+              </label>
+              <label class="form-row">
+                <span>Email</span>
+                <input id="comm-email-input" type="email" placeholder="buyer@example.com">
+              </label>
+              <label class="form-row comm-span-2">
+                <span>Commercial License (TT10...)</span>
+                <input id="comm-license-input" type="text" autocomplete="off" placeholder="TT10.&lt;payload&gt;.&lt;hmac24&gt;">
+              </label>
+              <label class="form-row">
+                <span>Exchange</span>
+                <select id="comm-ex-select">
+                  <option value="OKX">OKX</option>
+                  <option value="BINANCE">BINANCE</option>
+                </select>
+              </label>
+              <label class="form-row">
+                <span>Demo / Testnet</span>
+                <select id="comm-sim-toggle">
+                  <option value="1">Demo / Simulated (Recommended)</option>
+                  <option value="0">Live Exchange (Requires &gt;=32-char Master Key)</option>
+                </select>
+              </label>
+              <label class="form-row">
+                <span>API Key (Optional for Scan)</span>
+                <input id="comm-apikey-input" type="password" autocomplete="off" placeholder="Read+Trade Key">
+              </label>
+              <label class="form-row">
+                <span>API Secret</span>
+                <input id="comm-apisecret-input" type="password" autocomplete="off" placeholder="Encrypted at rest">
+              </label>
+              <label class="form-row">
+                <span>OKX Passphrase</span>
+                <input id="comm-passphrase-input" type="password" autocomplete="off" placeholder="OKX only">
+              </label>
+              <label class="form-row">
+                <span>Arming PIN (4-16 chars)</span>
+                <input id="comm-pin-input" type="password" autocomplete="off" placeholder="Required to arm auto-trade">
+              </label>
+              <div class="comm-form-actions comm-span-2">
+                <button type="submit" id="comm-onboard-btn" class="btn btn-primary">Connect &amp; Onboard Vault</button>
+                <button type="button" id="comm-scan-btn" class="btn btn-secondary">Scan Account</button>
+              </div>
+            </form>
+
+            <div class="comm-controls-bar">
+              <label class="control-field">
+                <span class="control-label">Sub Mode</span>
+                <select id="comm-mode-select" aria-label="Subscriber Execution Mode">
+                  <option value="SCAN_AND_SIGNAL_ONLY">SCAN_AND_SIGNAL_ONLY</option>
+                  <option value="DEMO_AUTO_TRADE">DEMO_AUTO_TRADE</option>
+                  <option value="LIVE_AUTO_TRADE">LIVE_AUTO_TRADE</option>
+                </select>
+              </label>
+              <button type="button" id="comm-mode-btn" class="btn btn-secondary">Update Mode</button>
+              <button type="button" id="comm-runcycle-btn" class="btn btn-primary">Run Auto-Trade Cycle</button>
+            </div>
+            <p class="form-status" id="comm-vault-status" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <div class="tables-grid">
+          <section class="surface-block">
+            <div class="section-header">
+              <h2 class="section-heading">Subscriber Personalized Signal Tickets</h2>
+              <span class="status-dot-label" id="comm-sub-badge">Not Connected</span>
+            </div>
+            <div tabindex="0" role="region" aria-label="Subscriber Signal Tickets" class="table-wrapper">
+              <table id="comm-tickets-table" class="tbl-tickets">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Status</th>
+                    <th>Regime</th>
+                    <th>Side</th>
+                    <th>sz / Qty</th>
+                    <th>Notional</th>
+                    <th>Risk / Profit</th>
+                    <th>Feasible</th>
+                  </tr>
+                </thead>
+                <tbody id="comm-tickets-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="surface-block">
+            <div class="section-header">
+              <h2 class="section-heading">Subscriber Tenant Auto-Trade Orders</h2>
+              <span class="status-dot-label" id="comm-plans-badge">3 Plans · 7 Guardrails</span>
+            </div>
+            <div tabindex="0" role="region" aria-label="Subscriber Orders Ledger" class="table-wrapper">
+              <table id="comm-orders-table" class="tbl-orders">
+                <thead>
+                  <tr>
+                    <th>Tenant clOrdId</th>
+                    <th>Exchange</th>
+                    <th>Symbol</th>
+                    <th>Mode</th>
+                    <th>Type</th>
+                    <th>Side</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="comm-orders-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
     </section>
   </main>
+
+  <!-- Native Simplified Settings Dialog -->
+  <dialog id="e2e-settings-dialog" class="settings-dialog" aria-labelledby="e2e-settings-title">
+    <div class="dialog-header">
+      <div>
+        <h2 id="e2e-settings-title" class="section-heading">Cài đặt tài khoản</h2>
+        <p class="section-desc">Thay đổi được áp dụng trực tiếp mà không tạo bản sao tài khoản.</p>
+      </div>
+      <form method="dialog">
+        <button id="e2e-settings-close-btn" class="btn btn-ghost btn-sm" type="submit" aria-label="Đóng hộp thoại">Đóng</button>
+      </form>
+    </div>
+
+    <form id="e2e-settings-form" class="dialog-form">
+      <div class="fields-grid fields-2">
+        <label class="form-row">
+          <span>Tên gợi nhớ</span>
+          <input id="e2e-set-name" type="text" required>
+        </label>
+        <label class="form-row">
+          <span>Tự nghỉ trong ngày nếu lỗ tới (%)</span>
+          <input id="e2e-set-daily-loss" type="number" min="0.5" max="25" step="0.5" value="5">
+        </label>
+      </div>
+
+      <details id="e2e-settings-keys-details" class="advanced-details">
+        <summary class="details-summary">
+          <span>Đổi khóa API sàn giao dịch</span>
+        </summary>
+        <div class="advanced-details-body">
+          <div class="fields-grid fields-2">
+            <label class="form-row">
+              <span>Sàn giao dịch</span>
+              <select id="e2e-set-exchange">
+                <option value="OKX">OKX</option>
+                <option value="BINANCE">Binance</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>Môi trường</span>
+              <select id="e2e-set-simulated">
+                <option value="1">Thử nghiệm (Demo / Paper)</option>
+                <option value="0">Tiền thật (Live)</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>API Key mới (để trống nếu giữ nguyên)</span>
+              <div class="input-with-eye">
+                <input id="e2e-set-apikey" type="password" autocomplete="off" placeholder="Không đổi thì để trống">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-set-apikey" aria-label="Hiện hoặc ẩn API Key">Hiện</button>
+              </div>
+            </label>
+            <label class="form-row">
+              <span>Mã bí mật mới</span>
+              <div class="input-with-eye">
+                <input id="e2e-set-apisecret" type="password" autocomplete="off" placeholder="Không đổi thì để trống">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-set-apisecret" aria-label="Hiện hoặc ẩn mã bí mật">Hiện</button>
+              </div>
+            </label>
+            <label id="e2e-set-passphrase-wrap" class="form-row">
+              <span>Mật khẩu API OKX mới</span>
+              <div class="input-with-eye">
+                <input id="e2e-set-passphrase" type="password" autocomplete="off" placeholder="Không đổi thì để trống">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-set-passphrase" aria-label="Hiện hoặc ẩn mật khẩu API OKX">Hiện</button>
+              </div>
+            </label>
+            <label class="form-row">
+              <span>Mã PIN xác nhận</span>
+              <div class="input-with-eye">
+                <input id="e2e-set-pin" type="password" autocomplete="off" placeholder="Nhập PIN hiện tại nếu đổi khóa">
+                <button class="btn btn-ghost btn-xs eye-toggle-btn" type="button" data-toggle-password="e2e-set-pin" aria-label="Hiện hoặc ẩn mã PIN">Hiện</button>
+              </div>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <details id="e2e-settings-adv-details" class="advanced-details">
+        <summary class="details-summary">
+          <span>Tùy chỉnh nâng cao</span>
+        </summary>
+        <div class="advanced-details-body">
+          <div class="fields-grid fields-2">
+            <label class="form-row">
+              <span>Email (tùy chọn)</span>
+              <input id="e2e-set-email" type="email" placeholder="trader@example.com">
+            </label>
+            <label class="form-row">
+              <span>Chiến lược</span>
+              <select id="e2e-set-strategy">
+                <option value="SAFE_75WR|v9">Ưu tiên an toàn</option>
+                <option value="BALANCED_75WR|v8">Cân bằng</option>
+                <option value="TARGET_30MO_75WR|v9">Tăng trưởng</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>Dừng khẩn cấp nếu hụt vốn (%)</span>
+              <input id="e2e-set-max-dd" type="number" min="2" max="50" step="1" value="20">
+            </label>
+            <label class="form-row">
+              <span>Chu kỳ quét (giây)</span>
+              <input id="e2e-set-interval" type="number" min="5" max="3600" step="5" value="60">
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <p id="e2e-settings-status" class="form-status" role="status" aria-live="polite"></p>
+
+      <div class="dialog-footer">
+        <div class="danger-zone">
+          <button id="e2e-delete-profile-btn" class="btn btn-danger-outline" type="button">Xóa hồ sơ này</button>
+          <button id="e2e-delete-confirm-btn" class="btn btn-danger is-hidden" type="button">Xác nhận xóa vĩnh viễn</button>
+        </div>
+        <div class="action-row">
+          <button id="e2e-settings-cancel-btn" class="btn btn-secondary" type="button">Hủy</button>
+          <button id="e2e-settings-save-btn" class="btn btn-primary" type="submit">Lưu thay đổi</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
 
   <script src="/app.js" defer></script>
 </body>

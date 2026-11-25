@@ -3,8 +3,9 @@
 //
 //@version=6
 // Maintenance revision 2026-11-23: SMC Confirmed [4.1.0] — Option 1 + v4.1 Profit-Amplification:
-// 15m causal v4.0 H4-Close-Disp (15m_r3), 1h all-weather v3.0 Adaptive-MultiTrap + v4.0 H4-Disp Trend,
+// Calibrated strictly for 15m (<= 15m profile: v4.0 H4-Close-Disp 15m_r3) and 1h (> 15m profile: v3.0 Adaptive-MultiTrap + v4.0 H4-Disp Trend),
 // plus Vol-Normalized Risk Sizing (1h 4.5% [1.5..2.8x], 15m 2.2% [0.75..1.5x]) and optional Partial TP1 + Runner.
+// Paper engine evaluates intrabar/close-bar rules conservatively in parity with research/sim_engine.mjs (unlike Strategy Tester process_orders_on_close = false next-open exits).
 indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [4.1.0]",
      overlay = true,
      max_bars_back = 5000,
@@ -1954,7 +1955,9 @@ if barstate.islast
         string levLabel = effUseVolNorm ? "VolNorm" : str.tostring(paperLeverageRef, "0.#") + "x"
         float paperCompLevPct = (paperEquityLev - 1.0) * 100.0
         string levText = paperClosedCount > 0 and (effUseVolNorm or paperLeverageRef > 1.0) ? " | " + levLabel + " " + (paperTotalNetLev >= 0 ? "+" : "") + str.tostring(paperTotalNetLev, "0.0") + "% (Comp " + (paperCompLevPct >= 0 ? "+" : "") + str.tostring(paperCompLevPct, "0.0") + "%)" : ""
-        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | PF=" + pfText + " | 1x " + netText + levText
+        // When effUseVolNorm is enabled, shownPF reflects VolNorm-levered paperPFLev rather than 1x paperPF; label explicitly beside 1x Net.
+        string pfLabel = effUseVolNorm ? "PF (Lev)=" : "PF (1x)="
+        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | " + pfLabel + pfText + " | 1x Net " + netText + levText
         string engineDesc = (is15mProfile ? (useV4_15m ? "15m v4.0 H4-Close-Disp" : "15m v3.0 H1-CleanDisp") : (useV4_1h ? "1h v4.0 H4-Disp Trend" : "1h v3.0 Adaptive-MultiTrap")) + (effUseVolNorm ? " | VolNorm" : " | Fixed") + (effTp1QtyFrac > 0.0 ? " + TP1" : "")
         table.cell(winLoss, 0, 0, boardText, text_color = color.white, text_size = size.small, tooltip = "Chỉ tính lệnh mô phỏng đã OUT trong lịch sử đang tải, sau phí (" + str.tostring(paperFeePct, "0.00") + "%) và trượt giá (" + str.tostring(paperSlippagePct, "0.000") + "%/chiều). Engine: " + engineDesc + ".")
     else

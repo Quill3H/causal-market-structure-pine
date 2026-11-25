@@ -15,6 +15,7 @@ import {
   buildReduceOnlySlTpOrders,
   toOkxInstId,
 } from './exchange_okx.mjs';
+import { getInstrumentSpec, roundToStep } from './instrument_specs.mjs';
 import { isEquitySymbol } from './market_equities.mjs';
 
 export const OKX_CLORDID_REGEX = /^[A-Za-z0-9]{1,32}$/;
@@ -159,12 +160,59 @@ function extractExchangeOrderId(exchange, responseData) {
   return responseData?.orderId !== undefined ? String(responseData.orderId) : null;
 }
 
-function formatQty(notionalUsdt, price) {
-  const px = Number(price);
-  if (!Number.isFinite(px) || px <= 0) return '0.001';
-  const raw = Number(notionalUsdt) / px;
-  const clamped = Math.max(0.001, raw);
-  return clamped.toFixed(4);
+function countStepDecimals(step) {
+  const s = String(step);
+  if (s.includes('e-') || s.includes('E-')) {
+    return Math.max(0, Number(s.toLowerCase().split('e-')[1]) || 0);
+  }
+  const dot = s.indexOf('.');
+  return dot === -1 ? 0 : s.length - dot - 1;
+}
+
+function formatOrderSizeAndPrices({ exchange, symbol, notionalUsdt, entryPx, slPx = null, tpPx = null }) {
+  let spec = null;
+  try {
+    spec = getInstrumentSpec(exchange, symbol);
+  } catch {
+    spec = null;
+  }
+  const tickStep = spec ? (spec.tickSz ?? spec.tickSize ?? 0.01) : 0.01;
+  const tickDec = countStepDecimals(tickStep);
+  const formatPx = (v) => {
+    if (v === null || v === undefined || !Number.isFinite(Number(v)) || Number(v) <= 0) return null;
+    return roundToStep(Number(v), tickStep, 'round').toFixed(tickDec);
+  };
+
+  let qtyStr;
+  let qtyNum;
+  const px = Number(entryPx);
+  if (spec && exchange === 'OKX') {
+    const rawContracts = Number.isFinite(px) && px > 0
+      ? (Number(notionalUsdt) / px) / spec.ctVal
+      : spec.minSz;
+    const contracts = Math.max(spec.minSz, roundToStep(rawContracts, spec.lotSz, 'floor'));
+    qtyStr = contracts.toFixed(countStepDecimals(spec.lotSz));
+    qtyNum = Number(qtyStr);
+  } else if (spec && exchange === 'BINANCE') {
+    const rawQty = Number.isFinite(px) && px > 0
+      ? Number(notionalUsdt) / px
+      : spec.minQty;
+    const coinQty = Math.max(spec.minQty, roundToStep(rawQty, spec.stepSize, 'floor'));
+    qtyStr = coinQty.toFixed(countStepDecimals(spec.stepSize));
+    qtyNum = Number(qtyStr);
+  } else {
+    const raw = Number.isFinite(px) && px > 0 ? Math.max(0.001, Number(notionalUsdt) / px) : 0.001;
+    qtyStr = raw.toFixed(4);
+    qtyNum = Number(qtyStr);
+  }
+
+  return {
+    qtyStr,
+    qtyNum,
+    entryPxStr: formatPx(entryPx),
+    slPxStr: formatPx(slPx),
+    tpPxStr: formatPx(tpPx),
+  };
 }
 
 export class StandaloneOrderRouter {
@@ -196,7 +244,10 @@ export class StandaloneOrderRouter {
   }
 
   _findExistingOrder(clientOrderId, symbol) {
-    const rows = this.store.getOrdersLog({ symbol, limit: 250 });
+    if (typeof this.store.getOrderByClientId === 'function') {
+      return this.store.getOrderByClientId(clientOrderId);
+    }
+    const rows = this.store.getOrdersLog({ symbol, limit: 5000 });
     return rows.find(r => r.clientOrderId === clientOrderId) || null;
   }
 
@@ -415,7 +466,9 @@ export class StandaloneOrderRouter {
     // 2) Active PENDING_LIMIT -> place Post-Only maker entry
     if (activeOverlay.status === 'PENDING_LIMIT' && Number.isFinite(Number(activeOverlay.limitPrice))) {
       const px = Number(activeOverlay.limitPrice);
-      const qtyStr = formatQty(effNotional, px);
+      const formatted = formatOrderSizeAndPrices({ exchange, symbol, notionalUsdt: effNotional, entryPx: px });
+      const qtyStr = formatted.qtyStr;
+      const pxStr = formatted.entryPxStr;
       const barTime = activeOverlay.signalTime || 0;
       const clOrdId = makeClientOrderId({
         exchange,
@@ -426,8 +479,8 @@ export class StandaloneOrderRouter {
         leg: 'E',
       });
       const payload = exchange === 'OKX'
-        ? buildPostOnlyEntryOrder({ symbol, side: activeOverlay.side, sz: qtyStr, px: px.toFixed(2), clOrdId })
-        : buildBinancePostOnlyEntryOrder({ symbol, side: activeOverlay.side, quantity: qtyStr, price: px.toFixed(2), newClientOrderId: clOrdId });
+        ? buildPostOnlyEntryOrder({ symbol, side: activeOverlay.side, sz: qtyStr, px: pxStr, clOrdId })
+        : buildBinancePostOnlyEntryOrder({ symbol, side: activeOverlay.side, quantity: qtyStr, price: pxStr, newClientOrderId: clOrdId });
 
       const entryRes = await this._dispatchOrder({
         clientOrderId: clOrdId,
@@ -436,8 +489,8 @@ export class StandaloneOrderRouter {
         mode: modeInfo.mode,
         orderType: exchange === 'OKX' ? 'post_only' : 'LIMIT_GTX',
         side: activeOverlay.side === 1 ? 'buy' : 'sell',
-        price: px,
-        qty: Number(qtyStr),
+        price: Number(pxStr),
+        qty: formatted.qtyNum,
         reduceOnly: false,
         payload,
         notionalUsdt: effNotional,
@@ -446,11 +499,11 @@ export class StandaloneOrderRouter {
         executeLiveFn: () => (
           exchange === 'OKX'
             ? this.exchangeClient.placePostOnlyEntry(
-                { symbol, side: activeOverlay.side, sz: qtyStr, px: px.toFixed(2), clOrdId },
+                { symbol, side: activeOverlay.side, sz: qtyStr, px: pxStr, clOrdId },
                 { confirmToken: effToken, notionalUsdt: effNotional },
               )
             : this.exchangeClient.placePostOnlyEntry(
-                { symbol, side: activeOverlay.side, quantity: qtyStr, price: px.toFixed(2), newClientOrderId: clOrdId },
+                { symbol, side: activeOverlay.side, quantity: qtyStr, price: pxStr, newClientOrderId: clOrdId },
                 { confirmToken: effToken, notionalUsdt: effNotional },
               )
         ),
@@ -461,7 +514,15 @@ export class StandaloneOrderRouter {
     // 3) Active OPEN_POSITION -> ensure protective reduceOnly OCO / SL+TP is in place
     if (activeOverlay.status === 'OPEN_POSITION' && Number.isFinite(Number(activeOverlay.entry))) {
       const entryPx = Number(activeOverlay.entry);
-      const qtyStr = formatQty(effNotional, entryPx);
+      const formatted = formatOrderSizeAndPrices({
+        exchange,
+        symbol,
+        notionalUsdt: effNotional,
+        entryPx,
+        slPx: activeOverlay.stop,
+        tpPx: activeOverlay.target,
+      });
+      const qtyStr = formatted.qtyStr;
       const barTime = activeOverlay.entryTime || activeOverlay.signalTime || 0;
       const slTpClOrdId = makeClientOrderId({
         exchange,
@@ -471,11 +532,11 @@ export class StandaloneOrderRouter {
         side: activeOverlay.side,
         leg: 'S',
       });
-      const slPx = Number.isFinite(Number(activeOverlay.stop)) ? Number(activeOverlay.stop).toFixed(2) : null;
-      const tpPx = Number.isFinite(Number(activeOverlay.target)) ? Number(activeOverlay.target).toFixed(2) : null;
+      const slPx = formatted.slPxStr;
+      const tpPx = formatted.tpPxStr;
       const payload = exchange === 'OKX'
-        ? buildReduceOnlySlTpOrders({ symbol, entrySide: activeOverlay.side, sz: qtyStr, slTriggerPx: slPx, tpTriggerPx: tpPx })
-        : buildBinanceReduceOnlySlTpOrders({ symbol, entrySide: activeOverlay.side, quantity: qtyStr, stopPrice: slPx, takeProfitPrice: tpPx });
+        ? buildReduceOnlySlTpOrders({ symbol, entrySide: activeOverlay.side, sz: qtyStr, slTriggerPx: slPx, tpTriggerPx: tpPx, algoClOrdId: slTpClOrdId })
+        : buildBinanceReduceOnlySlTpOrders({ symbol, entrySide: activeOverlay.side, quantity: qtyStr, stopPrice: slPx, takeProfitPrice: tpPx, slClientOrderId: slTpClOrdId });
 
       const slTpRes = await this._dispatchOrder({
         clientOrderId: slTpClOrdId,
@@ -485,7 +546,7 @@ export class StandaloneOrderRouter {
         orderType: exchange === 'OKX' ? 'oco_reduceOnly' : 'SLTP_REDUCE_ONLY',
         side: activeOverlay.side === 1 ? 'sell' : 'buy',
         price: activeOverlay.stop ?? activeOverlay.target ?? entryPx,
-        qty: Number(qtyStr),
+        qty: formatted.qtyNum,
         reduceOnly: true,
         payload,
         notionalUsdt: effNotional,
@@ -494,11 +555,11 @@ export class StandaloneOrderRouter {
         executeLiveFn: () => (
           exchange === 'OKX'
             ? this.exchangeClient.placeReduceOnlySlTp(
-                { symbol, entrySide: activeOverlay.side, sz: qtyStr, slTriggerPx: slPx, tpTriggerPx: tpPx },
+                { symbol, entrySide: activeOverlay.side, sz: qtyStr, slTriggerPx: slPx, tpTriggerPx: tpPx, algoClOrdId: slTpClOrdId },
                 { confirmToken: effToken },
               )
             : this.exchangeClient.placeReduceOnlySlTp(
-                { symbol, entrySide: activeOverlay.side, quantity: qtyStr, stopPrice: slPx, takeProfitPrice: tpPx },
+                { symbol, entrySide: activeOverlay.side, quantity: qtyStr, stopPrice: slPx, takeProfitPrice: tpPx, slClientOrderId: slTpClOrdId },
                 { confirmToken: effToken },
               )
         ),

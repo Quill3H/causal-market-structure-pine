@@ -1,75 +1,108 @@
-# SMC Confirmed [3.0.0]
+# TRADING-TOOL (`SMC Confirmed [4.1.0]` & Autonomous Engine `v5 -> v13.0`)
 
-Chỉ báo Smart Money Concepts (Pine Script v6) giữ nguyên toàn bộ phần sửa lỗi cấu trúc thị trường, Order Block (OB), Fair Value Gap (FVG), Sweep và Heatmap thanh lý ước tính tùy chọn, đồng thời nâng cấp động cơ tín hiệu mặc định **`SMC High-WinRate [v3.0]`** với mô phỏng **PAPER IN / OUT** khớp từng nến cùng `research/sim_engine.mjs`.
+Hệ thống giao dịch định lượng đa tài sản từ **TradingView Pine Script v6 (`[4.1.0]`)** tới nền tảng **Off-TradingView Node.js v22 Standalone & Multi-Tenant Commercial Autopilot (`v5.0` -> `v13.0`)**.
 
-Mã nguồn gốc giữ ghi nhận tác giả **BigBeluga** theo giấy phép **Mozilla Public License 2.0 (MPL 2.0)**.
-
----
-
-## Cài đặt nhanh trên TradingView
-
-### 1. Chỉ báo `TOOL.pine` (`SMC Confirmed [3.0.0]`)
-1. Mở TradingView → **Pine Editor** → tạo **Indicator mới**.
-2. Dán toàn bộ nội dung file [TOOL.pine](TOOL.pine) vào Pine Editor.
-3. Nhấn **Save** → **Add to chart**.
-4. Tên hiển thị trên chart: **`SMC Confirmed [3.0.0]`**.
-5. Để chế độ mặc định **Signal mode = `SMC High-WinRate [v3.0]`** và **Auto-tune v3.0 profile = ON**:
-   - Trên khung **≤ 15m** (ví dụ `15m`): tự động chạy engine **15m `H1_CleanDisp_AtrExh`** (dùng nến `1H` đã đóng).
-   - Trên khung **> 15m** (ví dụ `1h`): tự động chạy engine **1h `AdaptiveTrapPolarity`** (bẫy thanh khoản đa tầng `1H/4H/1D` + sổ ảo nhân quả BE/SL).
-   - Hoạt động trên **mọi mã OHLC chuẩn** (`BTCUSDT`, `BTCUSDT.P`, Binance, Bybit, OKX, `ETHUSDT`, ...), không còn khóa cứng `BINANCE:BTCUSDT`.
-
-### 2. Chiến lược đối chiếu `TOOL_Strategy.pine` (`SMC High-WinRate Strategy [3.0.0]`)
-1. Mở **Pine Editor** → tạo **Strategy mới**.
-2. Dán toàn bộ nội dung [TOOL_Strategy.pine](TOOL_Strategy.pine) → **Save** → **Add to chart**.
-3. Mở tab **Strategy Tester** ở dưới màn hình để xem đường cong vốn, drawdown và danh sách lệnh khớp trực tiếp với phí hiệu dụng `0.075%/chiều` (`0.15%` khứ hồi = `0.10%` phí + `2 × 0.025%` trượt giá).
+Mã nguồn Pine Script gốc giữ ghi nhận tác giả **BigBeluga** theo giấy phép **Mozilla Public License 2.0 (MPL 2.0)**.
 
 ---
 
-## Điểm mới chính ở phiên bản 3.0.0
+## 1. Kiến trúc 2 lớp & Tiến hóa hệ thống (`v3.0 -> v13.0`)
 
-- **Tỷ lệ thắng ròng ≥ 65% đã kiểm chứng trên cả 15m và 1h (BTCUSDT):** đạt đồng thời cả 4 cổng cứng (Unseen Holdout, cửa sổ 6.000 nến TradingView, 4-Fold Walk-Forward, và kiểm định nhân quả cắt tiền tố).
-- **Vào lệnh Limit Pullback thay cho đuổi giá tại open kế tiếp:** giảm chi phí ma sát và cải thiện điểm vào (`0.55 × ATR14` ở 15m; `0.18 × ATR14` ở 1h), kèm đường chờ **LMT L / LMT S** và đếm ngược hết hạn (`6` nến).
-- **Bảo vệ vị thế với Breakeven-Plus-Cost Ratchet (`BE+`):** chỉ đánh giá sau khi nến đóng (`barstate.isconfirmed`), dời SL lên dương phí+trượt giá (`+0.28%` ở 15m, `+0.34%` ở 1h) khi giá đóng đạt `+0.43R`, có hiệu lực từ nến kế tiếp.
-- **Quy tắc khớp lệnh bảo thủ 100% đồng nhất với `research/sim_engine.mjs`:**
-  - Chạm cả SL/BE và TP trong cùng một nến → **luôn tính SL/BE thua/hòa trước**.
-  - Gap qua SL → thoát tại `open`; gap qua TP → chỉ lấy mức `target`.
-  - Ở chính nến khớp Limit (không gap qua TP), chỉ công nhận TP nếu `close` vượt qua `target`.
-- **Nhãn & cảnh báo đầy đủ:** `IN L`, `IN S`, `OUT TP`, `OUT BE`, `OUT SL`, `OUT T`, đường **Limit / SL / BE+ / TP** trên chart, và alert cho từng sự kiện.
-- **Bảng điểm gọn góc trên bên phải:**
-  `Thắng XX.X% (W) | Thua YY.Y% (L) | N=... | PF=... | Net +Z.ZZ%`
-- **Thu gọn plot & chuẩn Pine v6 nghiêm ngặt:** tổng cộng **28 plot calls** (dưới ngưỡng mục tiêu 55 và trần 64 của TradingView), toàn bộ `ta.*` và `request.security(..., lookahead = barmerge.lookahead_off)` nằm ở top-level vô điều kiện.
+### Lớp A — TradingView Pine Script v6 (`TOOL.pine` & `TOOL_Strategy.pine` `[4.1.0]`)
+- **Chỉ báo & Chiến lược đối chiếu thuần Pine v6:** Giữ nguyên cấu trúc OB/FVG/Sweep, chạy 2 engine nhân quả chuẩn hóa riêng cho **`15m`** (`v4.0 H4-Close-Disp 15m_r3` / `v3.0 H1_CleanDisp_AtrExh`) và **`1h`** (`v3.0 AdaptiveTrapPolarity` + `v4.0 H4-Disp Trend`), kèm **Vol-Normalized Risk Sizing** và tùy chọn **Partial TP1 + Runner**.
+- **An toàn khớp lệnh & Parity:** Dùng `LIMIT_PULLBACK`, SL bảo vệ sàn `%`, Confirmed-Close `BE+`, đúng **28 plot calls** và **4 `request.security(..., lookahead = barmerge.lookahead_off)`** vô điều kiện ở top-level.
+- **Minh bạch bảng điểm & Strategy Tester:** Bảng điểm hiển thị rõ **`PF (Lev)=`** (khi bật VolNorm) hoặc **`PF (1x)=`** cạnh **`1x Net`**. `TOOL_Strategy.pine` đặt `process_orders_on_close = false` (lệnh thoát `market`/hết giờ ở Strategy Tester khớp theo giá mở cửa nến kế tiếp, khác 1 nhịp với quy tắc đóng nến bảo thủ trên bảng Paper).
+
+### Lớp B — Động cơ Định lượng ML & Regime Ngoài TradingView (`v5.0 -> v9.0`)
+| Thế hệ | Cột mốc cốt lõi | Tài liệu tham chiếu |
+|---|---|---|
+| **`v3.0`** | Pure Pine v6 `LIMIT_PULLBACK` + `BE+` đạt `100%_BAR_AND_TRADE_MATCH` (15m Holdout `73.53% WR`, 1h Holdout `74.51% WR`) | [EVALUATION_AND_RESEARCH_REPORT.md](docs/EVALUATION_AND_RESEARCH_REPORT.md) |
+| **`v4.0 / v4.1`** | Mở rộng 3Y OKX Perpetuals (`1h_r5`, `15m_r3`), VolNorm (`avg 2.39x`), 8h funding & Partial TP1 | [research/results_v4/v41_profit_amp_summary.json](research/results_v4/v41_profit_amp_summary.json) |
+| **`v5.0`** | Node.js Standalone + SQLite WAL + `EXCHANGE_POST_ONLY` + Real 8h Funding + Purged `sklearn` ML (`< 1e-12` Python/JS parity) | [V5_STANDALONE_AND_ML_REPORT.md](docs/V5_STANDALONE_AND_ML_REPORT.md) |
+| **`v6.0`** | 5Y Crypto (`BTC, BNB, ETH, SOL` `1h`) tích hợp Orderflow CVD + 10Y US Stock Indices (`SPY, DIA, QQQ`) & 2Y Futures (`ES=F, YM=F, NQ=F`) | [V6_5Y_CRYPTO_AND_INDICES_REPORT.md](docs/V6_5Y_CRYPTO_AND_INDICES_REPORT.md) |
+| **`v7.0`** | Two-Stage Maker Exit (`TP1 + Micro-BE+`) + kiểm toán thanh lý `mmr = 0.005` (`Liq = 0`) + Frontier `>=75% WR` & `>=30%/mo` Cal+Val | [V7_75WR_30PCT_MONTHLY_REPORT.md](docs/V7_75WR_30PCT_MONTHLY_REPORT.md) |
+| **`v8.0`** | Causal Macro-Trend Regime Engine (`BULL_TREND`, `BEAR_TREND`, `BEAR_SQUEEZE`, `RANGE_CHOP`) + 16 mô hình L/S + Equities/Futures v8 | [V8_REGIME_ASYMMETRIC_MAXIMIZER_REPORT.md](docs/V8_REGIME_ASYMMETRIC_MAXIMIZER_REPORT.md) |
+| **`v9.0`** | 3-Slice Cal/Val Sub-Period Screening (`F1 Bear 2022`, `F2 Recovery 2023`, `F3 Validation`) + Single Cal-Fit ML + Causal DD Guard + Cross-Asset All-Weather + Ma trận 10 thế hệ (`v1.4 -> v9.0`) | [V9_ALL_VERSIONS_PREVIEW_AND_OFF_TV_GUIDE.md](docs/V9_ALL_VERSIONS_PREVIEW_AND_OFF_TV_GUIDE.md) |
+
+### Lớp C — Nền tảng Tự động hóa Off-TV & Thương mại Đa Thuê Bao (`v10.0 -> v13.0`)
+- **`v10.0` (Multi-Tenant Vault SaaS):** Két sắt mã hóa khóa API bằng **AES-256-GCM + `scryptSync` + AAD** (`standalone/crypto_vault.mjs`), cấp phép ký HMAC `TT10.<payload>.<hmac24>` (`standalone/license_issuer.mjs`), định cỡ hợp đồng chính xác theo OKX `ctVal`/`lotSz` và Binance `stepSize`/`minNotionalUsdt`, 7 chốt chặn an toàn & `StandaloneOrderRouter` (`clOrdId` thuần chữ/số 1-32 ký tự `^[A-Za-z0-9]{1,32}$`). Xem [V10_COMMERCIAL_SAAS_AND_BUYER_ONBOARDING_GUIDE.md](docs/V10_COMMERCIAL_SAAS_AND_BUYER_ONBOARDING_GUIDE.md).
+- **`v11.0 -> v12.5` (Autopilot 24/7 & Consumer Studio):** Daemon chạy nền `AutopilotScheduler`, **$1,000 Paper Sandbox** (0 API key), giao diện Sáng/Tối mặc định **Chế độ khách hàng** (`680px`, có nút **Chế độ chuyên gia** mở 3 tab + Quant Terminal), lưu khóa `.local-vault.secret` (`chmod 0600`), tự phục hồi `REARM_REQUIRED` sau restart và giữ nguyên SL/TP `reduceOnly` khi bấm Tạm dừng/Dừng ngay. Xem [v11-e2e-autopilot-user-flow-guide.md](docs/v11-e2e-autopilot-user-flow-guide.md).
+- **`v13.0` (Security, Permission & Multi-Tenant Hardening):**
+  - Truy vấn quyền `Withdraw` thực tế từ **OKX `GET /api/v5/account/config`** & **Binance `GET /fapi/v2/account`**; trả `403` nếu có quyền rút tiền và khóa an toàn mặc định **`UNVERIFIED_PERMISSIONS`** ở Guardrail 2.
+  - Cô lập thuê bao theo `subscriberId` + kiểm tra trùng license `TT10` đang hoạt động (`findActiveSubscriberByLicenseKey`), chặn tự nâng cấp gói, kẹp trần đòn bẩy `<= 3.0x`, xác thực token/PIN cho `delete-profile`, kiểm tra `Origin` CSRF trên loopback `127.0.0.1`, phạm vi `SCAN_SIGNAL_EQUITY` cho US ETF (`INSTITUTIONAL_VIP`), và chuyển tiếp `resetTrips: true` qua `POST /api/commercial/subscribers/mode`.
 
 ---
 
-## Tóm tắt kết quả kiểm chứng (sau phí 0.10% + trượt giá 0.025%/chiều)
+## 2. Cài đặt Pine Script trên TradingView (`[4.1.0]`)
 
-| Khung BTCUSDT | Engine v3.0 | Unseen Holdout (25% cuối) | TV 6.000 nến | Walk-Forward 4 Fold | ETHUSDT đối chứng |
-|---|---|---|---|---|---|
-| **15m** | `H1_CleanDisp_AtrExh` | **73.53%** (50/68) · PF **1.486** · TB **+0.151%** | **68.89%** (31/45) · PF **1.319** · TB **+0.117%** | **74.57%** (217/291) · PF **1.516** | 63.09% (94/149) · PF 0.832 |
-| **1h** | `AdaptiveTrapPolarity` | **74.51%** (38/51) · PF **1.396** · TB **+0.199%** | **75.00%** (51/68) · PF **1.533** · TB **+0.257%** | Anchored: **74.64%** (103/138) · PF **1.296** \| 4-Qtr: **78.77%** (141/179) · PF **1.643** | **69.14%** (56/81) · PF **1.057** · TB **+0.051%** |
-
-> **Lưu ý minh bạch:** Tỷ lệ thắng cao ở cả 15m và 1h đạt được có đóng góp quan trọng từ cơ chế chốt **BE+** sau chi phí (`OUT BE` là lệnh dương ròng nhỏ). Khi tắt hoàn toàn BE+ (`noBE`), tỷ suất lợi nhuận trung bình vẫn dương trên 15m 12 tháng (`+0.204%/lệnh`, PF `1.390`) với win rate `57.09%`. Chi tiết phân tích đầy đủ, bảng độ nhạy và lịch sử các vòng thử nghiệm thất bại xem tại [docs/EVALUATION_AND_RESEARCH_REPORT.md](docs/EVALUATION_AND_RESEARCH_REPORT.md).
+1. Mở TradingView -> **Pine Editor** -> tạo **Indicator mới** (dán [TOOL.pine](TOOL.pine)) hoặc **Strategy mới** (dán [TOOL_Strategy.pine](TOOL_Strategy.pine)).
+2. Nhấn **Save** -> **Add to chart** (chỉ bật tối ưu trên khung **`15m`** hoặc **`1h`**).
+3. Giữ mặc định **Signal mode = `SMC High-WinRate`** + **Auto-tune profile = ON** để chọn đúng nhánh `15m` (`<= 15m`) hoặc `1h` (`> 15m`), hoạt động trên mọi cặp OHLC chuẩn (`BTCUSDT`, `BTCUSDT.P`, `ETHUSDT`, OKX, Binance, Bybit...).
 
 ---
 
-## Kiểm tra tự động (Node.js ≥ 20)
+## 3. Vận hành Ngoài TradingView qua CLI & Web Console (`Node.js >= 22`)
+
+Mặc định luôn khóa an toàn ở **`EXECUTION_MODE=PAPER`** và **`DRY_RUN=true`** trên địa chỉ loopback **`127.0.0.1:4180`** (không cần API key cho chế độ Paper Sandbox / dữ liệu public OKX, Binance & Yahoo Finance v8).
 
 ```bash
-# Kiểm tra tĩnh Pine v6 (phiên bản, plot <= 55/64, lookahead_off, top-level ta.*, không khóa mã)
-node tests/pine_static_check.mjs
+# 1. Kiểm tra sức khỏe toàn bộ engine (v4.1..v13), SQLite WAL, model parity & nguồn public
+node standalone/cli.mjs doctor
 
-# Kiểm chứng parity từng nến và từng lệnh trên toàn bộ 6 tập dữ liệu (15m & 1h)
-node tests/pine_parity.mjs
+# 2. Đồng bộ nến & funding mới nhất vào SQLite cục bộ
+node standalone/cli.mjs sync --symbol BTCUSDT.P --timeframe 1h --bars 600
+node standalone/cli.mjs sync --symbol SPY --timeframe 1d --bars 600
 
-# Chạy toàn bộ test suite
-node --test research/sim_engine.test.mjs research/signals_15m.test.mjs research/signals_1h.test.mjs tests/pine_parity.test.mjs
+# 3. Chạy backtest & xem trạng thái Macro Regime v8
+node standalone/cli.mjs backtest --version v9 --symbol BTCUSDT.P --timeframe 1h --profile EXCHANGE_POST_ONLY
+node standalone/cli.mjs regime --symbol BTCUSDT.P --timeframe 1h
+
+# 4. Kiểm tra danh mục Frontier & Ma trận đối chiếu 10 thế hệ (v1.4 -> v9.0)
+node standalone/cli.mjs portfolio --version v9 --tier SAFE_75WR --profile EXCHANGE_POST_ONLY
+node standalone/cli.mjs versions
+
+# 5. Cấp mã bản quyền TT10 (Seller) & Mô phỏng phân tầng vốn/hợp đồng (Buyer)
+node standalone/cli.mjs license --plan PRO_AUTO_TRADER --days 30 --ref buyer@example.com
+node standalone/cli.mjs commercial-sim --equity 1500 --exchange OKX --version v9 --tier SAFE_75WR
+
+# 6. Khởi động Web Command Center & Autopilot Scheduler tại http://127.0.0.1:4180
+node standalone/cli.mjs serve
 ```
 
-## Tài liệu & Cấu trúc chính
+Tất cả 9 subcommand của `standalone/cli.mjs`: `doctor`, `sync`, `backtest`, `portfolio`, `regime`, `versions`, `license`, `commercial-sim`, `serve`.
 
-- [TOOL.pine](TOOL.pine) — Indicator `SMC Confirmed [3.0.0]`
-- [TOOL_Strategy.pine](TOOL_Strategy.pine) — Companion Strategy Tester `SMC High-WinRate Strategy [3.0.0]`
-- [docs/EVALUATION_AND_RESEARCH_REPORT.md](docs/EVALUATION_AND_RESEARCH_REPORT.md) — Báo cáo đánh giá các phiên bản cũ, nguyên nhân thất bại và nghiên cứu v3.0.0
-- [research/sim_engine.mjs](research/sim_engine.mjs) — Engine mô phỏng khớp lệnh chuẩn Pine parity
-- [research/signals_15m.mjs](research/signals_15m.mjs) & [research/signals_1h.mjs](research/signals_1h.mjs) — Bộ sinh tín hiệu nhân quả 15m và 1h
-- [tests/pine_static_check.mjs](tests/pine_static_check.mjs) & [tests/pine_parity.mjs](tests/pine_parity.mjs) — Bộ kiểm tra tĩnh & đối chiếu parity
+---
+
+## 4. Bộ kiểm định tự động (Node.js `>= 22`)
+
+```bash
+# Kiểm tra tĩnh Pine v6 (28 plots, 4 request.security lookahead_off, HISTORY_LIMIT 4500)
+node tests/pine_static_check.mjs
+
+# Kiểm tra parity từng nến & từng lệnh giữa Pine Script và sim_engine.mjs
+node tests/pine_parity.mjs
+
+# Chạy toàn bộ 21 test suite (Research + Pine Parity + Standalone + Commercial + E2E Autopilot v5..v13)
+node --test \
+  research/ml_inference.test.mjs \
+  research/regime_engine_v8.test.mjs \
+  research/signals_15m.test.mjs \
+  research/signals_1h.test.mjs \
+  research/sim_engine.test.mjs \
+  research/sim_engine_v5.test.mjs \
+  research/sim_engine_v6.test.mjs \
+  research/sim_engine_v7.test.mjs \
+  standalone/autopilot-scheduler.test.mjs \
+  standalone/commercial_engine.test.mjs \
+  standalone/crypto_vault.test.mjs \
+  standalone/standalone.test.mjs \
+  tests/pine_parity.test.mjs \
+  tests/verify_v5_standalone.mjs \
+  tests/verify_v6_full_suite.mjs \
+  tests/verify_v7_75wr_30mo.mjs \
+  tests/verify_v8_regime_maximizer.mjs \
+  tests/verify_v9_preview_and_router.mjs \
+  tests/verify_v10_commercial_platform.mjs \
+  tests/verify-v11-e2e-autopilot.mjs \
+  tests/verify-v12-human-ux-and-autopilot.mjs
+```

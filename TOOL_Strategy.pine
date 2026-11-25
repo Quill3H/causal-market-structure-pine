@@ -3,8 +3,9 @@
 //
 //@version=6
 // Companion TradingView Strategy Tester script for SMC Confirmed [4.1.0].
-// Option 1 + v4.1: 15m causal v4.0 H4-Close-Disp (15m_r3), 1h v3.0 Adaptive-MultiTrap + v4.0 H4-Disp Trend,
+// Calibrated timeframes: 15m (<= 15m: causal v4.0 H4-Close-Disp 15m_r3) and 1h (> 15m: v3.0 Adaptive-MultiTrap + v4.0 H4-Disp Trend),
 // dynamic Vol-Normalized Risk Sizing (1h 4.5% [1.5..2.8x], 15m 2.2% [0.75..1.5x]), and optional Partial TP1 + Runner.
+// Note: process_orders_on_close = false means Strategy Tester market/TIME closes fill at next-bar open, whereas the Paper scoreboard uses conservative close-bar accounting.
 // Cost calibration: commission_value = 0.075% per side = 0.15% round-trip
 // (0.10% round-trip fee + 2 x 0.025% adverse slippage per fill across any symbol).
 strategy("BigBeluga - SMC High-WinRate Strategy", "SMC High-WinRate Strategy [4.1.0]",
@@ -19,7 +20,7 @@ strategy("BigBeluga - SMC High-WinRate Strategy", "SMC High-WinRate Strategy [4.
      slippage = 0,
      pyramiding = 0,
      calc_on_every_tick = false,
-     process_orders_on_close = false,
+     process_orders_on_close = false, // Market/TIME strategy exits execute on next-bar open (vs Paper conservative close-bar accounting)
      max_bars_back = 5000,
      max_boxes_count = 500,
      max_labels_count = 500,
@@ -1949,7 +1950,9 @@ if barstate.islast
         string levLabel = effUseVolNorm ? "VolNorm" : str.tostring(paperLeverageRef, "0.#") + "x"
         float paperCompLevPct = (paperEquityLev - 1.0) * 100.0
         string levText = paperClosedCount > 0 and (effUseVolNorm or paperLeverageRef > 1.0) ? " | " + levLabel + " " + (paperTotalNetLev >= 0 ? "+" : "") + str.tostring(paperTotalNetLev, "0.0") + "% (Comp " + (paperCompLevPct >= 0 ? "+" : "") + str.tostring(paperCompLevPct, "0.0") + "%)" : ""
-        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | PF=" + pfText + " | 1x " + netText + levText
+        // When effUseVolNorm is enabled, shownPF reflects VolNorm-levered paperPFLev rather than 1x paperPF; label explicitly beside 1x Net.
+        string pfLabel = effUseVolNorm ? "PF (Lev)=" : "PF (1x)="
+        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | " + pfLabel + pfText + " | 1x Net " + netText + levText
         table.cell(winLoss, 0, 0, boardText, text_color = color.white, text_size = size.small)
     else
         table.clear(winLoss, 0, 0, 0, 0)

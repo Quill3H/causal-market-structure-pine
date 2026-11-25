@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -138,6 +139,7 @@ export async function runDoctor({ config } = {}) {
       v9FrontierReady: runtimeSpecs.hasV9Frontier,
       allVersionsMatrixReady: runtimeSpecs.hasAllVersionsMatrix,
       v10CommercialReady: true,
+      v11AutopilotReady: true,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
       v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
@@ -327,8 +329,61 @@ export async function runCommercialSim(flags, cfg) {
   }
 }
 
+export function ensureLocalServeSecrets(cfg, { secretPath = null } = {}) {
+  if (!cfg) return cfg;
+  const resolvedPath = secretPath
+    || cfg.localVaultSecretPath
+    || path.join(cfg.repoRoot || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), '.local-vault.secret');
+
+  if (cfg.commercialMasterKey && cfg.commercialLicenseSecret) {
+    return { secretPath: resolvedPath, generated: false, loaded: false };
+  }
+
+  let stored = {};
+  let loaded = false;
+  if (fs.existsSync(resolvedPath)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+      if (parsed && typeof parsed === 'object') {
+        stored = parsed;
+        loaded = true;
+      }
+    } catch {
+      stored = {};
+    }
+  }
+
+  let dirty = false;
+  if (!cfg.commercialMasterKey) {
+    if (typeof stored.commercialMasterKey === 'string' && stored.commercialMasterKey.length >= 32) {
+      cfg.commercialMasterKey = stored.commercialMasterKey;
+    } else {
+      stored.commercialMasterKey = crypto.randomBytes(32).toString('hex');
+      cfg.commercialMasterKey = stored.commercialMasterKey;
+      dirty = true;
+    }
+  }
+  if (!cfg.commercialLicenseSecret) {
+    if (typeof stored.commercialLicenseSecret === 'string' && stored.commercialLicenseSecret.length >= 32) {
+      cfg.commercialLicenseSecret = stored.commercialLicenseSecret;
+    } else {
+      stored.commercialLicenseSecret = crypto.randomBytes(32).toString('hex');
+      cfg.commercialLicenseSecret = stored.commercialLicenseSecret;
+      dirty = true;
+    }
+  }
+
+  if (dirty || !fs.existsSync(resolvedPath)) {
+    fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
+    fs.writeFileSync(resolvedPath, JSON.stringify(stored, null, 2) + '\n', { mode: 0o600 });
+    fs.chmodSync(resolvedPath, 0o600);
+  }
+  return { secretPath: resolvedPath, generated: dirty, loaded };
+}
+
 export async function runServe(flags, cfg) {
   if (flags.port) cfg.port = Number(flags.port);
+  ensureLocalServeSecrets(cfg);
   const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
   const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
   const daemon = new StandaloneTradingDaemon({ config: cfg, store, runtimeSpecs, autoRoute: false });
@@ -347,7 +402,7 @@ export async function runServe(flags, cfg) {
   }
   daemon.start(60000);
   const bound = await srv.start();
-  console.log(`[standalone] v10.0 Command Center & Commercial Portal running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
+  console.log(`[standalone] v11.0 E2E Autopilot & Commercial Portal running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun}, autopilotInterval=${cfg.autopilotIntervalSec}s)`);
 
   const shutdown = async () => {
     daemon.stop();

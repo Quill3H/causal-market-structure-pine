@@ -643,10 +643,11 @@ function buildExecOptions({ symbol, timeframe, execProfile, config, runtimeSpecs
 }
 
 const BREADTH_CACHE_V8 = new Map();
+const BREADTH_STATIC_RAW_CACHE = new Map();
+const BREADTH_LIVE_CACHE_V8 = new Map();
 
-function loadCryptoBreadthContextV8(repoRoot, regimeEngineV8Mod) {
-  if (!regimeEngineV8Mod?.precomputeCryptoBreadthV8) return null;
-  const cached = BREADTH_CACHE_V8.get(repoRoot);
+function loadStaticCoinDatasetsV8(repoRoot) {
+  const cached = BREADTH_STATIC_RAW_CACHE.get(repoRoot);
   if (cached) return cached;
 
   const coinFiles = [
@@ -655,17 +656,105 @@ function loadCryptoBreadthContextV8(repoRoot, regimeEngineV8Mod) {
     ['SOLUSDT', 'crypto5y_solusdt_1h.json'],
     ['BNBUSDT', 'crypto5y_bnbusdt_1h.json'],
   ];
-  const byCoin = {};
+  const rawMap = {};
   for (const [coinKey, fileName] of coinFiles) {
     const abs = path.join(repoRoot, 'data', fileName);
     if (fs.existsSync(abs)) {
       const ds = JSON.parse(fs.readFileSync(abs, 'utf8'));
-      if (ds?.htf?.['1d']?.rows?.length) {
-        byCoin[coinKey] = ds;
+      if (ds?.rows?.length || ds?.htf?.['1d']?.rows?.length) {
+        rawMap[coinKey] = ds;
       }
     }
   }
+  BREADTH_STATIC_RAW_CACHE.set(repoRoot, rawMap);
+  return rawMap;
+}
+
+function mergeDatasetWithStoreRows(staticDs, symbol, timeframe, dbRows) {
+  if (!Array.isArray(dbRows) || dbRows.length === 0) return staticDs || null;
+  const staticRows = staticDs?.rows || [];
+  if (staticRows.length === 0) {
+    return buildDatasetFromCandles({ symbol, timeframe, rows: dbRows });
+  }
+  const lastStaticTime = staticRows[staticRows.length - 1].time;
+  const lastDbTime = dbRows[dbRows.length - 1].time;
+  if (lastDbTime <= lastStaticTime) return staticDs;
+
+  const firstDbTime = dbRows[0].time;
+  const maxStaticKeep = timeframe === '15m' ? 25000 : 10000;
+  const olderTail = staticRows.filter(r => r.time < firstDbTime).slice(-maxStaticKeep);
+  const merged = buildDatasetFromCandles({
+    symbol,
+    timeframe,
+    rows: [...olderTail, ...dbRows],
+  });
+  return ensureDatasetHtfForRegimeV8(merged, staticDs?.fundingRows || []);
+}
+
+function loadBtcReferenceDataset({ repoRoot, timeframe = '1h', store = null, exchange = 'OKX', fallbackDataset = null } = {}) {
+  const tf = String(timeframe || '1h').toLowerCase();
+  const btcFile = tf === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
+  const staticDs = readJsonIfExists(path.join(repoRoot, 'data', btcFile));
+  if (store) {
+    try {
+      const dbRows = store.getCandles({ exchange: exchange || 'OKX', symbol: 'BTCUSDT.P', timeframe: tf, limit: 1500 });
+      const merged = mergeDatasetWithStoreRows(staticDs, 'BTCUSDT.P', tf, dbRows);
+      if (merged) return merged;
+    } catch {
+      // fall through cleanly to static JSON if store query fails
+    }
+  }
+  return staticDs || fallbackDataset || null;
+}
+
+function loadCryptoBreadthContextV8(repoRoot, regimeEngineV8Mod, store = null, exchange = 'OKX') {
+  if (!regimeEngineV8Mod?.precomputeCryptoBreadthV8) return null;
+  if (!store) {
+    const cached = BREADTH_CACHE_V8.get(repoRoot);
+    if (cached) return cached;
+  }
+
+  const staticByCoin = loadStaticCoinDatasetsV8(repoRoot);
+  const byCoin = {};
+  const sigParts = [];
+
+  for (const coinKey of ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT']) {
+    const staticDs = staticByCoin[coinKey] || null;
+    let activeDs = staticDs;
+    let latestTime = staticDs?.rows?.[staticDs.rows.length - 1]?.time ?? 0;
+
+    if (store) {
+      try {
+        const sym = coinKey.replace('USDT', 'USDT.P');
+        const dbRows = store.getCandles({ exchange: exchange || 'OKX', symbol: sym, timeframe: '1h', limit: 1500 });
+        if (dbRows.length > 0 && dbRows[dbRows.length - 1].time > latestTime) {
+          activeDs = mergeDatasetWithStoreRows(staticDs, sym, '1h', dbRows);
+          latestTime = activeDs?.rows?.[activeDs.rows.length - 1]?.time ?? dbRows[dbRows.length - 1].time;
+        }
+      } catch {
+        // non-fatal SQLite breadth merge fallback
+      }
+    }
+
+    if (activeDs?.htf?.['1d']?.rows?.length) {
+      byCoin[coinKey] = activeDs;
+    }
+    sigParts.push(`${coinKey}:${latestTime}`);
+  }
+
   if (Object.keys(byCoin).length === 0) return null;
+
+  if (store) {
+    const cacheKey = `${repoRoot}|${exchange}|${sigParts.join(',')}`;
+    const cachedLive = BREADTH_LIVE_CACHE_V8.get(cacheKey);
+    if (cachedLive) return cachedLive;
+    const breadth = regimeEngineV8Mod.precomputeCryptoBreadthV8(byCoin);
+    const entry = { breadth, byCoin };
+    if (BREADTH_LIVE_CACHE_V8.size > 16) BREADTH_LIVE_CACHE_V8.clear();
+    BREADTH_LIVE_CACHE_V8.set(cacheKey, entry);
+    return entry;
+  }
+
   const breadth = regimeEngineV8Mod.precomputeCryptoBreadthV8(byCoin);
   const entry = { breadth, byCoin };
   BREADTH_CACHE_V8.set(repoRoot, entry);
@@ -718,6 +807,8 @@ export function computeV8MacroRegimeRadar({
   macroData = null,
   symbol = 'BTCUSDT.P',
   timeframe = '1h',
+  store = null,
+  exchange = 'OKX',
 } = {}) {
   const sym = normalizeAssetSymbol(symbol);
   const isEq = isEquitySymbol(sym);
@@ -787,7 +878,7 @@ export function computeV8MacroRegimeRadar({
     };
   }
 
-  const breadthEntry = loadCryptoBreadthContextV8(repoRoot, regimeMod);
+  const breadthEntry = loadCryptoBreadthContextV8(repoRoot, regimeMod, store, exchange);
   const breadthCtx = breadthEntry?.breadth || null;
   let activeFunding = fundingRates;
   if ((!activeFunding || activeFunding.length === 0) && !activeDataset.fundingRows?.length) {
@@ -860,7 +951,7 @@ export function computeV8MacroRegimeRadar({
 /**
  * Computes live/historical macro & orderflow regime telemetry for the Command Center UI.
  */
-export function computeRegimeTelemetry({ repoRoot, runtimeSpecs = null, dataset, fundingRates = [], macroData = null, symbol, timeframe = '1h' }) {
+export function computeRegimeTelemetry({ repoRoot, runtimeSpecs = null, dataset, fundingRates = [], macroData = null, symbol, timeframe = '1h', store = null, exchange = 'OKX' }) {
   const sym = normalizeAssetSymbol(symbol);
   const rows = dataset?.rows || [];
   let takerBuyRatio = null;
@@ -925,6 +1016,8 @@ export function computeRegimeTelemetry({ repoRoot, runtimeSpecs = null, dataset,
         macroData: loadedMacro,
         symbol: sym,
         timeframe,
+        store,
+        exchange,
       })
     : null;
 
@@ -1417,6 +1510,7 @@ function evaluateCryptoV9ForStandalone({
   regime,
   config,
   runtimeSpecs,
+  store = null,
 }) {
   const coinPrefix = symbol.replace('USDT.P', '').replace('USDT', '');
   const streamKey = `${coinPrefix}_${timeframe}`;
@@ -1428,13 +1522,14 @@ function evaluateCryptoV9ForStandalone({
   }
 
   const dsReady = ensureDatasetHtfForRegimeV8(dataset, fundingRates);
-  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod)?.breadth || null;
+  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod, store, exchange)?.breadth || null;
   const regimeCtx = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
   const effectiveFunding = alignedFunding || (runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal
     ? runtimeSpecs.fetchDerivsMod.alignFundingToBarsCausal(dsReady.rows, fundingRates || [])
     : new Float64Array(dsReady.rows.length));
-  const btcFile = timeframe === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
-  const btcRefDs = symbol === 'ETHUSDT.P' ? (readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dsReady) : null;
+  const btcRefDs = symbol === 'ETHUSDT.P'
+    ? loadBtcReferenceDataset({ repoRoot: config.repoRoot, timeframe, store, exchange, fallbackDataset: dsReady })
+    : null;
   const rawSignals = v9Mod.generateStreamSignalsV9(streamKey, dsReady, modelSpec.structuralSpec.sigSpec, effectiveFunding, regimeCtx, btcRefDs);
   const filteredSignals = mlEnabled && typeof v9Mod.applyV9ModelToSignals === 'function'
     ? v9Mod.applyV9ModelToSignals(streamKey, dsReady, rawSignals, effectiveFunding, regimeCtx, modelSpec, dsReady.rows[dsReady.rows.length - 1].time)
@@ -1472,6 +1567,7 @@ function evaluateCryptoV8ForStandalone({
   regime,
   config,
   runtimeSpecs,
+  store = null,
 }) {
   const coinPrefix = symbol.replace('USDT.P', '').replace('USDT', '');
   const streamKey = `${coinPrefix}_${timeframe}`;
@@ -1486,7 +1582,7 @@ function evaluateCryptoV8ForStandalone({
   }
 
   const dsReady = ensureDatasetHtfForRegimeV8(dataset, fundingRates);
-  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod)?.breadth || null;
+  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod, store, exchange)?.breadth || null;
   const regimeCtx = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
   const structural = modelSpec.structuralSpec;
   const effectiveFunding = alignedFunding || (runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal
@@ -1502,8 +1598,9 @@ function evaluateCryptoV8ForStandalone({
       : rawSignals;
   } else {
     const isEth = symbol === 'ETHUSDT.P';
-    const btcFile = timeframe === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
-    const btcRefDs = isEth ? (readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dsReady) : null;
+    const btcRefDs = isEth
+      ? loadBtcReferenceDataset({ repoRoot: config.repoRoot, timeframe, store, exchange, fallbackDataset: dsReady })
+      : null;
     rawSignals = streamMod.generateEthSolStreamSignalsV8(streamKey, dsReady, structural.sigSpec, regimeCtx, btcRefDs);
     filteredSignals = mlEnabled
       ? streamMod.applyV8EthSolModelToSignals(streamKey, dsReady, rawSignals, effectiveFunding, modelSpec, regimeCtx, btcRefDs)
@@ -1545,11 +1642,15 @@ export function evaluateStrategy({
   riskTier,
   config,
   runtimeSpecs,
+  store = null,
 }) {
   const sym = normalizeAssetSymbol(symbol);
   const tf = String(timeframe).toLowerCase();
   const isEq = isEquitySymbol(sym);
   const effectiveProfile = execProfile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY');
+  const rawTierStr = String(riskTier || config?.riskTier || 'SAFE_75WR').toUpperCase();
+  const explicitV9Tier = rawTierStr.includes('_V9');
+  const explicit75WrTier = /_75WR|30MO/.test(rawTierStr);
   const effTier = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
   const ver = String(version || 'auto').toLowerCase();
   const regime = computeRegimeTelemetry({
@@ -1560,6 +1661,8 @@ export function evaluateStrategy({
     macroData,
     symbol: sym,
     timeframe: tf,
+    store,
+    exchange,
   });
 
   const alignFn = runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal || runtimeSpecs.simV5Mod?.alignFundingToBarsCausal;
@@ -1567,7 +1670,7 @@ export function evaluateStrategy({
     ? alignFn(dataset.rows, fundingRates)
     : null;
 
-  if (!isEq && ver === 'v9') {
+  if (!isEq && (ver === 'v9' || (ver === 'auto' && (!explicit75WrTier || explicitV9Tier)))) {
     const v9Res = evaluateCryptoV9ForStandalone({
       dataset,
       fundingRates,
@@ -1581,6 +1684,7 @@ export function evaluateStrategy({
       regime,
       config,
       runtimeSpecs,
+      store,
     });
     if (v9Res) return v9Res;
     const v8Fallback = evaluateCryptoV8ForStandalone({
@@ -1596,11 +1700,12 @@ export function evaluateStrategy({
       regime,
       config,
       runtimeSpecs,
+      store,
     });
     if (v8Fallback) return v8Fallback;
   }
 
-  if (!isEq && ver === 'v8') {
+  if (!isEq && (ver === 'v8' || ver === 'auto')) {
     const v8Res = evaluateCryptoV8ForStandalone({
       dataset,
       fundingRates,
@@ -1614,6 +1719,7 @@ export function evaluateStrategy({
       regime,
       config,
       runtimeSpecs,
+      store,
     });
     if (v8Res) return v8Res;
   }
@@ -1651,11 +1757,13 @@ export function evaluateStrategy({
   }
 
   // Check if dedicated v6.0 suite module exposes a clean runtime runner for this asset
-  const v6SuiteRunner = isEq
-    ? runtimeSpecs.suiteV6StocksMod?.evaluateStockStrategyV6
-    : (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P')
-      ? runtimeSpecs.suiteV6BtcBnbMod?.evaluateCryptoV6
-      : runtimeSpecs.suiteV6EthSolMod?.evaluateCryptoV6;
+  const v6SuiteRunner = (isEq || ver === 'v6' || (ver === 'auto' && !v7Runner))
+    ? (isEq
+        ? runtimeSpecs.suiteV6StocksMod?.evaluateStockStrategyV6
+        : (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P')
+          ? runtimeSpecs.suiteV6BtcBnbMod?.evaluateCryptoV6
+          : runtimeSpecs.suiteV6EthSolMod?.evaluateCryptoV6)
+    : null;
 
   if (typeof v6SuiteRunner === 'function') {
     const suiteRes = v6SuiteRunner({
@@ -1684,6 +1792,8 @@ export function evaluateStrategy({
   const isBtc = sym === 'BTCUSDT.P';
   const coinPrefix = sym.replace('USDT.P', '').replace('USDT', '');
   const v7StreamKey = `${coinPrefix}_${tf}`;
+  const isV4Explicit = ver === 'v4.1' || ver === 'v4';
+  const isV5Explicit = ver === 'v5' || ver === 'v5.0';
 
   const useV7BtcBnb = Boolean(
     !isEq &&
@@ -1703,6 +1813,7 @@ export function evaluateStrategy({
   const useV6BtcBnb = Boolean(
     !isEq &&
       !useV7BtcBnb &&
+      (ver === 'v6' || ver === 'auto') &&
       tf === '1h' &&
       (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P') &&
       runtimeSpecs.suiteV6BtcBnbMod &&
@@ -1711,6 +1822,7 @@ export function evaluateStrategy({
   const useV6EthSol = Boolean(
     !isEq &&
       !useV7EthSol &&
+      (ver === 'v6' || ver === 'auto') &&
       tf === '1h' &&
       (sym === 'ETHUSDT.P' || sym === 'SOLUSDT.P') &&
       runtimeSpecs.suiteV6EthSolMod &&
@@ -1733,7 +1845,7 @@ export function evaluateStrategy({
             ? runtimeSpecs.modelsBtcBnb5y
             : useV6EthSol
               ? runtimeSpecs.modelsEthSol5y
-              : (isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt));
+              : (isV4Explicit ? null : (isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt)));
 
   const mlEntry = isEq || useV6BtcBnb || useV6EthSol || (!useV7BtcBnb && !useV7EthSol)
     ? resolveMlModelEntry(mlBundle, tf, sym)
@@ -1761,8 +1873,7 @@ export function evaluateStrategy({
   } else if (useV7EthSol && mlEntry?.structuralSpec?.sigSpec) {
     const isEth = sym === 'ETHUSDT.P';
     if (isEth) {
-      const btcFile = tf === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
-      btcRefDs = readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dataset;
+      btcRefDs = loadBtcReferenceDataset({ repoRoot: config.repoRoot, timeframe: tf, store, exchange, fallbackDataset: dataset });
       rawSignals = runtimeSpecs.highWrV7EthSolMod.generateEthSolStreamSignalsV7(
         v7StreamKey,
         dataset,
@@ -1808,7 +1919,7 @@ export function evaluateStrategy({
   } else if (useV6EthSol && mlEntry?.structuralSpec?.sigSpec) {
     const sigSpec = mlEntry.structuralSpec.sigSpec;
     if (sym === 'ETHUSDT.P') {
-      btcRefDs = readJsonIfExists(path.join(config.repoRoot, 'data', 'crypto5y_btcusdt_1h.json')) || dataset;
+      btcRefDs = loadBtcReferenceDataset({ repoRoot: config.repoRoot, timeframe: tf, store, exchange, fallbackDataset: dataset });
       rawSignals = runtimeSpecs.suiteV6EthSolMod.generateEthSignalsV6(dataset, btcRefDs, sigSpec);
       ethCtx = runtimeSpecs.suiteV6EthSolMod.precomputeEthCrossContextV6(dataset, btcRefDs, alignedFunding);
       featureExtractor = sig => runtimeSpecs.suiteV6EthSolMod.extractEthCandidateFeaturesV6(dataset, btcRefDs, sig, sig.barIndex, alignedFunding, ethCtx);
@@ -1852,7 +1963,8 @@ export function evaluateStrategy({
   }
 
   const canScoreMl = Boolean(
-    mlEnabled &&
+    !isV4Explicit &&
+      mlEnabled &&
       mlEntry &&
       featureExtractor &&
       (runtimeSpecs.mlInfMod?.scoreCandidateV5 || runtimeSpecs.mlInfMod?.predictProbaV5),
@@ -1860,9 +1972,16 @@ export function evaluateStrategy({
 
   const modelSpec = mlEntry ? (mlEntry.model || mlEntry) : null;
   const tau = Number(modelSpec?.threshold ?? mlEntry?.threshold ?? mlEntry?.tau ?? 0.55);
-  const modelVersion = canScoreMl
-    ? (mlEntry.version || ((useV7BtcBnb || useV7EthSol) ? `v7.0-${modelSpec?.modelType || 'ML'}` : (useV6BtcBnb || useV6EthSol || useV6Stocks ? `v6.0-${modelSpec?.modelType || 'ML'}` : modelSpec?.modelType)) || 'v5.0-ML')
-    : (isEq ? 'v6.0-equity-fallback' : 'v4.1-fallback');
+  const hasLockedV4Spec = tf === '1h'
+    ? Boolean(runtimeSpecs.lock1h?.lockedWinner?.signalSpec)
+    : Boolean(runtimeSpecs.lock15m?.winner?.fullSpec);
+  const modelVersion = isV4Explicit
+    ? (hasLockedV4Spec ? 'v4.1-locked' : 'v4.1-fallback')
+    : isV5Explicit
+      ? (canScoreMl ? 'v5.0-ML' : (mlEnabled ? 'v5.0-fallback' : 'v5.0-RulesOnly'))
+      : (canScoreMl
+          ? (mlEntry.version || ((useV7BtcBnb || useV7EthSol) ? `v7.0-${modelSpec?.modelType || 'ML'}` : (useV6BtcBnb || useV6EthSol || useV6Stocks ? `v6.0-${modelSpec?.modelType || 'ML'}` : modelSpec?.modelType)) || 'v5.0-ML')
+          : (isEq ? 'v6.0-equity-fallback' : 'v4.1-fallback'));
 
   const signalsAudit = [];
   const filteredSignals = [];
@@ -2106,20 +2225,53 @@ function buildActiveOverlay(simResult, rows, signalsAudit) {
 export function loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars = 220, prefer5y = true }) {
   const sym = normalizeAssetSymbol(symbol);
   const isEq = isEquitySymbol(sym);
+  const tf = String(timeframe || (isEq ? '1d' : '1h')).toLowerCase();
   const exchange = isEq ? 'YAHOO' : (config.exchange || 'OKX');
-  const dbCandles = store ? store.getCandles({ exchange, symbol: sym, timeframe, limit: 5000 }) : [];
-  const dbFunding = (!isEq && store) ? store.getFundingRates({ exchange, symbol: sym, limit: 3000 }) : [];
+  const dbCandles = store ? store.getCandles({ exchange, symbol: sym, timeframe: tf, limit: 7000 }) : [];
+  const dbFunding = (!isEq && store) ? store.getFundingRates({ exchange, symbol: sym, limit: 4000 }) : [];
 
   if (dbCandles.length >= minBars) {
+    let workingRows = dbCandles;
+    let workingFunding = dbFunding;
+    let sourceLabel = 'sqlite';
+
+    if (!isEq && (tf === '1h' || tf === '15m') && dbCandles.length < 6200) {
+      const localWarmupPath = resolveLocalDatasetPath(config.repoRoot, { symbol: sym, timeframe: tf, prefer5y: true });
+      if (localWarmupPath) {
+        const localDs = JSON.parse(fs.readFileSync(localWarmupPath, 'utf8'));
+        const localRows = Array.isArray(localDs?.rows) ? localDs.rows : [];
+        if (localRows.length > 0) {
+          const firstDbTime = dbCandles[0].time;
+          const maxOlderBars = tf === '15m' ? 25000 : 10000;
+          const olderRows = localRows.filter(r => r && Number.isSafeInteger(r.time) && r.time < firstDbTime).slice(-maxOlderBars);
+          if (olderRows.length > 0) {
+            workingRows = [...olderRows, ...dbCandles];
+            sourceLabel = 'sqlite+local-warmup';
+          }
+        }
+        const coin = sym.toLowerCase().replace(/usdt\.p$|usdt$/, '');
+        const localFunding = Array.isArray(localDs?.fundingRows) && localDs.fundingRows.length > 0
+          ? localDs.fundingRows
+          : (readJsonIfExists(path.join(config.repoRoot, 'data', `okx_${coin}usdt_swap_funding_3y.json`))?.rows || []);
+        if (localFunding.length > 0) {
+          const firstFundingTime = workingFunding.length > 0 ? workingFunding[0].time : Infinity;
+          const olderFunding = localFunding.filter(r => r && Number.isFinite(r.time) && r.time < firstFundingTime);
+          if (olderFunding.length > 0) {
+            workingFunding = [...olderFunding, ...workingFunding];
+          }
+        }
+      }
+    }
+
     return {
-      source: 'sqlite',
-      dataset: buildDatasetFromCandles({ symbol: sym, timeframe, rows: dbCandles }),
-      fundingRates: dbFunding,
+      source: sourceLabel,
+      dataset: buildDatasetFromCandles({ symbol: sym, timeframe: tf, rows: workingRows }),
+      fundingRates: workingFunding,
       macroData: readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json')),
     };
   }
 
-  const localPath = resolveLocalDatasetPath(config.repoRoot, { symbol: sym, timeframe, prefer5y });
+  const localPath = resolveLocalDatasetPath(config.repoRoot, { symbol: sym, timeframe: tf, prefer5y });
   if (localPath) {
     const dataset = JSON.parse(fs.readFileSync(localPath, 'utf8'));
     let fundingRates = dataset.fundingRows || dbFunding;
@@ -2262,8 +2414,10 @@ export class StandaloneTradingDaemon {
       execProfile,
       mlEnabled,
       version,
+      riskTier: this.config.riskTier,
       config: this.config,
       runtimeSpecs: this.runtimeSpecs,
+      store: this.store,
     });
 
     const runId = `live_${exchange}_${sym}_${tf}`;

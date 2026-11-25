@@ -1,0 +1,34 @@
+# Báo Cáo Kiểm Định & Khắc Phục Toàn Diện Bảo Mật, Đa Thuê Bao và Tính Toàn Vẹn Dữ Liệu (SMC v13.0)
+
+**Trạng thái kiểm định (`verifier-v5`):** ✅ **VERIFIED PASS** (`182/182` tests PASS trên `36` suites, `0` fail, `0` skipped; `pine_static_check.mjs` & `pine_parity.mjs` `100%_BAR_AND_TRADE_MATCH`; `node --check` sạch toàn bộ `.mjs`/`.js`; `node standalone/cli.mjs doctor` `ok: true`).
+
+---
+
+## 1. Tóm Tắt Các Lỗ Hổng P0 / P1 / P2 Đã Khắc Phục Trong v13.0
+
+| Nhóm | Probe / Hạng mục | Nguyên nhân gốc rễ trước v13.0 | Biện pháp khắc phục đã xác minh | Tệp liên quan |
+| :--- | :--- | :--- | :--- | :--- |
+| **P0** | **Probe 1: Rò rỉ PII & `savedProfiles` khi tắt quickstart** | Unauthenticated `GET /api/autopilot/status` lộ email thật, `sessions`/`events`, và không trả `savedProfiles: []` khi `LOCAL_QUICKSTART_ENABLED=false`. | `AutopilotScheduler.getStatus` che email thật (`al***@example.com`, giữ `paper-sandbox@local`), trả `sessions: []`, `events: []` khi chưa đăng nhập; `server.mjs:798` truyền `includeLocalProfiles: true` để trả đúng `savedProfiles: []` khi `LOCAL_QUICKSTART_ENABLED=false`. | `standalone/autopilot-scheduler.mjs`, `standalone/server.mjs` |
+| **P0** | **Probe 2: Xóa hồ sơ không xác thực & chéo tenant** | `POST /api/autopilot/delete-profile` thiếu kiểm tra quyền sở hữu chặt chẽ. | Bắt buộc 1 trong 4 cổng hợp lệ: token thuê bao trùng `subscriberId`, `x-admin-token`, `armingPin` hợp lệ, hoặc zero-PIN sandbox khi `LOCAL_QUICKSTART_ENABLED=true`. Thiếu xác thực trả `401`; sai PIN hoặc chéo tenant trả `403`. | `standalone/server.mjs` |
+| **P0** | **Probe 3: Chiếm quyền hồ sơ qua `connect-and-start`** | `findMatchingActiveSubscriber` từng khớp lỏng qua `email` / `name + exchange`, cho phép ghi đè/chiếm session. | Loại bỏ hoàn toàn khớp theo `email` và `name + exchange` (`commercial_store.mjs`), chỉ khớp `subscriberId` tường minh và xác thực qua `authenticatedSubscriberId` / `armingPin` (`403` nếu trái phép). | `standalone/commercial_store.mjs`, `standalone/commercial_engine.mjs`, `standalone/server.mjs` |
+| **P0** | **Probe 4: IDOR trên `/api/autopilot/verify-connection`** | Cho phép gửi `subscriberId` của nạn nhân mà không có token để giải mã và thăm dò tài khoản. | Bắt buộc `authenticateSubOr401` (`401`/`403`) bất cứ khi nào có `body.subscriberId` hoặc token. | `standalone/server.mjs` |
+| **P0** | **Probe 5: Tự nâng gói VIP & nâng đòn bẩy 50x** | `/api/autopilot/settings` cho phép tự đổi `planId` không cần chữ ký `TT10` và thiếu kẹp trần đòn bẩy. | Khóa nâng gói bắt buộc chữ ký `TT10` hợp lệ (`403` nếu thiếu); thêm `clampLeverageCap` về `[0.5, 3.0]` ở mọi điểm cấu hình và Guardrail 6 chặn `GUARDRAIL_6_LEVERAGE_CAP_EXCEEDED` nếu `max_leverage_cap > 3.0`. | `standalone/commercial_engine.mjs`, `standalone/server.mjs` |
+| **P0** | **Probe 6: Chia sẻ khóa bản quyền `TT10`** | Một mã `TT10` có thể dùng đồng thời cho nhiều tài khoản trả phí. | `findActiveSubscriberByLicenseKey` khóa mỗi mã `TT10` chỉ gắn tối đa `1` thuê bao non-sandbox đang hoạt động (`403` nếu tái sử dụng). | `standalone/commercial_store.mjs`, `standalone/commercial_engine.mjs` |
+| **P1** | **Probe 7 & 8: Query Token Auth & Origin CSRF** | Thiếu đọc `?subscriberToken=` và thiếu chặn header `Origin` lạ khi không có `Sec-Fetch-Site`. | `authenticateSubOr401` hỗ trợ header `x-subscriber-token`, query `subscriberToken`, hoặc `body.sessionToken` kèm khóa chéo tenant `403`; `checkCsrfPost` kiểm tra `Origin` hostname chỉ thuộc loopback (`127.0.0.1`, `localhost`, `::1`, `[::1]`). | `standalone/server.mjs` |
+| **P1** | **Probe 9 & 10: Định tuyến phiên bản & đồng bộ `/api/mode`** | `version: 'v4.1'` / `'v5'` bị hút nhầm vào runner `v6.0`; `POST /api/mode` chưa đồng bộ `daemon.cryptoClient`. | Chặn `v6SuiteRunner` chỉ chạy khi `isEq` / `v6` / `auto` fallback; `POST /api/mode` cập nhật đồng thời `daemon.cryptoClient.executionMode` và `daemon.cryptoClient.dryRun`. | `standalone/engine_runtime.mjs`, `standalone/server.mjs` |
+| **P1** | **Probe 11 & Guardrail 2: Ma trận v9 & Quyền API Sàn Thực** | 8 stream v9 từng chứa giá trị `null` + nhãn `"Expanding Walk-Forward Stacking"`; kiểm tra quyền API từng giả lập lạc quan khi thiếu payload. | Sửa `extractV90` khớp đầy đủ 8 stream (`BTC_1h..ETH_15m`) và chuẩn hóa nhãn `"3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard"`. Bổ sung `getApiKeyPermissions()` thật (`OKX /api/v5/account/config`, `Binance /fapi/v2/account`, chịu lỗi HTML 502) + fail-closed `UNVERIFIED_PERMISSIONS` (`GUARDRAIL_2_UNVERIFIED_KEY_PERMISSIONS`). | `research/version_matrix_preview.mjs`, `research/results_v9/all_versions_comparison_matrix.json`, `standalone/exchange_okx.mjs`, `standalone/exchange_binance.mjs`, `standalone/commercial_engine.mjs` |
+| **P1** | **Tách lỗi SL/TP, `algoClOrdId` & Race Scheduler** | Lỗi đặt `oco`/SL-TP từng ghi đè trạng thái lệnh vào lệnh từ `SUBMITTED` thành `REJECTED`; disarm giữa tick bị ghi lại `ARMED_RUNNING`. | Tách `try/catch` riêng cho chân SL/TP (`SL_TP_REJECTED` giữ nguyên `SUBMITTED` của lệnh vào); gắn `algoClOrdId` / `slClientOrderId`; `AutopilotScheduler.tickSubscriber` kiểm tra lại lease sau mọi `await` và trả `DISARMED_DURING_TICK`. | `standalone/commercial_engine.mjs`, `standalone/exchange_okx.mjs`, `standalone/exchange_binance.mjs`, `standalone/order_router.mjs`, `standalone/autopilot-scheduler.mjs` |
+| **P2** | **Pine Clarity, Warmup 1d EMA200 & Tài liệu đồng bộ** | Nhãn `PF` đòn bẩy và `Process_orders_on_close` cần ghi chú rõ; thiếu prepend lịch sử `5Y` cho SQLite warmup ngắn; docs còn lệnh cũ. | Làm rõ nhãn `PF (Lev)` vs `1x Net` (giữ nguyên 100% parity 28 plots / 4 `request.security`); prepend lịch sử nhân quả cho `1d EMA200 >= 260` ngày; cập nhật `README.md` (`v3.0 -> v13.0`), `V6`, `V9`, `V10`, `v11`. | `TOOL.pine`, `TOOL_Strategy.pine`, `README.md`, `standalone/engine_runtime.mjs`, `docs/*` |
+
+---
+
+## 2. Bằng Chứng Kiểm Định Độc Lập Sau Lần Sửa Cuối
+
+1. **Bộ kiểm thử đối kháng v13 (`tests/verify_v13_security_and_integrity_remediation.mjs`):** `5/5` test groups PASS trên toàn bộ Probe 1 đến Probe 12 (`os.tmpdir()` cô lập hoàn toàn).
+2. **Toàn bộ 22 tệp kiểm thử tự động (`node --test research/*.test.mjs standalone/*.test.mjs tests/*.test.mjs tests/verify*.mjs`):**
+   - Kết quả: **`182/182` PASS** trên **`36` suites** (`0` fail, `0` cancelled, `0` skipped, `129.78s`).
+3. **Kiểm tra Pine Script & Parity (`node tests/pine_static_check.mjs && node tests/pine_parity.mjs`):**
+   - Kết quả: **PASS:** `100%_BAR_AND_TRADE_MATCH` trên toàn bộ tập dữ liệu đối chiếu (`28` plots, `4` `request.security`).
+4. **Kiểm tra cú pháp & sức khỏe hệ thống:**
+   - `find research standalone tests -type f \( -name "*.mjs" -o -name "*.js" \) -exec node --check {} +`: exit code `0`.
+   - `node standalone/cli.mjs doctor`: `ok: true`, `sqlite.journalMode: "wal"`, `v10CommercialReady: true`, `v11AutopilotReady: true`, `routerMode: "PAPER_ZERO_KEY"`.

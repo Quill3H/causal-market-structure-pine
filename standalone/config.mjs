@@ -233,6 +233,8 @@ export function loadConfig({
   const commercialMasterKey = String(merged.COMMERCIAL_MASTER_KEY || '').trim();
   const commercialLicenseSecret = String(merged.COMMERCIAL_LICENSE_SECRET || '').trim();
   const commercialAdminToken = String(merged.COMMERCIAL_ADMIN_TOKEN || '').trim();
+  const localQuickstartEnabled = parseBool(merged.LOCAL_QUICKSTART_ENABLED, true);
+  const autopilotIntervalSec = Math.trunc(parseNum(merged.AUTOPILOT_INTERVAL_SEC, 60, { min: 5, max: 3600 }));
 
   const config = {
     repoRoot: cwd,
@@ -253,6 +255,8 @@ export function loadConfig({
     commercialMasterKey,
     commercialLicenseSecret,
     commercialAdminToken,
+    localQuickstartEnabled,
+    autopilotIntervalSec,
     okx,
     binance,
     equities,
@@ -324,6 +328,8 @@ export function redactConfig(config) {
     maxOrderUsdt: config.maxOrderUsdt,
     host: config.host,
     port: config.port,
+    localQuickstartEnabled: Boolean(config.localQuickstartEnabled ?? true),
+    autopilotIntervalSec: Number(config.autopilotIntervalSec ?? 60),
     hasLiveConfirmToken: Boolean(config.liveConfirmToken),
     okx: {
       configured: hasExchangeCredentials(config, 'OKX'),

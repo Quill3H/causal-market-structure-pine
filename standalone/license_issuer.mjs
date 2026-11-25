@@ -45,6 +45,21 @@ export const COMMERCIAL_PLANS = deepFreeze({
   },
 });
 
+export const PAPER_SANDBOX_MODE = 'PAPER_AUTO_TRADE';
+export const PAPER_SANDBOX_PLAN_ID = 'PRO_AUTO_TRADER';
+
+export function isCommercialModeAllowed({ plan, executionMode, isPaperSandbox = false } = {}) {
+  const mode = String(executionMode || '').trim().toUpperCase();
+  if (!plan || !mode) return false;
+  if (Array.isArray(plan.allowedModes) && plan.allowedModes.includes(mode)) {
+    return true;
+  }
+  if (isPaperSandbox && mode === PAPER_SANDBOX_MODE) {
+    return true;
+  }
+  return false;
+}
+
 export function resolveLicenseSigningSecret(config) {
   const explicit = typeof config?.commercialLicenseSecret === 'string'
     ? config.commercialLicenseSecret

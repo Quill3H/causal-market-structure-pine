@@ -134,6 +134,7 @@ export function buildReduceOnlySlTpOrders({
   tpTriggerPx,
   tdMode = 'isolated',
   posSide,
+  algoClOrdId,
 }) {
   const instId = toOkxInstId(symbol);
   const closeSide = entrySide === 1 || String(entrySide).toLowerCase() === 'buy' ? 'sell' : 'buy';
@@ -146,6 +147,7 @@ export function buildReduceOnlySlTpOrders({
     reduceOnly: true,
   };
   if (posSide) base.posSide = posSide;
+  if (typeof algoClOrdId === 'string' && algoClOrdId.length > 0) base.algoClOrdId = algoClOrdId;
   if (slTriggerPx !== undefined && slTriggerPx !== null) {
     base.slTriggerPx = String(slTriggerPx);
     base.slTriggerPxType = 'mark';
@@ -355,6 +357,16 @@ export class OkxClient {
           upl: Number(p.upl),
           lever: Number(p.lever),
         })),
+    };
+  }
+
+  async getApiKeyPermissions() {
+    const data = await this._requestPrivate('GET', '/api/v5/account/config');
+    const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
+    return {
+      perm: String(row.perm || ''),
+      acctLv: row.acctLv ?? null,
+      label: row.label ?? null,
     };
   }
 

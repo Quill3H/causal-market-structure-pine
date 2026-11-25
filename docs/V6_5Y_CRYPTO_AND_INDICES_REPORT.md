@@ -196,9 +196,9 @@ node standalone/cli.mjs backtest --symbol SOLUSDT.P --timeframe 1h --profile EXC
 node standalone/cli.mjs backtest --symbol QQQ --timeframe 1d --profile EQUITY_ETF
 
 # 4. Bật Web Command Center nội bộ (chỉ lắng nghe 127.0.0.1:4180)
-node standalone/cli.mjs web
+node standalone/cli.mjs serve
 ```
-Sau khi chạy `web`, mở trình duyệt tại **`http://127.0.0.1:4180`** để xem biểu đồ nến, tín hiệu Buy/Sell/SL/TP, bảng telemetry VIX/TNX/Funding và lịch sử Paper Trades.
+Sau khi chạy `serve`, mở trình duyệt tại **`http://127.0.0.1:4180`** để xem biểu đồ nến, tín hiệu Buy/Sell/SL/TP, bảng telemetry VIX/TNX/Funding và lịch sử Paper Trades.
 
 ### 5.2. Cấu hình Personal API Key Qua `.env` (Tùy chọn khi muốn kết nối sàn)
 1. Sao chép tệp mẫu `.env.example` thành `.env` (tệp `.env` đã được liệt kê trong `.gitignore` nên không bị đẩy lên Git):
@@ -216,5 +216,5 @@ Sau khi chạy `web`, mở trình duyệt tại **`http://127.0.0.1:4180`** đ�
 3. Điền khóa cá nhân theo sàn bạn sử dụng:
    - **OKX V5 Perpetuals:** `EXCHANGE=OKX`, `OKX_API_KEY`, `OKX_API_SECRET`, `OKX_PASSPHRASE` (giữ `OKX_SIMULATED=1` cho OKX Demo Trading).
    - **Binance USD-M Futures:** `EXCHANGE=BINANCE`, `BINANCE_API_KEY`, `BINANCE_API_SECRET` (giữ `BINANCE_TESTNET=1` cho Futures Testnet).
-   - **US Equities / Data (tùy chọn):** `ALPACA_API_KEY`, `ALPACA_API_SECRET` (`ALPACA_PAPER=1`), `TWELVEDATA_API_KEY`.
+   - **US Equities / Data (tùy chọn cấu hình dự phòng, không bắt buộc):** `ALPACA_API_KEY`, `ALPACA_API_SECRET` (`ALPACA_PAPER=1`), `TWELVEDATA_API_KEY` (chỉ là placeholder cấu hình tùy chọn trong `.env`; toàn bộ dữ liệu chứng khoán Mỹ & vĩ mô công khai được kéo trực tiếp qua **Yahoo Finance v8** không cần key).
 4. **Cơ chế khóa 5 lớp cho Live (`LIVE_ARMED`):** Hệ thống từ chối đặt lệnh thật nếu thiếu bất kỳ điều kiện nào sau đây: `EXECUTION_MODE=LIVE_ARMED`, `DRY_RUN=false`, chuỗi `LIVE_CONFIRM_TOKEN` khớp (so sánh constant-time), có đủ khóa sàn hợp lệ, và giá trị lệnh `<= MAX_ORDER_USDT`.

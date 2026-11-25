@@ -2,6 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
+function safeJsonParse(str, fallback = null) {
+  if (!str || typeof str !== 'string') return fallback;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * Resolves and guards a SQLite file path inside an allowed base directory.
  * Prevents path traversal and symlink escapes outside allowedBaseDir.
@@ -326,8 +335,8 @@ export class StandaloneStore {
       modelVersion: r.model_version,
       decision: r.decision,
       sizeMult: Number(r.size_mult),
-      features: r.features_json ? JSON.parse(r.features_json) : null,
-      meta: r.meta_json ? JSON.parse(r.meta_json) : null,
+      features: safeJsonParse(r.features_json, null),
+      meta: safeJsonParse(r.meta_json, null),
       createdAt: Number(r.created_at),
     }));
   }
@@ -349,7 +358,7 @@ export class StandaloneStore {
     const row = this.db.prepare('SELECT state_json, updated_at FROM paper_state WHERE id = ?').get(id);
     if (!row) return null;
     return {
-      state: JSON.parse(row.state_json),
+      state: safeJsonParse(row.state_json, null),
       updatedAt: Number(row.updated_at),
     };
   }
@@ -443,7 +452,7 @@ export class StandaloneStore {
       netPct: Number(r.net_pct),
       fundingDragPct: Number(r.funding_drag_pct),
       barsHeld: Number(r.bars_held),
-      meta: r.meta_json ? JSON.parse(r.meta_json) : null,
+      meta: safeJsonParse(r.meta_json, null),
     }));
   }
 
@@ -479,16 +488,9 @@ export class StandaloneStore {
     );
   }
 
-  getOrdersLog({ symbol, limit = 100 } = {}) {
-    const stmt = this.db.prepare(`
-      SELECT client_order_id, exchange, symbol, mode, order_type, side, price, qty,
-             reduce_only, status, exchange_order_id, payload_json, response_json, created_at, updated_at
-      FROM orders_log
-      WHERE (? IS NULL OR symbol = ?)
-      ORDER BY created_at DESC, id DESC
-      LIMIT ?
-    `);
-    return stmt.all(symbol ?? null, symbol ?? null, limit).map(r => ({
+  _mapOrderLogRow(r) {
+    if (!r) return null;
+    return {
       clientOrderId: r.client_order_id,
       exchange: r.exchange,
       symbol: r.symbol,
@@ -500,11 +502,34 @@ export class StandaloneStore {
       reduceOnly: Boolean(r.reduce_only),
       status: r.status,
       exchangeOrderId: r.exchange_order_id,
-      payload: r.payload_json ? JSON.parse(r.payload_json) : null,
-      response: r.response_json ? JSON.parse(r.response_json) : null,
+      payload: safeJsonParse(r.payload_json, null),
+      response: safeJsonParse(r.response_json, null),
       createdAt: Number(r.created_at),
       updatedAt: Number(r.updated_at),
-    }));
+    };
+  }
+
+  getOrderByClientId(clientOrderId) {
+    if (!clientOrderId || typeof clientOrderId !== 'string') return null;
+    const row = this.db.prepare(`
+      SELECT client_order_id, exchange, symbol, mode, order_type, side, price, qty,
+             reduce_only, status, exchange_order_id, payload_json, response_json, created_at, updated_at
+      FROM orders_log
+      WHERE client_order_id = ?
+    `).get(clientOrderId);
+    return this._mapOrderLogRow(row);
+  }
+
+  getOrdersLog({ symbol, limit = 100 } = {}) {
+    const stmt = this.db.prepare(`
+      SELECT client_order_id, exchange, symbol, mode, order_type, side, price, qty,
+             reduce_only, status, exchange_order_id, payload_json, response_json, created_at, updated_at
+      FROM orders_log
+      WHERE (? IS NULL OR symbol = ?)
+      ORDER BY created_at DESC, id DESC
+      LIMIT ?
+    `);
+    return stmt.all(symbol ?? null, symbol ?? null, limit).map(r => this._mapOrderLogRow(r));
   }
 
   recoverInterruptedOrders() {

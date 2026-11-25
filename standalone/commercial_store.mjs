@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS commercial_subscribers (
   max_daily_loss_pct REAL NOT NULL DEFAULT 5.0,
   max_dd_kill_pct REAL NOT NULL DEFAULT 20.0,
   webhook_url TEXT,
+  is_paper_sandbox INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'ACTIVE',
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
@@ -103,7 +104,80 @@ CREATE TABLE IF NOT EXISTS subscriber_risk_state (
   trip_reason TEXT,
   updated_at INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS autopilot_sessions (
+  subscriber_id TEXT PRIMARY KEY,
+  state TEXT NOT NULL DEFAULT 'DISARMED',
+  interval_sec INTEGER NOT NULL DEFAULT 60,
+  timeframe TEXT NOT NULL DEFAULT '1h',
+  execution_mode TEXT NOT NULL DEFAULT 'SCAN_AND_SIGNAL_ONLY',
+  cycle_count INTEGER NOT NULL DEFAULT 0,
+  last_tick_at INTEGER,
+  next_tick_at INTEGER,
+  last_cycle_status TEXT,
+  last_error TEXT,
+  armed_at INTEGER,
+  disarmed_at INTEGER,
+  disarm_reason TEXT,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS autopilot_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subscriber_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  level TEXT NOT NULL DEFAULT 'INFO',
+  message TEXT NOT NULL,
+  details_json TEXT,
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_autopilot_events_sub ON autopilot_events(subscriber_id, id DESC);
 `;
+
+const FORBIDDEN_SECRET_FIELDS = new Set(['apiSecret', 'passphrase', 'armingPin', 'sessionToken']);
+
+function sanitizeEventDetails(details) {
+  if (details === null || details === undefined) return null;
+  if (typeof details !== 'object') return details;
+  if (Array.isArray(details)) return details.map(item => sanitizeEventDetails(item));
+  const clean = {};
+  for (const [k, v] of Object.entries(details)) {
+    if (FORBIDDEN_SECRET_FIELDS.has(k)) continue;
+    clean[k] = typeof v === 'object' && v !== null ? sanitizeEventDetails(v) : v;
+  }
+  return clean;
+}
+
+function formatAutopilotSessionRow(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    subscriberId: row.subscriber_id,
+    intervalSec: row.interval_sec,
+    executionMode: row.execution_mode,
+    cycleCount: row.cycle_count,
+    lastTickAt: row.last_tick_at,
+    nextTickAt: row.next_tick_at,
+    lastCycleStatus: row.last_cycle_status,
+    lastError: row.last_error,
+    armedAt: row.armed_at,
+    disarmedAt: row.disarmed_at,
+    disarmReason: row.disarm_reason,
+    updatedAt: row.updated_at,
+  };
+}
+
+function formatAutopilotEventRow(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    subscriberId: row.subscriber_id,
+    eventType: row.event_type,
+    details: safeJsonParse(row.details_json, null),
+    createdAt: row.created_at,
+  };
+}
 
 function safeJsonParse(raw, fallback = null) {
   if (!raw || typeof raw !== 'string') return fallback;
@@ -125,6 +199,10 @@ export class CommercialStore {
     this.db = standaloneStore.db || standaloneStore;
     assert.ok(this.db && typeof this.db.exec === 'function', 'Expected SQLite DatabaseSync handle');
     this.db.exec(COMMERCIAL_SCHEMA_SQL);
+    const subCols = this.db.prepare('PRAGMA table_info(commercial_subscribers)').all().map(c => c.name);
+    if (!subCols.includes('is_paper_sandbox')) {
+      this.db.exec('ALTER TABLE commercial_subscribers ADD COLUMN is_paper_sandbox INTEGER NOT NULL DEFAULT 0;');
+    }
   }
 
   runTx(fn) {
@@ -150,8 +228,8 @@ export class CommercialStore {
         license_key, plan_id, license_expires_at, exchange, simulated,
         execution_mode, preferred_version, risk_tier, risk_pct,
         max_leverage_cap, max_daily_loss_pct, max_dd_kill_pct,
-        webhook_url, status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        webhook_url, is_paper_sandbox, status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(subscriber_id) DO UPDATE SET
         name = excluded.name,
         email = excluded.email,
@@ -170,6 +248,7 @@ export class CommercialStore {
         max_daily_loss_pct = excluded.max_daily_loss_pct,
         max_dd_kill_pct = excluded.max_dd_kill_pct,
         webhook_url = excluded.webhook_url,
+        is_paper_sandbox = excluded.is_paper_sandbox,
         status = excluded.status,
         updated_at = excluded.updated_at
     `).run(
@@ -191,11 +270,40 @@ export class CommercialStore {
       Number(sub.maxDailyLossPct ?? 5.0),
       Number(sub.maxDdKillPct ?? 20.0),
       sub.webhookUrl ?? null,
+      sub.isPaperSandbox ? 1 : 0,
       sub.status || 'ACTIVE',
       Number(sub.createdAt ?? now),
       now,
     );
     return this.getSubscriberById(sub.subscriberId);
+  }
+
+  getPaperSandboxSubscriber() {
+    return this.db
+      .prepare(`SELECT * FROM commercial_subscribers WHERE (is_paper_sandbox = 1 OR email = 'paper-sandbox@local') AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1`)
+      .get() || null;
+  }
+
+  findMatchingActiveSubscriber({ subscriberId = null } = {}) {
+    if (!subscriberId || typeof subscriberId !== 'string' || !subscriberId.trim()) {
+      return null;
+    }
+    const byId = this.getSubscriberById(subscriberId.trim());
+    if (byId && byId.status === 'ACTIVE') return byId;
+    return null;
+  }
+
+  findActiveSubscriberByLicenseKey(licenseKey, excludeSubscriberId = null) {
+    const key = typeof licenseKey === 'string' ? licenseKey.trim() : '';
+    if (!key) return null;
+    if (excludeSubscriberId) {
+      return this.db
+        .prepare(`SELECT * FROM commercial_subscribers WHERE license_key = ? AND status = 'ACTIVE' AND is_paper_sandbox = 0 AND subscriber_id != ? LIMIT 1`)
+        .get(key, excludeSubscriberId) || null;
+    }
+    return this.db
+      .prepare(`SELECT * FROM commercial_subscribers WHERE license_key = ? AND status = 'ACTIVE' AND is_paper_sandbox = 0 LIMIT 1`)
+      .get(key) || null;
   }
 
   getSubscriberById(subscriberId) {
@@ -222,6 +330,7 @@ export class CommercialStore {
     const now = Date.now();
     this.db.prepare(`
       UPDATE commercial_subscribers SET
+        session_token_hash = ?,
         execution_mode = ?,
         preferred_version = ?,
         risk_tier = ?,
@@ -235,6 +344,7 @@ export class CommercialStore {
         updated_at = ?
       WHERE subscriber_id = ?
     `).run(
+      patch.sessionTokenHash ?? cur.session_token_hash,
       patch.executionMode ?? cur.execution_mode,
       patch.preferredVersion ?? cur.preferred_version,
       patch.riskTier ?? cur.risk_tier,
@@ -249,6 +359,85 @@ export class CommercialStore {
       subscriberId,
     );
     return this.getSubscriberById(subscriberId);
+  }
+
+  updateSubscriberProfile(subscriberId, patch = {}) {
+    const cur = this.getSubscriberById(subscriberId);
+    if (!cur) return null;
+    const now = Date.now();
+    this.db.prepare(`
+      UPDATE commercial_subscribers SET
+        name = ?,
+        email = ?,
+        exchange = ?,
+        plan_id = ?,
+        license_key = ?,
+        license_expires_at = ?,
+        session_token_hash = ?,
+        execution_mode = ?,
+        preferred_version = ?,
+        risk_tier = ?,
+        risk_pct = ?,
+        max_leverage_cap = ?,
+        max_daily_loss_pct = ?,
+        max_dd_kill_pct = ?,
+        simulated = ?,
+        arming_pin_hash = ?,
+        is_paper_sandbox = ?,
+        status = ?,
+        updated_at = ?
+      WHERE subscriber_id = ?
+    `).run(
+      patch.name !== undefined ? patch.name : cur.name,
+      patch.email !== undefined ? patch.email : cur.email,
+      patch.exchange !== undefined ? String(patch.exchange).trim().toUpperCase() : cur.exchange,
+      patch.planId ?? cur.plan_id,
+      patch.licenseKey ?? cur.license_key,
+      patch.licenseExpiresAt !== undefined ? Number(patch.licenseExpiresAt) : cur.license_expires_at,
+      patch.sessionTokenHash ?? cur.session_token_hash,
+      patch.executionMode ?? cur.execution_mode,
+      patch.preferredVersion ?? cur.preferred_version,
+      patch.riskTier ?? cur.risk_tier,
+      Number(patch.riskPct ?? cur.risk_pct),
+      Number(patch.maxLeverageCap ?? cur.max_leverage_cap),
+      Number(patch.maxDailyLossPct ?? cur.max_daily_loss_pct),
+      Number(patch.maxDdKillPct ?? cur.max_dd_kill_pct),
+      patch.simulated !== undefined ? (patch.simulated ? 1 : 0) : cur.simulated,
+      patch.armingPinHash !== undefined ? patch.armingPinHash : cur.arming_pin_hash,
+      patch.isPaperSandbox !== undefined ? (patch.isPaperSandbox ? 1 : 0) : cur.is_paper_sandbox,
+      patch.status ?? cur.status,
+      now,
+      subscriberId,
+    );
+    return this.getSubscriberById(subscriberId);
+  }
+
+  deleteSubscriberCascade(subscriberId) {
+    assert.ok(subscriberId, 'subscriberId is required for deleteSubscriberCascade');
+    return this.runTx(() => {
+      const existing = this.getSubscriberById(subscriberId);
+      if (!existing) {
+        return { deleted: false, subscriberId, changes: 0 };
+      }
+      const tables = [
+        'autopilot_events',
+        'autopilot_sessions',
+        'subscriber_risk_state',
+        'subscriber_orders_log',
+        'subscriber_signal_tickets',
+        'subscriber_account_scans',
+        'subscriber_credentials_enc',
+      ];
+      let totalChanges = 0;
+      for (const tbl of tables) {
+        const r = this.db.prepare(`DELETE FROM ${tbl} WHERE subscriber_id = ?`).run(subscriberId);
+        totalChanges += Number(r?.changes ?? 0);
+      }
+      const subRes = this.db.prepare('DELETE FROM commercial_subscribers WHERE subscriber_id = ?').run(subscriberId);
+      const subChanges = Number(subRes?.changes ?? 0);
+      totalChanges += subChanges;
+      return { deleted: subChanges > 0, subscriberId, changes: totalChanges };
+    });
   }
 
   upsertEncryptedCredentials({ subscriberId, exchange, keyMask, hasWithdrawPerm = false, permissionSummary = '', envelope }) {
@@ -316,6 +505,21 @@ export class CommercialStore {
       ...row,
       openPositions: safeJsonParse(row.open_positions_json, []),
     };
+  }
+
+  listAccountScans(subscriberId, limit = 50) {
+    return this.db
+      .prepare('SELECT * FROM subscriber_account_scans WHERE subscriber_id = ? ORDER BY id DESC LIMIT ?')
+      .all(subscriberId, limit)
+      .map(row => ({
+        ...row,
+        totalEquityUsdt: row.total_equity_usdt,
+        availMarginUsdt: row.avail_margin_usdt,
+        capitalBracket: row.capital_bracket,
+        scannedMode: row.scanned_mode,
+        createdAt: row.created_at,
+        openPositions: safeJsonParse(row.open_positions_json, []),
+      }));
   }
 
   upsertSignalTickets(subscriberId, tickets = []) {
@@ -411,10 +615,14 @@ export class CommercialStore {
     );
   }
 
-  findSubscriberOrder(clientOrderId) {
-    const row = this.db
-      .prepare('SELECT * FROM subscriber_orders_log WHERE client_order_id = ?')
-      .get(clientOrderId);
+  findSubscriberOrder(clientOrderId, subscriberId = null) {
+    const row = subscriberId
+      ? this.db
+          .prepare('SELECT * FROM subscriber_orders_log WHERE client_order_id = ? AND subscriber_id = ?')
+          .get(clientOrderId, subscriberId)
+      : this.db
+          .prepare('SELECT * FROM subscriber_orders_log WHERE client_order_id = ?')
+          .get(clientOrderId);
     if (!row) return null;
     return {
       ...row,
@@ -491,5 +699,133 @@ export class CommercialStore {
       circuitBreakerTripped: Boolean(row.circuit_breaker_tripped),
       killSwitchTripped: Boolean(row.kill_switch_tripped),
     };
+  }
+
+  upsertAutopilotSession(session) {
+    assert.ok(session?.subscriberId, 'subscriberId is required for upsertAutopilotSession');
+    const now = Date.now();
+    const cur = this.getAutopilotSession(session.subscriberId);
+    this.db.prepare(`
+      INSERT INTO autopilot_sessions (
+        subscriber_id, state, interval_sec, timeframe, execution_mode, cycle_count,
+        last_tick_at, next_tick_at, last_cycle_status, last_error,
+        armed_at, disarmed_at, disarm_reason, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(subscriber_id) DO UPDATE SET
+        state = excluded.state,
+        interval_sec = excluded.interval_sec,
+        timeframe = excluded.timeframe,
+        execution_mode = excluded.execution_mode,
+        cycle_count = excluded.cycle_count,
+        last_tick_at = excluded.last_tick_at,
+        next_tick_at = excluded.next_tick_at,
+        last_cycle_status = excluded.last_cycle_status,
+        last_error = excluded.last_error,
+        armed_at = excluded.armed_at,
+        disarmed_at = excluded.disarmed_at,
+        disarm_reason = excluded.disarm_reason,
+        updated_at = excluded.updated_at
+    `).run(
+      session.subscriberId,
+      session.state ?? cur?.state ?? 'DISARMED',
+      Number(session.intervalSec ?? cur?.interval_sec ?? 60),
+      session.timeframe ?? cur?.timeframe ?? '1h',
+      session.executionMode ?? cur?.execution_mode ?? 'SCAN_AND_SIGNAL_ONLY',
+      Number(session.cycleCount ?? cur?.cycle_count ?? 0),
+      session.lastTickAt !== undefined ? session.lastTickAt : (cur?.last_tick_at ?? null),
+      session.nextTickAt !== undefined ? session.nextTickAt : (cur?.next_tick_at ?? null),
+      session.lastCycleStatus !== undefined ? session.lastCycleStatus : (cur?.last_cycle_status ?? null),
+      session.lastError !== undefined ? session.lastError : (cur?.last_error ?? null),
+      session.armedAt !== undefined ? session.armedAt : (cur?.armed_at ?? null),
+      session.disarmedAt !== undefined ? session.disarmedAt : (cur?.disarmed_at ?? null),
+      session.disarmReason !== undefined ? session.disarmReason : (cur?.disarm_reason ?? null),
+      now,
+    );
+    return this.getAutopilotSession(session.subscriberId);
+  }
+
+  getAutopilotSession(subscriberId) {
+    const row = this.db
+      .prepare('SELECT * FROM autopilot_sessions WHERE subscriber_id = ?')
+      .get(subscriberId);
+    return formatAutopilotSessionRow(row);
+  }
+
+  listAutopilotSessions(limit = 200) {
+    return this.db
+      .prepare('SELECT * FROM autopilot_sessions ORDER BY updated_at DESC LIMIT ?')
+      .all(limit)
+      .map(formatAutopilotSessionRow);
+  }
+
+  insertAutopilotEvent({ subscriberId, eventType, level = 'INFO', message = '', details = null, createdAt = Date.now() } = {}) {
+    assert.ok(subscriberId, 'subscriberId is required for insertAutopilotEvent');
+    assert.ok(eventType, 'eventType is required for insertAutopilotEvent');
+    const cleanDetails = sanitizeEventDetails(details);
+    const detailsJson = cleanDetails !== null && cleanDetails !== undefined ? JSON.stringify(cleanDetails) : null;
+    const res = this.db.prepare(`
+      INSERT INTO autopilot_events (
+        subscriber_id, event_type, level, message, details_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      subscriberId,
+      String(eventType),
+      String(level || 'INFO'),
+      String(message || ''),
+      detailsJson,
+      Number(createdAt ?? Date.now()),
+    );
+    const row = this.db
+      .prepare('SELECT * FROM autopilot_events WHERE id = ?')
+      .get(res.lastInsertRowid);
+    return formatAutopilotEventRow(row);
+  }
+
+  listAutopilotEvents(arg1 = {}, arg2 = 50) {
+    const opts = typeof arg1 === 'string'
+      ? { subscriberId: arg1, limit: arg2 }
+      : (arg1 || {});
+    const subscriberId = opts.subscriberId ?? null;
+    const limit = Number(opts.limit ?? 50);
+    const rows = subscriberId
+      ? this.db
+          .prepare('SELECT * FROM autopilot_events WHERE subscriber_id = ? ORDER BY id DESC LIMIT ?')
+          .all(subscriberId, limit)
+      : this.db
+          .prepare('SELECT * FROM autopilot_events ORDER BY id DESC LIMIT ?')
+          .all(limit);
+    return rows.map(formatAutopilotEventRow);
+  }
+
+  recoverInterruptedAutopilotSessions() {
+    const now = Date.now();
+    return this.runTx(() => {
+      const armedRows = this.db
+        .prepare(`SELECT subscriber_id FROM autopilot_sessions WHERE state = 'ARMED_RUNNING'`)
+        .all();
+      if (armedRows.length === 0) return 0;
+
+      const res = this.db.prepare(`
+        UPDATE autopilot_sessions
+        SET state = 'REARM_REQUIRED',
+            disarm_reason = 'SERVER_RESTART_PIN_REARM_REQUIRED',
+            disarmed_at = ?,
+            next_tick_at = NULL,
+            updated_at = ?
+        WHERE state = 'ARMED_RUNNING'
+      `).run(now, now);
+
+      for (const r of armedRows) {
+        this.insertAutopilotEvent({
+          subscriberId: r.subscriber_id,
+          eventType: 'REARM_REQUIRED',
+          level: 'WARN',
+          message: 'Server restarted; PIN re-arming required to resume Autopilot.',
+          details: { reason: 'SERVER_RESTART_PIN_REARM_REQUIRED' },
+          createdAt: now,
+        });
+      }
+      return Number(res?.changes ?? armedRows.length);
+    });
   }
 }
