@@ -589,3 +589,50 @@ td {
     padding: 0.15rem 0;
   }
 }
+
+.commercial-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.comm-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .comm-span-2 {
+    grid-column: span 1;
+  }
+}
+
+.comm-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.comm-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.vault-notice {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 7px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  font-size: 0.78rem;
+}

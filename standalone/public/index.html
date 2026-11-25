@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v9.0 Standalone Command Center</title>
+  <title>TRADING-TOOL v10.0 Commercial &amp; Standalone</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT9</div>
+      <div class="brand-mark" aria-hidden="true">TT10</div>
       <div>
-        <h1 class="brand-title">TRADING-TOOL v9.0 Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">Walk-Forward Barbell • Off-TV Order Router • All-Versions Preview</p>
+        <h1 class="brand-title">TRADING-TOOL v10.0 Commercial &amp; Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">Encrypted Auto-Trade Vault • Account Sizing Simulator • Multi-Version Alpha</p>
       </div>
     </div>
 
@@ -335,6 +335,198 @@
         </div>
         <div class="recs-grid" id="versions-recs-grid"></div>
       </article>
+    </section>
+
+    <section class="commercial-hub" id="commercial-hub-section" aria-label="Commercial SaaS Hub">
+      <div class="tables-grid">
+        <article class="panel" id="commercial-sim-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Account Scanner &amp; Personalized Signal Sizing Simulator</h2>
+              <p class="panel-meta" id="comm-sim-meta">Zero-key contract sizing preview (OKX SWAP ctVal / Binance stepSize &amp; 85% margin cap)</p>
+            </div>
+            <span class="badge badge-neutral" id="comm-sim-bracket-badge">BRACKET: --</span>
+          </div>
+          <form id="commercial-sim-form" class="comm-form-grid">
+            <label class="form-row">
+              <span>Account Capital (USDT)</span>
+              <input id="comm-sim-equity" type="number" min="10" step="10" value="1500">
+            </label>
+            <label class="form-row">
+              <span>Exchange</span>
+              <select id="comm-sim-exchange">
+                <option value="OKX">OKX SWAP</option>
+                <option value="BINANCE">BINANCE USD-M</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>Model Version</span>
+              <select id="comm-sim-version">
+                <option value="v9">v9.0 Ensemble</option>
+                <option value="v8">v8.0 Regime</option>
+                <option value="v6">v6.0 Multi-Asset</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>Risk per Trade (%)</span>
+              <input id="comm-sim-risk" type="number" min="0.25" max="5" step="0.25" value="1.0">
+            </label>
+            <div class="comm-form-actions">
+              <button type="submit" id="comm-sim-btn" class="btn btn-primary">Simulate Account Sizing</button>
+            </div>
+          </form>
+          <p class="form-status" id="comm-sim-status" role="status" aria-live="polite"></p>
+          <div tabindex="0" role="region" aria-label="Simulated Contract Sizing Table" class="table-wrapper">
+            <table id="comm-sim-table">
+              <thead>
+                <tr>
+                  <th>Coin</th>
+                  <th>Status</th>
+                  <th>Regime</th>
+                  <th>Side</th>
+                  <th>sz / Qty</th>
+                  <th>Notional</th>
+                  <th>USD Risk</th>
+                  <th>USD Profit</th>
+                  <th>Liq Px</th>
+                  <th>Feasible</th>
+                </tr>
+              </thead>
+              <tbody id="comm-sim-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel" id="commercial-vault-portal">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Buyer Onboarding &amp; Auto-Trade Vault Portal</h2>
+              <p class="panel-meta" id="comm-vault-meta">AES-256-GCM Encrypted API Vault • Withdraw Permission Hard-Blocked</p>
+            </div>
+            <div class="badges-group">
+              <span class="badge badge-safe" id="comm-cb-badge">CB: OK</span>
+              <span class="badge badge-safe" id="comm-ks-badge">KS: OK</span>
+            </div>
+          </div>
+
+          <p class="vault-notice" id="comm-withdraw-notice">
+            Security Notice: Connect Read + Trade ONLY keys. Keep Withdrawals DISABLED (onboarding automatically rejects withdraw-enabled keys).
+          </p>
+
+          <form id="commercial-onboard-form" class="comm-form-grid">
+            <label class="form-row">
+              <span>Subscriber Name</span>
+              <input id="comm-name-input" type="text" placeholder="Alice Trader">
+            </label>
+            <label class="form-row">
+              <span>Email</span>
+              <input id="comm-email-input" type="email" placeholder="buyer@example.com">
+            </label>
+            <label class="form-row comm-span-2">
+              <span>Commercial License (TT10...)</span>
+              <input id="comm-license-input" type="text" autocomplete="off" placeholder="TT10.<payload>.<hmac24>">
+            </label>
+            <label class="form-row">
+              <span>Exchange</span>
+              <select id="comm-ex-select">
+                <option value="OKX">OKX</option>
+                <option value="BINANCE">BINANCE</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>Demo / Testnet</span>
+              <select id="comm-sim-toggle">
+                <option value="1">Demo / Simulated (Recommended)</option>
+                <option value="0">Live Exchange (Requires >=32-char Master Key)</option>
+              </select>
+            </label>
+            <label class="form-row">
+              <span>API Key (Optional for Scan)</span>
+              <input id="comm-apikey-input" type="password" autocomplete="off" placeholder="Read+Trade Key">
+            </label>
+            <label class="form-row">
+              <span>API Secret</span>
+              <input id="comm-apisecret-input" type="password" autocomplete="off" placeholder="Encrypted at rest">
+            </label>
+            <label class="form-row">
+              <span>OKX Passphrase</span>
+              <input id="comm-passphrase-input" type="password" autocomplete="off" placeholder="OKX only">
+            </label>
+            <label class="form-row">
+              <span>Arming PIN (4-16 chars)</span>
+              <input id="comm-pin-input" type="password" autocomplete="off" placeholder="Required to arm auto-trade">
+            </label>
+            <div class="comm-form-actions comm-span-2">
+              <button type="submit" id="comm-onboard-btn" class="btn btn-primary">Connect &amp; Onboard Vault</button>
+              <button type="button" id="comm-scan-btn" class="btn btn-secondary">Scan Account</button>
+            </div>
+          </form>
+
+          <div class="comm-controls-bar">
+            <label class="control-field">
+              <span class="control-label">Sub Mode</span>
+              <select id="comm-mode-select" aria-label="Subscriber Execution Mode">
+                <option value="SCAN_AND_SIGNAL_ONLY">SCAN_AND_SIGNAL_ONLY</option>
+                <option value="DEMO_AUTO_TRADE">DEMO_AUTO_TRADE</option>
+                <option value="LIVE_AUTO_TRADE">LIVE_AUTO_TRADE</option>
+              </select>
+            </label>
+            <button type="button" id="comm-mode-btn" class="btn btn-secondary">Update Mode</button>
+            <button type="button" id="comm-runcycle-btn" class="btn btn-primary">Run Auto-Trade Cycle</button>
+          </div>
+          <p class="form-status" id="comm-vault-status" role="status" aria-live="polite"></p>
+        </article>
+      </div>
+
+      <div class="tables-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Subscriber Personalized Signal Tickets</h2>
+            <span class="badge badge-neutral" id="comm-sub-badge">Not Connected</span>
+          </div>
+          <div tabindex="0" role="region" aria-label="Subscriber Signal Tickets" class="table-wrapper">
+            <table id="comm-tickets-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Status</th>
+                  <th>Regime</th>
+                  <th>Side</th>
+                  <th>sz / Qty</th>
+                  <th>Notional</th>
+                  <th>Risk / Profit</th>
+                  <th>Feasible</th>
+                </tr>
+              </thead>
+              <tbody id="comm-tickets-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Subscriber Tenant Auto-Trade Orders</h2>
+            <span class="badge badge-neutral" id="comm-plans-badge">3 Plans • 7 Guardrails</span>
+          </div>
+          <div tabindex="0" role="region" aria-label="Subscriber Orders Ledger" class="table-wrapper">
+            <table id="comm-orders-table">
+              <thead>
+                <tr>
+                  <th>Tenant clOrdId</th>
+                  <th>Exchange</th>
+                  <th>Symbol</th>
+                  <th>Mode</th>
+                  <th>Type</th>
+                  <th>Side</th>
+                  <th>Qty</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="comm-orders-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
     </section>
   </main>
 

@@ -23,6 +23,9 @@ import {
   StandaloneTradingDaemon,
 } from './engine_runtime.mjs';
 import { isEquitySymbol, YahooEquitiesClient } from './market_equities.mjs';
+import { CommercialPlatformEngine } from './commercial_engine.mjs';
+import { CommercialStore } from './commercial_store.mjs';
+import { issueLicenseKey, resolveLicenseSigningSecret } from './license_issuer.mjs';
 import { resolveRouterMode } from './order_router.mjs';
 import { createStandaloneServer } from './server.mjs';
 import { StandaloneStore } from './store_sqlite.mjs';
@@ -134,6 +137,7 @@ export async function runDoctor({ config } = {}) {
       v9ModelsReady: runtimeSpecs.hasV9Models,
       v9FrontierReady: runtimeSpecs.hasV9Frontier,
       allVersionsMatrixReady: runtimeSpecs.hasAllVersionsMatrix,
+      v10CommercialReady: true,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
       v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
@@ -150,6 +154,11 @@ export async function runDoctor({ config } = {}) {
       v9ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/models_v9_crypto.json')),
       v9FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/ensemble_v9_crypto_5y.json')),
       allVersionsMatrixFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/all_versions_comparison_matrix.json')),
+      v10VaultFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/crypto_vault.mjs')),
+      v10SpecsFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/instrument_specs.mjs')),
+      v10LicenseFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/license_issuer.mjs')),
+      v10CommercialStoreFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/commercial_store.mjs')),
+      v10CommercialEngineFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/commercial_engine.mjs')),
     },
     routerMode: resolveRouterMode(cfg),
     connectivity: {
@@ -285,6 +294,39 @@ export async function runVersions(_flags, cfg) {
   return getAllVersionsMatrixPreview({ repoRoot: cfg.repoRoot, runtimeSpecs });
 }
 
+export async function runLicense(flags, cfg) {
+  const planId = String(flags.plan || 'PRO_AUTO_TRADER').trim().toUpperCase();
+  const subscriberRef = String(flags.ref || 'buyer@example.com').trim();
+  const durationDays = Number(flags.days || 30);
+  const maxCapitalUsdtOverride = flags['max-capital'] ? Number(flags['max-capital']) : null;
+  const signingSecret = resolveLicenseSigningSecret(cfg);
+  return issueLicenseKey({
+    planId,
+    subscriberRef,
+    durationDays,
+    maxCapitalUsdtOverride,
+    signingSecret,
+  });
+}
+
+export async function runCommercialSim(flags, cfg) {
+  const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
+  try {
+    const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
+    const commercialStore = new CommercialStore(store);
+    const engine = new CommercialPlatformEngine({ store, commercialStore, config: cfg, runtimeSpecs });
+    return await engine.simulateCapitalPreview({
+      equityUsdt: Number(flags.equity || 1500),
+      exchange: String(flags.exchange || cfg.exchange || 'OKX').toUpperCase(),
+      version: String(flags.version || 'v9').toLowerCase(),
+      riskTier: normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR'),
+      riskPct: Number(flags.risk || 1.0),
+    });
+  } finally {
+    store.close();
+  }
+}
+
 export async function runServe(flags, cfg) {
   if (flags.port) cfg.port = Number(flags.port);
   const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
@@ -305,7 +347,7 @@ export async function runServe(flags, cfg) {
   }
   daemon.start(60000);
   const bound = await srv.start();
-  console.log(`[standalone] v9.0 Command Center running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
+  console.log(`[standalone] v10.0 Command Center & Commercial Portal running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
 
   const shutdown = async () => {
     daemon.stop();
@@ -345,10 +387,16 @@ async function main() {
   } else if (cmd === 'versions') {
     const res = await runVersions(flags, cfg);
     console.log(JSON.stringify({ ok: true, ...res }, null, 2));
+  } else if (cmd === 'license') {
+    const res = await runLicense(flags, cfg);
+    console.log(JSON.stringify({ ok: true, ...res }, null, 2));
+  } else if (cmd === 'commercial-sim') {
+    const res = await runCommercialSim(flags, cfg);
+    console.log(JSON.stringify({ ok: true, ...res }, null, 2));
   } else if (cmd === 'serve') {
     await runServe(flags, cfg);
   } else {
-    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|regime|versions|serve>`);
+    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|regime|versions|license|commercial-sim|serve>`);
     process.exitCode = 1;
   }
 }

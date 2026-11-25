@@ -41,7 +41,7 @@ import {
   runFrontierPortfolio,
   runV7FrontierPortfolio,
 } from './engine_runtime.mjs';
-import { runVersions } from './cli.mjs';
+import { runCommercialSim, runLicense, runVersions } from './cli.mjs';
 import {
   parseYahooChartResponse,
   resolveEquityInstrument,
@@ -1058,6 +1058,246 @@ describe('8. Off-TV Order Router (OKX clOrdId, 3 Modes, Idempotency) & All-Versi
       assert.ok(cliVersions.okxKeyGuide.length >= 3);
       const directPreview = await getAllVersionsMatrixPreview({ repoRoot: REPO_ROOT, runtimeSpecs });
       assert.ok(directPreview.okxKeyGuide.length >= 3);
+    } finally {
+      await srv.stop();
+      store.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('9. v10.0 Commercial SaaS APIs, Encrypted Vault Portal, CLI & Guardrail Enforcement', () => {
+  it('redacts commercial secrets cleanly in config.mjs and runs CLI license + commercial-sim', async () => {
+    const tmp = makeTmpDir('tt10-cfg-');
+    try {
+      const cfg = loadConfig({
+        cwd: REPO_ROOT,
+        useProcessEnv: false,
+        envOverrides: {
+          COMMERCIAL_MASTER_KEY: 'super-secret-master-key-32-chars-minimum!!',
+          COMMERCIAL_LICENSE_SECRET: 'super-secret-license-hmac-key',
+          COMMERCIAL_ADMIN_TOKEN: 'admin-bearer-token-999',
+        },
+      });
+      const jsonCfg = JSON.stringify(cfg);
+      assert.ok(!jsonCfg.includes('super-secret-master-key'));
+      assert.ok(!jsonCfg.includes('super-secret-license-hmac-key'));
+      assert.ok(!jsonCfg.includes('admin-bearer-token-999'));
+
+      const red = redactConfig(cfg);
+      assert.equal(red.commercial.masterKeyConfigured, true);
+      assert.equal(red.commercial.licenseSecretConfigured, true);
+      assert.equal(red.commercial.adminTokenConfigured, true);
+
+      const scrubbed = scrubSecrets('Leak test: super-secret-master-key-32-chars-minimum!! and admin-bearer-token-999', cfg);
+      assert.ok(!scrubbed.includes('super-secret-master-key'));
+      assert.ok(!scrubbed.includes('admin-bearer-token-999'));
+
+      const licOut = await runLicense({ plan: 'PRO_AUTO_TRADER', days: '30', ref: 'buyer@example.com' }, cfg);
+      assert.ok(licOut.licenseKey.startsWith('TT10.'));
+      assert.equal(licOut.payload.planId, 'PRO_AUTO_TRADER');
+
+      const simCfg = {
+        ...cfg,
+        allowedDataDir: tmp,
+        sqlitePath: path.join(tmp, 'comm-sim.sqlite'),
+      };
+      const simOut = await runCommercialSim({ equity: '1500', exchange: 'OKX', version: 'v9', tier: 'SAFE_75WR' }, simCfg);
+      assert.equal(simOut.ready, true);
+      assert.equal(simOut.bracket.bracket, 'STANDARD');
+      assert.ok(Array.isArray(simOut.rows) && simOut.rows.length >= 3);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('serves all v10 commercial REST endpoints, enforces auth/CSRF/withdraw-block & auto-trade cycle', async () => {
+    const tmp = makeTmpDir('tt10-http-');
+    const mockExchangeOrders = [];
+    const cfg = loadConfig({
+      cwd: REPO_ROOT,
+      useProcessEnv: false,
+      envOverrides: {
+        HOST: '127.0.0.1',
+        PORT: '0',
+        EXECUTION_MODE: 'PAPER',
+        DRY_RUN: 'true',
+        RISK_TIER: 'SAFE_75WR',
+        COMMERCIAL_MASTER_KEY: 'commercial-vault-master-key-32chars-ok!',
+        COMMERCIAL_LICENSE_SECRET: 'commercial-license-hmac-secret-v10',
+        COMMERCIAL_ADMIN_TOKEN: 'admin-secret-token-v10',
+      },
+    });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'v10.sqlite'), allowedBaseDir: tmp });
+    const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+    const srv = createStandaloneServer({
+      config: cfg,
+      store,
+      runtimeSpecs,
+      exchangeClientFactory: () => ({
+        async getAccountHealth() {
+          return {
+            exchange: 'OKX',
+            configured: true,
+            connected: true,
+            simulated: true,
+            totalEqUsdt: 2500,
+            availEqUsdt: 2200,
+            openPositions: [],
+          };
+        },
+        async placePostOnlyEntry(params) {
+          mockExchangeOrders.push({ leg: 'entry', params });
+          return { dryRun: false, exchange: 'OKX', data: [{ ordId: 'okx_demo_e_1', sCode: '0' }] };
+        },
+        async placeReduceOnlySlTp(params) {
+          mockExchangeOrders.push({ leg: 'sltp', params });
+          return { dryRun: false, exchange: 'OKX', data: [{ algoId: 'okx_demo_algo_1', sCode: '0' }] };
+        },
+        async cancelOrder() {
+          return { dryRun: false, exchange: 'OKX', data: [{ sCode: '0' }] };
+        },
+      }),
+    });
+
+    try {
+      const bound = await srv.start();
+      const base = `http://${bound.host}:${bound.port}`;
+
+      // 1) /api/status reports v10CommercialReady
+      const statusJson = await (await fetch(`${base}/api/status`)).json();
+      assert.equal(statusJson.models.v10CommercialReady, true);
+      assert.equal(statusJson.config.commercial.masterKeyConfigured, true);
+
+      // 2) GET /api/commercial/plans & POST /api/commercial/simulate-scan
+      const plansJson = await (await fetch(`${base}/api/commercial/plans`)).json();
+      assert.equal(plansJson.ok, true);
+      assert.ok(plansJson.plans.PRO_AUTO_TRADER);
+      assert.equal(plansJson.guardrails.length, 7);
+
+      const simJson = await (await fetch(`${base}/api/commercial/simulate-scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ equityUsdt: 1500, exchange: 'OKX', version: 'v9', riskTier: 'SAFE_75WR', riskPct: 1.0 }),
+      })).json();
+      assert.equal(simJson.ok, true);
+      assert.equal(simJson.bracket.bracket, 'STANDARD');
+      assert.ok(simJson.rows.length >= 3);
+
+      // 3) Admin endpoints reject missing/wrong token (403) and reject cross-site CSRF (403)
+      const csrfBlocked = await fetch(`${base}/api/commercial/simulate-scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'sec-fetch-site': 'cross-site' },
+        body: JSON.stringify({ equityUsdt: 500 }),
+      });
+      assert.equal(csrfBlocked.status, 403);
+
+      const badAdmin = await fetch(`${base}/api/commercial/admin/overview`, {
+        headers: { 'x-admin-token': 'wrong' },
+      });
+      assert.equal(badAdmin.status, 403);
+
+      const licRes = await fetch(`${base}/api/commercial/admin/licenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'admin-secret-token-v10' },
+        body: JSON.stringify({ planId: 'PRO_AUTO_TRADER', subscriberRef: 'alice@trader.io', durationDays: 30 }),
+      });
+      assert.equal(licRes.status, 200);
+      const licJson = await licRes.json();
+      assert.ok(licJson.licenseKey.startsWith('TT10.'));
+
+      // 4) Onboarding rejects API keys with WITHDRAW enabled (403)
+      const withdrawReject = await fetch(`${base}/api/commercial/subscribers/onboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Bad Key User',
+          licenseKey: licJson.licenseKey,
+          exchange: 'OKX',
+          simulated: true,
+          apiKey: 'okx-withdraw-key-1234',
+          apiSecret: 'secret-withdraw-9999',
+          passphrase: 'pass',
+          rawPermissionPayload: { perm: 'read_only,trade,withdraw' },
+          armingPin: '4321',
+          executionMode: 'DEMO_AUTO_TRADE',
+        }),
+      });
+      assert.equal(withdrawReject.status, 403);
+
+      // 5) Valid onboarding stores masked key & returns redacted subscriber + sessionToken
+      const onboardRes = await fetch(`${base}/api/commercial/subscribers/onboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Alice Demo',
+          email: 'alice@trader.io',
+          licenseKey: licJson.licenseKey,
+          exchange: 'OKX',
+          simulated: true,
+          apiKey: 'okx_demo_public_9f2a',
+          apiSecret: 'secret-demo-should-never-leak',
+          passphrase: 'pass-demo-never-leak',
+          rawPermissionPayload: { perm: 'read_only,trade' },
+          armingPin: '7890',
+          executionMode: 'SCAN_AND_SIGNAL_ONLY',
+        }),
+      });
+      assert.equal(onboardRes.status, 200);
+      const onboardJson = await onboardRes.json();
+      assert.equal(onboardJson.ok, true);
+      assert.ok(onboardJson.sessionToken.startsWith('sub_tok_'));
+      const onboardSerialized = JSON.stringify(onboardJson);
+      assert.ok(!onboardSerialized.includes('secret-demo-should-never-leak'));
+      assert.ok(!onboardSerialized.includes('pass-demo-never-leak'));
+
+      // 6) Subscriber routes reject missing token (401)
+      const noTokenDash = await fetch(`${base}/api/commercial/subscribers/dashboard`);
+      assert.equal(noTokenDash.status, 401);
+
+      // 7) Subscriber scan, wrong PIN rejection (403), valid PIN mode update & dashboard
+      const scanRes = await fetch(`${base}/api/commercial/subscribers/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-subscriber-token': onboardJson.sessionToken },
+        body: JSON.stringify({ simulatedEquityUsdt: 2500 }),
+      });
+      assert.equal(scanRes.status, 200);
+
+      const badPinMode = await fetch(`${base}/api/commercial/subscribers/mode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-subscriber-token': onboardJson.sessionToken },
+        body: JSON.stringify({ executionMode: 'DEMO_AUTO_TRADE', armingPin: '0000' }),
+      });
+      assert.equal(badPinMode.status, 403);
+
+      const goodMode = await fetch(`${base}/api/commercial/subscribers/mode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-subscriber-token': onboardJson.sessionToken },
+        body: JSON.stringify({ executionMode: 'DEMO_AUTO_TRADE', armingPin: '7890' }),
+      });
+      assert.equal(goodMode.status, 200);
+      assert.equal((await goodMode.json()).subscriber.executionMode, 'DEMO_AUTO_TRADE');
+
+      const cycleRes = await fetch(`${base}/api/commercial/subscribers/run-cycle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-subscriber-token': onboardJson.sessionToken },
+        body: JSON.stringify({ armingPin: '7890', simulatedEquityUsdt: 2500 }),
+      });
+      assert.equal(cycleRes.status, 200);
+      assert.equal((await cycleRes.json()).executed, true);
+
+      const dashJson = await (await fetch(`${base}/api/commercial/subscribers/dashboard`, {
+        headers: { 'x-subscriber-token': onboardJson.sessionToken },
+      })).json();
+      assert.equal(dashJson.ok, true);
+      assert.equal(dashJson.subscriber.subscriberId, onboardJson.subscriber.subscriberId);
+
+      const adminJson = await (await fetch(`${base}/api/commercial/admin/overview`, {
+        headers: { 'x-admin-token': 'admin-secret-token-v10' },
+      })).json();
+      assert.equal(adminJson.ok, true);
+      assert.equal(adminJson.totalSubscribers, 1);
+      assert.ok(!JSON.stringify(adminJson).includes('secret-demo-should-never-leak'));
     } finally {
       await srv.stop();
       store.close();

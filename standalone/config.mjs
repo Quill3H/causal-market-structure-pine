@@ -66,6 +66,9 @@ const SECRET_KEYS = Object.freeze([
   'ALPACA_API_SECRET',
   'TWELVEDATA_API_KEY',
   'LIVE_CONFIRM_TOKEN',
+  'COMMERCIAL_MASTER_KEY',
+  'COMMERCIAL_LICENSE_SECRET',
+  'COMMERCIAL_ADMIN_TOKEN',
 ]);
 
 /**
@@ -227,6 +230,9 @@ export function loadConfig({
   };
 
   const liveConfirmToken = String(merged.LIVE_CONFIRM_TOKEN || '').trim();
+  const commercialMasterKey = String(merged.COMMERCIAL_MASTER_KEY || '').trim();
+  const commercialLicenseSecret = String(merged.COMMERCIAL_LICENSE_SECRET || '').trim();
+  const commercialAdminToken = String(merged.COMMERCIAL_ADMIN_TOKEN || '').trim();
 
   const config = {
     repoRoot: cwd,
@@ -244,6 +250,9 @@ export function loadConfig({
     sqlitePath,
     allowedDataDir,
     liveConfirmToken,
+    commercialMasterKey,
+    commercialLicenseSecret,
+    commercialAdminToken,
     okx,
     binance,
     equities,
@@ -330,6 +339,11 @@ export function redactConfig(config) {
       alpacaPaper: Boolean(config.equities?.alpacaPaper ?? true),
       twelveDataConfigured: Boolean(config.equities?.twelveDataApiKey),
     },
+    commercial: {
+      masterKeyConfigured: Boolean(config.commercialMasterKey),
+      licenseSecretConfigured: Boolean(config.commercialLicenseSecret),
+      adminTokenConfigured: Boolean(config.commercialAdminToken),
+    },
   };
 }
 
@@ -341,6 +355,9 @@ export function scrubSecrets(text, config) {
   if (!config) return out;
   const secrets = [
     config.liveConfirmToken,
+    config.commercialMasterKey,
+    config.commercialLicenseSecret,
+    config.commercialAdminToken,
     config.okx?.apiKey,
     config.okx?.apiSecret,
     config.okx?.passphrase,

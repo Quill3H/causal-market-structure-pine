@@ -20,11 +20,32 @@
     frontier: null,
     versionsData: null,
     ordersData: null,
+    commercialPlans: null,
+    commercialSim: null,
+    subSessionToken: '',
+    subDashboard: null,
     signals: [],
     trades: [],
     status: null,
     hoverIdx: -1,
   };
+
+  async function apiPost(path, payload = {}, extraHeaders = {}) {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...extraHeaders,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    return data;
+  }
 
   function el(id) {
     return document.getElementById(id);
@@ -98,7 +119,7 @@
     }
 
     const subtitle = el('model-subtitle');
-    subtitle.textContent = `v9.0 Off-TV Router (${state.riskTier}) • ${status.models?.activeModelVersion || 'v9/v8/v7'}`;
+    subtitle.textContent = `v10.0 Commercial SaaS & Standalone (${state.riskTier}) • ${status.models?.activeModelVersion || 'v9/v8/v7'}`;
   }
 
   function renderRegimeRadar() {
@@ -722,12 +743,157 @@
     }
   }
 
+  function renderCommercialPlansBadge() {
+    const pData = state.commercialPlans;
+    const plansObj = pData?.plans || {};
+    const count = Object.keys(plansObj).length || 3;
+    const gCount = (pData?.guardrails || []).length || 7;
+    el('comm-plans-badge').textContent = `${count} Plans • ${gCount} Guardrails`;
+  }
+
+  function renderCommercialSimResult() {
+    const sim = state.commercialSim;
+    const badge = el('comm-sim-bracket-badge');
+    const tbody = el('comm-sim-tbody');
+    clearNode(tbody);
+
+    if (!sim) {
+      badge.textContent = 'BRACKET: --';
+      badge.className = 'badge badge-neutral';
+      return;
+    }
+
+    const br = sim.bracket?.bracket || '--';
+    badge.textContent = `BRACKET: ${br} (MaxPos ${sim.bracket?.maxConcurrentPositions ?? '--'})`;
+    badge.className = `badge ${br === 'MICRO' ? 'badge-warn' : 'badge-safe'}`;
+
+    for (const r of sim.rows || []) {
+      const tr = document.createElement('tr');
+      const cells = [
+        r.symbol || '--',
+        r.status || '--',
+        r.regime || '--',
+        r.side === 1 ? 'LONG' : 'SHORT',
+        r.szOrQtyString || '--',
+        `$${fmtNum(r.notionalUsdt, 2)}`,
+        `$${fmtNum(r.estimatedRiskUsdt, 2)}`,
+        `$${fmtNum(r.estimatedProfitUsdt, 2)}`,
+        fmtNum(r.estimatedLiqPx, 2),
+        r.feasible ? 'YES' : (r.skipReason || 'NO'),
+      ];
+      cells.forEach((txt, idx) => {
+        const td = document.createElement('td');
+        td.textContent = txt;
+        if (idx === 3) td.className = r.side === 1 ? 'pos' : 'neg';
+        if (idx === 9) td.className = r.feasible ? 'pos' : 'neg';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderCommercialDashboard() {
+    const dash = state.subDashboard;
+    const subBadge = el('comm-sub-badge');
+    const cbBadge = el('comm-cb-badge');
+    const ksBadge = el('comm-ks-badge');
+    const ticketsTbody = el('comm-tickets-tbody');
+    const ordersTbody = el('comm-orders-tbody');
+    clearNode(ticketsTbody);
+    clearNode(ordersTbody);
+
+    if (!dash || !dash.subscriber) {
+      subBadge.textContent = 'Not Connected';
+      subBadge.className = 'badge badge-neutral';
+      cbBadge.textContent = 'CB: OK';
+      cbBadge.className = 'badge badge-safe';
+      ksBadge.textContent = 'KS: OK';
+      ksBadge.className = 'badge badge-safe';
+      return;
+    }
+
+    const sub = dash.subscriber;
+    const risk = dash.riskState || sub.riskState || {};
+    subBadge.textContent = `${sub.planId} • ${sub.executionMode}${sub.keyMask ? ` (${sub.keyMask})` : ''}`;
+    subBadge.className = 'badge badge-safe';
+    el('comm-mode-select').value = sub.executionMode || 'SCAN_AND_SIGNAL_ONLY';
+
+    cbBadge.textContent = risk.circuitBreakerTripped
+      ? `CB: TRIPPED (${fmtNum(risk.dailyLossPct ?? risk.daily_loss_pct, 2)}%)`
+      : `CB: OK (${fmtNum(risk.dailyLossPct ?? risk.daily_loss_pct ?? 0, 2)}%)`;
+    cbBadge.className = `badge ${risk.circuitBreakerTripped ? 'badge-danger' : 'badge-safe'}`;
+
+    ksBadge.textContent = risk.killSwitchTripped
+      ? `KS: TRIPPED (${fmtNum(risk.drawdownPct ?? risk.drawdown_pct, 2)}%)`
+      : `KS: OK (DD ${fmtNum(risk.drawdownPct ?? risk.drawdown_pct ?? 0, 2)}%)`;
+    ksBadge.className = `badge ${risk.killSwitchTripped ? 'badge-danger' : 'badge-safe'}`;
+
+    for (const tk of dash.tickets || []) {
+      const tr = document.createElement('tr');
+      const cells = [
+        tk.symbol || '--',
+        tk.status || '--',
+        tk.regime || '--',
+        tk.side === 1 ? 'LONG' : 'SHORT',
+        tk.sz_or_qty || '--',
+        `$${fmtNum(tk.notional_usdt, 2)}`,
+        `$${fmtNum(tk.est_risk_usdt, 2)} / $${fmtNum(tk.est_profit_usdt, 2)}`,
+        tk.feasible ? 'YES' : (tk.skip_reason || 'NO'),
+      ];
+      cells.forEach((txt, idx) => {
+        const td = document.createElement('td');
+        td.textContent = txt;
+        if (idx === 3) td.className = tk.side === 1 ? 'pos' : 'neg';
+        if (idx === 7) td.className = tk.feasible ? 'pos' : 'neg';
+        tr.appendChild(td);
+      });
+      ticketsTbody.appendChild(tr);
+    }
+
+    for (const o of dash.orders || []) {
+      const tr = document.createElement('tr');
+      const cells = [
+        o.client_order_id || '--',
+        o.exchange || '--',
+        o.symbol || '--',
+        o.mode || '--',
+        `${o.order_type || '--'}${o.reduce_only ? ' (RO)' : ''}`,
+        String(o.side || '--').toUpperCase(),
+        String(o.qty ?? '--'),
+        o.status || '--',
+      ];
+      cells.forEach((txt, idx) => {
+        const td = document.createElement('td');
+        td.textContent = txt;
+        if (idx === 0) td.className = 'mono-code';
+        if (idx === 7) td.className = o.status === 'REJECTED' || o.status === 'INTERRUPTED' ? 'neg' : 'pos';
+        tr.appendChild(td);
+      });
+      ordersTbody.appendChild(tr);
+    }
+  }
+
+  async function refreshCommercialDashboard() {
+    if (!state.subSessionToken) return;
+    const res = await fetch('/api/commercial/subscribers/dashboard', {
+      headers: {
+        Accept: 'application/json',
+        'x-subscriber-token': state.subSessionToken,
+      },
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      state.subDashboard = data;
+      renderCommercialDashboard();
+    }
+  }
+
   async function refreshAll() {
     const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}`;
     const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}&version=${encodeURIComponent(state.frontierVersion)}`;
     el('chart-title').textContent = `${state.symbol} • ${state.timeframe} Closed Candles & Order Levels`;
 
-    const [statusData, candleData, tradeData, sigData, frontierData, regimeData, versionsData, ordersData] = await Promise.all([
+    const [statusData, candleData, tradeData, sigData, frontierData, regimeData, versionsData, ordersData, plansData] = await Promise.all([
       apiGet(`/api/status?${q}`),
       apiGet(`/api/candles?${q}&limit=160`),
       apiGet(`/api/trades?${q}&limit=60`),
@@ -736,6 +902,7 @@
       apiGet(`/api/regime?${q}`),
       apiGet('/api/versions'),
       apiGet('/api/orders?limit=40'),
+      apiGet('/api/commercial/plans'),
     ]);
 
     state.status = statusData;
@@ -750,6 +917,7 @@
     }
     state.versionsData = versionsData;
     state.ordersData = ordersData;
+    state.commercialPlans = plansData;
     state.trades = tradeData.trades || [];
     state.summary = tradeData.summary || statusData.summary || null;
     state.signals = sigData.signals || [];
@@ -764,6 +932,9 @@
     renderTables();
     renderOrderRouterPanel();
     renderVersionsMatrixPanel();
+    renderCommercialPlansBadge();
+    renderCommercialSimResult();
+    await refreshCommercialDashboard();
   }
 
   async function runOfflineReplay() {
@@ -881,6 +1052,109 @@
       drawCandleChart();
     });
     window.addEventListener('resize', drawCandleChart);
+
+    el('commercial-sim-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = el('comm-sim-status');
+      msg.textContent = 'Simulating account sizing...';
+      try {
+        const res = await apiPost('/api/commercial/simulate-scan', {
+          equityUsdt: Number(el('comm-sim-equity').value || 1500),
+          exchange: el('comm-sim-exchange').value,
+          version: el('comm-sim-version').value,
+          riskTier: state.riskTier,
+          riskPct: Number(el('comm-sim-risk').value || 1.0),
+        });
+        state.commercialSim = res;
+        renderCommercialSimResult();
+        msg.textContent = `Simulated ${res.rows?.length ?? 0} streams at $${fmtNum(res.equityUsdt, 2)} (${res.bracket?.bracket || '--'}).`;
+      } catch (err) {
+        msg.textContent = `Sim error: ${err.message}`;
+      }
+    });
+
+    el('commercial-onboard-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = el('comm-vault-status');
+      msg.textContent = 'Verifying license & encrypting credentials...';
+      try {
+        const res = await apiPost('/api/commercial/subscribers/onboard', {
+          name: el('comm-name-input').value.trim(),
+          email: el('comm-email-input').value.trim() || null,
+          licenseKey: el('comm-license-input').value.trim(),
+          exchange: el('comm-ex-select').value,
+          simulated: el('comm-sim-toggle').value === '1',
+          apiKey: el('comm-apikey-input').value.trim(),
+          apiSecret: el('comm-apisecret-input').value.trim(),
+          passphrase: el('comm-passphrase-input').value.trim(),
+          armingPin: el('comm-pin-input').value.trim(),
+          executionMode: el('comm-mode-select').value,
+          riskTier: state.riskTier,
+        });
+        el('comm-apikey-input').value = '';
+        el('comm-apisecret-input').value = '';
+        el('comm-passphrase-input').value = '';
+        state.subSessionToken = res.sessionToken || '';
+        msg.textContent = `Onboarded ${res.subscriber?.subscriberId} (${res.subscriber?.planId}) • KeyMask: ${res.keyMask || 'Zero-Key'}`;
+        await refreshCommercialDashboard();
+      } catch (err) {
+        msg.textContent = `Onboard blocked: ${err.message}`;
+      }
+    });
+
+    el('comm-scan-btn').addEventListener('click', async () => {
+      const msg = el('comm-vault-status');
+      if (!state.subSessionToken) {
+        msg.textContent = 'Onboard a subscriber vault session first.';
+        return;
+      }
+      try {
+        const res = await apiPost('/api/commercial/subscribers/scan', {
+          simulatedEquityUsdt: Number(el('comm-sim-equity').value || 1500),
+        }, { 'x-subscriber-token': state.subSessionToken });
+        msg.textContent = `Scanned $${fmtNum(res.scan?.total_equity_usdt, 2)} (${res.bracket?.bracket || '--'}) • Tickets: ${res.tickets?.length ?? 0}`;
+        await refreshCommercialDashboard();
+      } catch (err) {
+        msg.textContent = `Scan error: ${err.message}`;
+      }
+    });
+
+    el('comm-mode-btn').addEventListener('click', async () => {
+      const msg = el('comm-vault-status');
+      if (!state.subSessionToken) {
+        msg.textContent = 'Onboard a subscriber vault session first.';
+        return;
+      }
+      try {
+        const res = await apiPost('/api/commercial/subscribers/mode', {
+          executionMode: el('comm-mode-select').value,
+          armingPin: el('comm-pin-input').value.trim(),
+        }, { 'x-subscriber-token': state.subSessionToken });
+        msg.textContent = `Subscriber mode updated to ${res.subscriber?.executionMode}`;
+        await refreshCommercialDashboard();
+      } catch (err) {
+        msg.textContent = `Mode error: ${err.message}`;
+      }
+    });
+
+    el('comm-runcycle-btn').addEventListener('click', async () => {
+      const msg = el('comm-vault-status');
+      if (!state.subSessionToken) {
+        msg.textContent = 'Onboard a subscriber vault session first.';
+        return;
+      }
+      try {
+        const res = await apiPost('/api/commercial/subscribers/run-cycle', {
+          armingPin: el('comm-pin-input').value.trim(),
+        }, { 'x-subscriber-token': state.subSessionToken });
+        msg.textContent = res.executed
+          ? `Auto-trade cycle executed (${res.actions?.length ?? 0} actions)`
+          : `Cycle blocked/scan-only: ${res.blockedReason || res.action || 'OK'}`;
+        await refreshCommercialDashboard();
+      } catch (err) {
+        msg.textContent = `Cycle error: ${err.message}`;
+      }
+    });
   }
 
   wireEvents();

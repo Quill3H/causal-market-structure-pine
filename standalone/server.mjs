@@ -9,8 +9,16 @@ import {
   normalizeRiskTier,
   redactConfig,
   RISK_TIER_SPECS,
+  scrubSecrets,
   timingSafeTokenEqual,
 } from './config.mjs';
+import { CommercialPlatformEngine } from './commercial_engine.mjs';
+import { CommercialStore } from './commercial_store.mjs';
+import {
+  COMMERCIAL_PLANS,
+  issueLicenseKey,
+  resolveLicenseSigningSecret,
+} from './license_issuer.mjs';
 import {
   computeLiquidationDistance,
   computeRegimeTelemetry,
@@ -112,9 +120,58 @@ function serveStaticFile(res, urlPath) {
   fs.createReadStream(resolved).pipe(res);
 }
 
-export function createStandaloneServer({ config, store, runtimeSpecs, daemon, checkAccountHealth = false } = {}) {
+export function createStandaloneServer({
+  config,
+  store,
+  runtimeSpecs,
+  daemon,
+  checkAccountHealth = false,
+  exchangeClientFactory = null,
+} = {}) {
   const host = assertLoopbackHost(config.host || '127.0.0.1');
   const port = Number(config.port ?? 4180);
+  const commercialStore = new CommercialStore(store);
+  const commercialEngine = new CommercialPlatformEngine({
+    store,
+    commercialStore,
+    config,
+    runtimeSpecs,
+    exchangeClientFactory,
+  });
+
+  function checkCsrfPost(req, res) {
+    const fetchSite = req.headers['sec-fetch-site'];
+    if (fetchSite && !['same-origin', 'none'].includes(String(fetchSite))) {
+      sendError(res, 403, 'Cross-site mutation rejected');
+      return false;
+    }
+    return true;
+  }
+
+  function assertAdminAuthorized(req, res, providedToken) {
+    if (!config.commercialAdminToken) {
+      sendError(res, 403, 'COMMERCIAL_ADMIN_TOKEN is not configured');
+      return false;
+    }
+    if (!timingSafeTokenEqual(config.commercialAdminToken, providedToken)) {
+      sendError(res, 403, 'Invalid COMMERCIAL_ADMIN_TOKEN');
+      return false;
+    }
+    return true;
+  }
+
+  function authenticateSubOr401(req, res, body = {}) {
+    const sessionToken = req.headers['x-subscriber-token'] || body?.sessionToken || '';
+    try {
+      return commercialEngine.authenticateSubscriber({
+        subscriberId: body?.subscriberId || null,
+        sessionToken: String(sessionToken || ''),
+      });
+    } catch (err) {
+      sendError(res, 401, scrubSecrets(err.message, config));
+      return null;
+    }
+  }
 
   let cachedHealth = {
     checkedAt: null,
@@ -146,6 +203,9 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
 
   const server = http.createServer(async (req, res) => {
     try {
+      if (req.method === 'POST' && !checkCsrfPost(req, res)) {
+        return;
+      }
       const parsed = new URL(req.url || '/', `http://${host}:${port}`);
       const pathname = parsed.pathname;
       const symbol = normalizeAssetSymbol(parsed.searchParams.get('symbol') || config.symbols[0] || 'BTCUSDT.P');
@@ -211,6 +271,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             v9ModelsReady: Boolean(runtimeSpecs?.hasV9Models),
             v9FrontierReady: Boolean(runtimeSpecs?.hasV9Frontier),
             allVersionsMatrixReady: Boolean(runtimeSpecs?.hasAllVersionsMatrix),
+            v10CommercialReady: true,
             activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV9Models ? 'v9.0-Ensemble' : runtimeSpecs?.hasV8Models ? 'v8.0-RegimeMax' : runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
           },
           routerStatus: daemon?.orderRouter ? daemon.orderRouter.getStatus() : {
@@ -464,6 +525,148 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
         return;
       }
 
+      if (req.method === 'GET' && pathname === '/api/commercial/plans') {
+        sendJson(res, 200, {
+          ok: true,
+          plans: COMMERCIAL_PLANS,
+          guardrails: [
+            '1. Valid non-expired TT10 license & execution mode permitted by plan',
+            '2. Exchange API key must NEVER have Withdraw permission enabled',
+            '3. Valid subscriber arming PIN required for DEMO_AUTO_TRADE / LIVE_AUTO_TRADE',
+            '4. Daily Loss Circuit Breaker trips auto-trade on breach',
+            '5. High-Water MaxDD Kill Switch halts auto-trade permanently until reset',
+            '6. Account equity <= plan maxCapitalUsdt & leverage <= maxLeverageCap',
+            '7. Contract sizing rounded to exchange lotSz/stepSize + idempotent tenant clOrdId',
+          ],
+        });
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/simulate-scan') {
+        const body = await readJsonBody(req);
+        const sim = await commercialEngine.simulateCapitalPreview({
+          equityUsdt: body.equityUsdt ?? 1000,
+          exchange: body.exchange || config.exchange || 'OKX',
+          version: body.version || 'v9',
+          riskTier: body.riskTier || config.riskTier || 'SAFE_75WR',
+          riskPct: body.riskPct ?? 1.0,
+        });
+        sendJson(res, 200, { ok: true, ...sim });
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/admin/licenses') {
+        const body = await readJsonBody(req);
+        const adminToken = req.headers['x-admin-token'] || body.adminToken || '';
+        if (!assertAdminAuthorized(req, res, String(adminToken))) return;
+        const issued = issueLicenseKey({
+          planId: body.planId || 'PRO_AUTO_TRADER',
+          subscriberRef: body.subscriberRef || 'buyer@example.com',
+          durationDays: Number(body.durationDays ?? 30),
+          maxCapitalUsdtOverride: body.maxCapitalUsdtOverride ?? null,
+          signingSecret: resolveLicenseSigningSecret(config),
+        });
+        sendJson(res, 200, { ok: true, ...issued });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/commercial/admin/overview') {
+        const adminToken = req.headers['x-admin-token'] || parsed.searchParams.get('adminToken') || '';
+        if (!assertAdminAuthorized(req, res, String(adminToken))) return;
+        sendJson(res, 200, { ok: true, ...commercialEngine.getAdminOverview() });
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/subscribers/onboard') {
+        const body = await readJsonBody(req);
+        try {
+          const onboarded = await commercialEngine.onboardSubscriber({
+            name: body.name,
+            email: body.email ?? null,
+            licenseKey: body.licenseKey,
+            exchange: body.exchange || config.exchange || 'OKX',
+            simulated: body.simulated !== undefined ? Boolean(body.simulated) : true,
+            apiKey: body.apiKey || '',
+            apiSecret: body.apiSecret || '',
+            passphrase: body.passphrase || '',
+            rawPermissionPayload: body.rawPermissionPayload ?? null,
+            armingPin: body.armingPin || '',
+            executionMode: body.executionMode || 'SCAN_AND_SIGNAL_ONLY',
+            preferredVersion: body.preferredVersion || 'v9',
+            riskTier: body.riskTier || config.riskTier || 'SAFE_75WR',
+            riskPct: body.riskPct ?? 1.0,
+            maxLeverageCap: body.maxLeverageCap ?? config.maxLeverageCap ?? 3.0,
+            maxDailyLossPct: body.maxDailyLossPct ?? 5.0,
+            maxDdKillPct: body.maxDdKillPct ?? 20.0,
+            simulatedEquityUsdt: body.simulatedEquityUsdt ?? null,
+          });
+          sendJson(res, 200, { ok: true, ...onboarded });
+        } catch (err) {
+          const safeMsg = scrubSecrets(err.message, config);
+          const status = safeMsg.includes('SECURITY BLOCK') ? 403 : 400;
+          sendError(res, status, safeMsg);
+        }
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/subscribers/scan') {
+        const body = await readJsonBody(req);
+        const sub = authenticateSubOr401(req, res, body);
+        if (!sub) return;
+        const scanRes = await commercialEngine.scanSubscriberAccount(sub.subscriberId, {
+          simulatedEquityUsdt: body.simulatedEquityUsdt ?? null,
+          availableMarginUsdt: body.availableMarginUsdt ?? null,
+          timeframe: body.timeframe || '1h',
+        });
+        sendJson(res, 200, { ok: true, ...scanRes });
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/subscribers/mode') {
+        const body = await readJsonBody(req);
+        const sub = authenticateSubOr401(req, res, body);
+        if (!sub) return;
+        try {
+          const updated = commercialEngine.updateSubscriberMode(sub.subscriberId, {
+            executionMode: body.executionMode,
+            armingPin: body.armingPin || '',
+            maxDailyLossPct: body.maxDailyLossPct,
+            maxDdKillPct: body.maxDdKillPct,
+            preferredVersion: body.preferredVersion,
+            riskTier: body.riskTier,
+            riskPct: body.riskPct,
+            maxLeverageCap: body.maxLeverageCap,
+          });
+          sendJson(res, 200, { ok: true, subscriber: updated });
+        } catch (err) {
+          const safeMsg = scrubSecrets(err.message, config);
+          sendError(res, 403, safeMsg);
+        }
+        return;
+      }
+
+      if (req.method === 'POST' && pathname === '/api/commercial/subscribers/run-cycle') {
+        const body = await readJsonBody(req);
+        const sub = authenticateSubOr401(req, res, body);
+        if (!sub) return;
+        const cycleRes = await commercialEngine.runSubscriberAutoTradeCycle(sub.subscriberId, {
+          armingPin: body.armingPin || '',
+          simulatedEquityUsdt: body.simulatedEquityUsdt ?? null,
+          availableMarginUsdt: body.availableMarginUsdt ?? null,
+          timeframe: body.timeframe || '1h',
+        });
+        sendJson(res, 200, { ok: true, ...cycleRes });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/commercial/subscribers/dashboard') {
+        const sub = authenticateSubOr401(req, res, {});
+        if (!sub) return;
+        const dash = commercialEngine.getSubscriberDashboard(sub.subscriberId);
+        sendJson(res, 200, { ok: true, ...dash });
+        return;
+      }
+
       if (req.method === 'GET') {
         serveStaticFile(res, pathname);
         return;
@@ -471,7 +674,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
 
       sendError(res, 404, 'Endpoint not found');
     } catch (err) {
-      sendError(res, 500, err.message);
+      sendError(res, 500, scrubSecrets(err.message, config));
     }
   });
 
