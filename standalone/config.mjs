@@ -8,7 +8,43 @@ export const REPO_ROOT = path.resolve(HERE, '..');
 
 export const VALID_EXCHANGES = Object.freeze(['OKX', 'BINANCE', 'YAHOO']);
 export const VALID_EXECUTION_MODES = Object.freeze(['PAPER', 'LIVE_ARMED']);
+export const VALID_RISK_TIERS = Object.freeze(['SAFE_75WR', 'BALANCED_75WR', 'TARGET_30MO_75WR']);
 export const LOOPBACK_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '::1']);
+
+export const RISK_TIER_SPECS = Object.freeze({
+  SAFE_75WR: {
+    id: 'SAFE_75WR',
+    frontierKey: 'TIER_1_SAFE_75WR',
+    label: 'Safe (75%+ WR, Low DD)',
+    targetMaxDdPct: 25,
+    defaultLevScale: 1.0,
+  },
+  BALANCED_75WR: {
+    id: 'BALANCED_75WR',
+    frontierKey: 'TIER_2_BALANCED_75WR',
+    label: 'Balanced (75%+ WR, Mod DD)',
+    targetMaxDdPct: 35,
+    defaultLevScale: 1.5,
+  },
+  TARGET_30MO_75WR: {
+    id: 'TARGET_30MO_75WR',
+    frontierKey: 'TIER_3_TARGET_30MO_75WR',
+    label: '30%/Mo Frontier (Zero-Liq)',
+    targetMaxDdPct: 55,
+    defaultLevScale: 2.5,
+  },
+});
+
+export function normalizeRiskTier(tier) {
+  const raw = String(tier || 'SAFE_75WR').trim().toUpperCase();
+  if (raw === 'TIER_1_SAFE_75WR' || raw === 'SAFE') return 'SAFE_75WR';
+  if (raw === 'TIER_2_BALANCED_75WR' || raw === 'BALANCED') return 'BALANCED_75WR';
+  if (raw === 'TIER_3_TARGET_30MO_75WR' || raw === '30MO' || raw === 'TARGET_30MO') return 'TARGET_30MO_75WR';
+  if (!VALID_RISK_TIERS.includes(raw)) {
+    throw new Error(`Invalid RISK_TIER "${tier}". Allowed: ${VALID_RISK_TIERS.join(', ')}`);
+  }
+  return raw;
+}
 
 export const ALL_V6_ASSETS = Object.freeze([
   { symbol: 'BTCUSDT.P', label: 'BTCUSDT.P (5Y Perp)', assetClass: 'CRYPTO', defaultTimeframe: '1h', supportedTimeframes: ['1h', '15m'] },
@@ -155,6 +191,8 @@ export function loadConfig({
     throw new Error(`Invalid EXECUTION_MODE "${rawMode}". Allowed: ${VALID_EXECUTION_MODES.join(', ')}`);
   }
 
+  const riskTier = normalizeRiskTier(merged.RISK_TIER || 'SAFE_75WR');
+
   const host = assertLoopbackHost(merged.HOST || '127.0.0.1');
   const port = Math.trunc(parseNum(merged.PORT, 4180, { min: 0, max: 65535 }));
   const dryRun = parseBool(merged.DRY_RUN, true);
@@ -196,6 +234,7 @@ export function loadConfig({
     exchange,
     symbols,
     timeframes,
+    riskTier,
     executionMode: rawMode,
     dryRun,
     maxLeverageCap,
@@ -269,6 +308,7 @@ export function redactConfig(config) {
     exchange: config.exchange,
     symbols: [...config.symbols],
     timeframes: [...config.timeframes],
+    riskTier: config.riskTier || 'SAFE_75WR',
     executionMode: config.executionMode,
     dryRun: config.dryRun,
     maxLeverageCap: config.maxLeverageCap,

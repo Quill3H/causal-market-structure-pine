@@ -6,15 +6,19 @@ import {
   ALL_V6_ASSETS,
   assertLoopbackHost,
   hasExchangeCredentials,
+  normalizeRiskTier,
   redactConfig,
+  RISK_TIER_SPECS,
   timingSafeTokenEqual,
 } from './config.mjs';
 import {
+  computeLiquidationDistance,
   computeRegimeTelemetry,
   createExchangeClient,
   evaluateStrategy,
   loadOfflineOrDbDataset,
   normalizeAssetSymbol,
+  runV7FrontierPortfolio,
 } from './engine_runtime.mjs';
 import { isEquitySymbol } from './market_equities.mjs';
 
@@ -155,11 +159,19 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           repoRoot: config.repoRoot,
           symbol,
         });
+        const liquidationDistance = snap?.liquidationDistance ||
+          computeLiquidationDistance(activeOverlay, activeOverlay?.entry ?? activeOverlay?.limitPrice ?? 0);
+        const frontier = runV7FrontierPortfolio({
+          runtimeSpecs,
+          config,
+          riskTier: config.riskTier,
+        });
         sendJson(res, 200, {
           ok: true,
           timestamp: new Date().toISOString(),
           config: redactConfig(config),
           assets: ALL_V6_ASSETS,
+          riskTiers: RISK_TIER_SPECS,
           accountHealth,
           models: {
             v5EngineReady: Boolean(runtimeSpecs?.hasV5Engine),
@@ -167,7 +179,10 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             v6EngineReady: Boolean(runtimeSpecs?.hasV6Engine),
             v6CryptoModelsReady: Boolean(runtimeSpecs?.hasV6CryptoModels),
             v6StockModelsReady: Boolean(runtimeSpecs?.hasV6StockModels),
-            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
+            v7EngineReady: Boolean(runtimeSpecs?.hasV7Engine),
+            v7ModelsReady: Boolean(runtimeSpecs?.hasV7Models),
+            v7FrontierReady: Boolean(runtimeSpecs?.hasV7Frontier),
+            activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV7Models ? 'v7.0-HighWR' : runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
           },
           daemon: {
             lastSyncAt: daemon?.lastSyncAt || null,
@@ -175,9 +190,24 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             lastError: daemon?.lastError || null,
           },
           regime,
+          liquidationDistance,
+          frontierSummary: frontier,
           summary,
           activeOverlay,
         });
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/api/frontier') {
+        const tier = parsed.searchParams.get('tier') || config.riskTier || 'SAFE_75WR';
+        const profile = (parsed.searchParams.get('profile') || 'EXCHANGE_POST_ONLY').toUpperCase();
+        const frontier = runV7FrontierPortfolio({
+          runtimeSpecs,
+          config,
+          riskTier: tier,
+          execProfile: profile,
+        });
+        sendJson(res, 200, { ok: true, ...frontier });
         return;
       }
 
@@ -260,6 +290,8 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
         const defaultProf = isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY';
         const profile = (parsed.searchParams.get('profile') || defaultProf).toUpperCase();
         const mlEnabled = parsed.searchParams.get('ml') !== '0';
+        const version = (parsed.searchParams.get('version') || 'auto').toLowerCase();
+        const tier = parsed.searchParams.get('tier') || config.riskTier || 'SAFE_75WR';
         const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 220 });
         const evalRes = evaluateStrategy({
           dataset: loaded.dataset,
@@ -270,6 +302,8 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           exchange,
           execProfile: profile,
           mlEnabled,
+          version,
+          riskTier: tier,
           config,
           runtimeSpecs,
         });
@@ -278,6 +312,8 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           source: loaded.source,
           summary: evalRes.summary,
           regime: evalRes.regime,
+          liquidationDistance: evalRes.liquidationDistance,
+          monthlySummary: evalRes.monthlySummary,
           execOptions: evalRes.execOptions,
           equityCurve: evalRes.equityCurve.slice(-300),
           recentTrades: evalRes.trades.slice(-40).reverse(),
@@ -292,8 +328,9 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           return;
         }
         const body = await readJsonBody(req);
-        const targetMode = String(body.executionMode || 'PAPER').trim().toUpperCase();
+        const targetMode = String(body.executionMode || config.executionMode || 'PAPER').trim().toUpperCase();
         const targetDryRun = body.dryRun !== undefined ? Boolean(body.dryRun) : targetMode !== 'LIVE_ARMED';
+        const targetTier = body.riskTier !== undefined ? normalizeRiskTier(body.riskTier) : config.riskTier;
 
         if (!['PAPER', 'LIVE_ARMED'].includes(targetMode)) {
           sendError(res, 400, 'executionMode must be PAPER or LIVE_ARMED');
@@ -317,6 +354,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
 
         config.executionMode = targetMode;
         config.dryRun = targetMode === 'PAPER' ? true : targetDryRun;
+        config.riskTier = targetTier;
         sendJson(res, 200, {
           ok: true,
           config: redactConfig(config),

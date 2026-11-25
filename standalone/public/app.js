@@ -1,4 +1,4 @@
-/* Zero-XSS Dashboard Controller (v6.0): uses ONLY textContent and document.createElement */
+/* Zero-XSS Dashboard Controller (v7.0): uses ONLY textContent and document.createElement */
 (function () {
   'use strict';
 
@@ -8,10 +8,13 @@
     symbol: 'BTCUSDT.P',
     timeframe: '1h',
     profile: 'EXCHANGE_POST_ONLY',
+    riskTier: 'SAFE_75WR',
     candles: [],
     overlay: null,
     summary: null,
     regime: null,
+    liquidationDistance: null,
+    frontier: null,
     signals: [],
     trades: [],
     status: null,
@@ -84,23 +87,29 @@
       modeBadge.className = 'badge badge-safe';
     }
 
+    if (cfg.riskTier) {
+      state.riskTier = cfg.riskTier;
+      el('tier-select').value = cfg.riskTier;
+    }
+
     const subtitle = el('model-subtitle');
-    subtitle.textContent = `v6.0 Multi-Asset Engine • ${status.models?.activeModelVersion || 'v5.0/v4.1'}`;
+    subtitle.textContent = `v7.0 High-WR Frontier (${state.riskTier}) • ${status.models?.activeModelVersion || 'v6.0/v5.0'}`;
   }
 
   function renderScoreboard(sourceLabel) {
     const s = state.summary;
     const r = state.regime;
+    const liq = state.liquidationDistance;
 
     if (s) {
       const wrEl = el('kpi-winrate');
       wrEl.textContent = `${fmtNum(s.winRatePct, 2)}% (${s.wins}W/${s.losses}L)`;
-      wrEl.className = `kpi-value ${Number(s.winRatePct) >= 65 ? 'pos' : ''}`;
+      wrEl.className = `kpi-value ${Number(s.winRatePct) >= 75 ? 'pos' : ''}`;
       el('kpi-wilson').textContent = `Wilson95: ${fmtNum(s.wilsonLower95Pct, 2)}%`;
 
       const pfEl = el('kpi-pf');
       pfEl.textContent = fmtNum(s.profitFactor, 2);
-      pfEl.className = `kpi-value ${Number(s.profitFactor) >= 1.2 ? 'pos' : 'neg'}`;
+      pfEl.className = `kpi-value ${Number(s.profitFactor) >= 1.25 ? 'pos' : 'neg'}`;
       el('kpi-trades').textContent = `Trades: ${s.count} (Raw ${s.rawSignalsCount ?? s.count})`;
 
       const compEl = el('kpi-comp-net-main');
@@ -115,6 +124,19 @@
 
       el('kpi-model').textContent = s.modelVersion || 'v4.1-fallback';
       el('kpi-source').textContent = `Profile: ${s.execProfile || state.profile} (${sourceLabel || 'local'})`;
+    }
+
+    const liqEl = el('kpi-liq-buffer');
+    const liqSub = el('kpi-liq-sub');
+    if (liq && liq.bufferPct !== null && liq.bufferPct !== undefined) {
+      liqEl.textContent = `${fmtNum(liq.bufferPct, 2)}% (${liq.status})`;
+      liqEl.className = `kpi-value ${liq.bufferPct >= 20 ? 'pos' : liq.bufferPct < 10 ? 'neg' : ''}`;
+      liqSub.textContent = liq.status === 'CASH_ETF'
+        ? 'Unlevered ETF (No Liquidation)'
+        : `Liq Px: ${fmtNum(liq.liqPrice, 2)} • Lev ${fmtNum(liq.lev, 2)}x`;
+    } else {
+      liqEl.textContent = '--';
+      liqSub.textContent = 'Liq Px: -- • MMR 0.5%';
     }
 
     const regEl = el('kpi-regime');
@@ -159,8 +181,8 @@
     }
   }
 
-  function drawMlGauge() {
-    const canvas = el('ml-gauge-canvas');
+  function drawArcGauge(canvasId, valueRatio, thresholdRatio, color) {
+    const canvas = el(canvasId);
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
     const cssW = 240;
@@ -169,10 +191,6 @@
     canvas.height = cssH * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
-
-    const latestSig = state.signals[0] || state.overlay?.lastSignal || null;
-    const prob = Number.isFinite(Number(latestSig?.probWin)) ? Number(latestSig.probWin) : null;
-    const tau = Number.isFinite(Number(state.summary?.mlThreshold)) ? Number(state.summary.mlThreshold) : 0.55;
 
     const cx = cssW / 2;
     const cy = 112;
@@ -185,38 +203,100 @@
     ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
     ctx.stroke();
 
-    const tauAngle = Math.PI + Math.max(0, Math.min(1, tau)) * Math.PI;
-    ctx.save();
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(tauAngle) * (radius - 12), cy + Math.sin(tauAngle) * (radius - 12));
-    ctx.lineTo(cx + Math.cos(tauAngle) * (radius + 12), cy + Math.sin(tauAngle) * (radius + 12));
-    ctx.stroke();
-    ctx.restore();
+    if (Number.isFinite(thresholdRatio)) {
+      const tauAngle = Math.PI + Math.max(0, Math.min(1, thresholdRatio)) * Math.PI;
+      ctx.save();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(tauAngle) * (radius - 12), cy + Math.sin(tauAngle) * (radius - 12));
+      ctx.lineTo(cx + Math.cos(tauAngle) * (radius + 12), cy + Math.sin(tauAngle) * (radius + 12));
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (Number.isFinite(valueRatio)) {
+      const clamped = Math.max(0, Math.min(1, valueRatio));
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, Math.PI, Math.PI + clamped * Math.PI);
+      ctx.stroke();
+    }
+  }
+
+  function drawMlGauge() {
+    const latestSig = state.signals[0] || state.overlay?.lastSignal || null;
+    const prob = Number.isFinite(Number(latestSig?.probWin)) ? Number(latestSig.probWin) : null;
+    const tau = Number.isFinite(Number(state.summary?.mlThreshold)) ? Number(state.summary.mlThreshold) : 0.55;
 
     const pctText = el('ml-prob-text');
     const decBadge = el('ml-decision-badge');
-    const tauText = el('ml-threshold-text');
-    tauText.textContent = `Threshold tau: ${(tau * 100).toFixed(1)}%`;
+    el('ml-threshold-text').textContent = `Threshold tau: ${(tau * 100).toFixed(1)}%`;
 
     if (prob === null) {
+      drawArcGauge('ml-gauge-canvas', NaN, tau, '#38bdf8');
       pctText.textContent = 'Rules/Fallback';
       decBadge.textContent = state.summary?.modelVersion || 'FALLBACK';
       decBadge.className = 'badge badge-neutral';
       return;
     }
 
-    const clamped = Math.max(0, Math.min(1, prob));
-    const endAngle = Math.PI + clamped * Math.PI;
-    ctx.strokeStyle = clamped >= tau ? '#22c55e' : '#ef4444';
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, Math.PI, endAngle);
-    ctx.stroke();
+    drawArcGauge('ml-gauge-canvas', prob, tau, prob >= tau ? '#22c55e' : '#ef4444');
+    pctText.textContent = `${(prob * 100).toFixed(1)}%`;
+    decBadge.textContent = latestSig?.decision || (prob >= tau ? 'ACCEPTED' : 'FILTERED');
+    decBadge.className = `badge ${prob >= tau ? 'badge-safe' : 'badge-warn'}`;
+  }
 
-    pctText.textContent = `${(clamped * 100).toFixed(1)}%`;
-    decBadge.textContent = latestSig?.decision || (clamped >= tau ? 'ACCEPTED' : 'FILTERED');
-    decBadge.className = `badge ${clamped >= tau ? 'badge-safe' : 'badge-warn'}`;
+  function drawSweepGauge() {
+    const f = state.frontier;
+    const tierBadge = el('frontier-tier-badge');
+    const moText = el('sweep-mo-text');
+    const metaText = el('sweep-meta-text');
+    const dl = el('frontier-stats-list');
+    clearNode(dl);
+
+    tierBadge.textContent = state.riskTier;
+    const sel = f?.selectedTier;
+    const full = sel?.full5y || sel;
+    const y5 = sel?.holdoutY5;
+
+    if (!f?.ready || !full) {
+      const fallbackMo = state.summary?.meanMonthlySweepPct;
+      const ratio = Number.isFinite(fallbackMo) ? Math.max(0, Math.min(1, fallbackMo / 40)) : NaN;
+      drawArcGauge('sweep-gauge-canvas', ratio, 30 / 40, '#38bdf8');
+      moText.textContent = Number.isFinite(fallbackMo) ? `${fmtPct(fallbackMo, 2)}/mo` : 'Pending v7';
+      metaText.textContent = `Frontier summary loading • Liq: ${state.summary?.liquidationCount ?? 0}`;
+      return;
+    }
+
+    const meanMo = Number(full.meanMonthlySweepPct ?? full.geomMonthlyPct ?? 0);
+    const maxDd = Number(full.maxMonthlySweepDdPct ?? full.maxCompoundedDdPct ?? full.compoundedMaxDrawdownPct ?? 0);
+    const liqCount = Number(full.liquidationCount ?? 0);
+    const wr = Number(full.winRatePct ?? 0);
+
+    drawArcGauge('sweep-gauge-canvas', meanMo / 40, 30 / 40, meanMo >= 30 ? '#22c55e' : '#38bdf8');
+    moText.textContent = `${fmtPct(meanMo, 2)}/mo`;
+    metaText.textContent = `SweepDD: ${fmtNum(maxDd, 2)}% • Liq: ${liqCount}`;
+    tierBadge.className = `badge ${liqCount === 0 && wr >= 75 ? 'badge-safe' : 'badge-warn'}`;
+
+    const pairs = [
+      ['Full 5Y WR / PF', `${fmtNum(wr, 2)}% / ${fmtNum(full.profitFactor, 2)}`],
+      ['Positive Months', `${fmtNum(full.pctPositiveMonths, 1)}%`],
+      ['Months >= +30%', `${fmtNum(full.pctMonthsGe30, 1)}%`],
+      ['Worst Month', fmtPct(full.worstMonthPct, 2)],
+    ];
+    if (y5) {
+      pairs.push(['Holdout Y5 Sweep', `${fmtPct(y5.meanMonthlySweepPct, 2)}/mo (${fmtNum(y5.winRatePct, 1)}% WR)`]);
+    }
+
+    for (const [k, v] of pairs) {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    }
   }
 
   function drawCandleChart() {
@@ -398,19 +478,23 @@
 
   async function refreshAll() {
     const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}`;
+    const fq = `tier=${encodeURIComponent(state.riskTier)}&profile=${encodeURIComponent(state.profile === 'EQUITY_ETF' ? 'EXCHANGE_POST_ONLY' : state.profile)}`;
     el('chart-title').textContent = `${state.symbol} • ${state.timeframe} Closed Candles & Order Levels`;
 
-    const [statusData, candleData, tradeData, sigData] = await Promise.all([
+    const [statusData, candleData, tradeData, sigData, frontierData] = await Promise.all([
       apiGet(`/api/status?${q}`),
       apiGet(`/api/candles?${q}&limit=160`),
       apiGet(`/api/trades?${q}&limit=60`),
       apiGet(`/api/signals?${q}&limit=40`),
+      apiGet(`/api/frontier?${fq}`),
     ]);
 
     state.status = statusData;
     state.candles = candleData.candles || [];
     state.overlay = candleData.overlay || statusData.activeOverlay || null;
     state.regime = candleData.regime || statusData.regime || null;
+    state.liquidationDistance = statusData.liquidationDistance || null;
+    state.frontier = frontierData;
     state.trades = tradeData.trades || [];
     state.summary = tradeData.summary || statusData.summary || null;
     state.signals = sigData.signals || [];
@@ -419,19 +503,22 @@
     renderScoreboard(candleData.source);
     renderOverlayDetails();
     drawMlGauge();
+    drawSweepGauge();
     drawCandleChart();
     renderTables();
   }
 
   async function runOfflineReplay() {
-    const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}&profile=${encodeURIComponent(state.profile)}`;
+    const q = `symbol=${encodeURIComponent(state.symbol)}&timeframe=${encodeURIComponent(state.timeframe)}&profile=${encodeURIComponent(state.profile)}&tier=${encodeURIComponent(state.riskTier)}`;
     const msg = el('mode-status-msg');
     msg.textContent = 'Running offline replay...';
     const data = await apiGet(`/api/backtest?${q}`);
     state.summary = data.summary;
     state.regime = data.regime || state.regime;
+    state.liquidationDistance = data.liquidationDistance || state.liquidationDistance;
     state.trades = data.recentTrades || [];
     renderScoreboard(data.source);
+    drawSweepGauge();
     renderTables();
     msg.textContent = `Replay complete: ${data.summary.count} trades, WR ${fmtNum(data.summary.winRatePct, 2)}%, PF ${fmtNum(data.summary.profitFactor, 2)}, Comp ${fmtPct(data.summary.compoundedNetPct, 2)}`;
   }
@@ -444,7 +531,6 @@
         state.profile = 'EQUITY_ETF';
       } else {
         if (state.timeframe === '1d') state.timeframe = '1h';
-        if (state.symbol !== 'BTCUSDT.P' && state.timeframe === '15m') state.timeframe = '1h';
         if (state.profile === 'EQUITY_ETF') state.profile = 'EXCHANGE_POST_ONLY';
       }
       el('timeframe-select').value = state.timeframe;
@@ -458,6 +544,19 @@
     el('profile-select').addEventListener('change', e => {
       state.profile = e.target.value;
       runOfflineReplay().catch(err => { el('mode-status-msg').textContent = err.message; });
+    });
+    el('tier-select').addEventListener('change', async e => {
+      state.riskTier = e.target.value;
+      try {
+        await fetch('/api/mode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ riskTier: state.riskTier }),
+        });
+        await refreshAll();
+      } catch (err) {
+        el('mode-status-msg').textContent = err.message;
+      }
     });
     el('refresh-btn').addEventListener('click', () => {
       refreshAll().catch(err => { el('mode-status-msg').textContent = err.message; });
@@ -478,6 +577,7 @@
           body: JSON.stringify({
             executionMode,
             dryRun: executionMode === 'PAPER',
+            riskTier: state.riskTier,
             confirmToken,
           }),
         });
@@ -487,7 +587,7 @@
           return;
         }
         el('confirm-token-input').value = '';
-        msg.textContent = `Updated mode to ${data.config.executionMode} (DRY_RUN=${data.config.dryRun})`;
+        msg.textContent = `Updated mode to ${data.config.executionMode} (DRY_RUN=${data.config.dryRun}, TIER=${data.config.riskTier})`;
         await refreshAll();
       } catch (err) {
         msg.textContent = err.message;

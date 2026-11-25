@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v6.0 Standalone Command Center</title>
+  <title>TRADING-TOOL v7.0 Standalone Command Center</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT6</div>
+      <div class="brand-mark" aria-hidden="true">TT7</div>
       <div>
-        <h1 class="brand-title">TRADING-TOOL v6.0 Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">5Y Crypto Perps &amp; 10Y US Equity Indices • Off-TradingView</p>
+        <h1 class="brand-title">TRADING-TOOL v7.0 Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">High-WR 5Y Frontier • 0-Liquidation Physics • Off-TradingView</p>
       </div>
     </div>
 
@@ -49,6 +49,15 @@
         </select>
       </label>
 
+      <label class="control-field">
+        <span class="control-label">v7 Tier</span>
+        <select id="tier-select" aria-label="Risk Tier">
+          <option value="SAFE_75WR">Safe (75%+ WR)</option>
+          <option value="BALANCED_75WR">Balanced (75%+ WR)</option>
+          <option value="TARGET_30MO_75WR">30%/Mo Frontier</option>
+        </select>
+      </label>
+
       <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
     </div>
 
@@ -79,6 +88,11 @@
         <span class="kpi-label">Max Drawdown</span>
         <strong class="kpi-value" id="kpi-dd">--</strong>
         <span class="kpi-meta" id="kpi-funding">Funding Drag: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Distance-to-Liquidation</span>
+        <strong class="kpi-value" id="kpi-liq-buffer">--</strong>
+        <span class="kpi-meta" id="kpi-liq-sub">Liq Px: -- • MMR 0.5%</span>
       </article>
       <article class="kpi-card">
         <span class="kpi-label">Macro &amp; Orderflow Regime</span>
@@ -126,6 +140,21 @@
             </div>
           </div>
           <dl class="overlay-list" id="active-levels-list"></dl>
+        </article>
+
+        <article class="panel gauge-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Monthly Profit-Sweep Gauge</h2>
+            <span class="badge badge-safe" id="frontier-tier-badge">SAFE_75WR</span>
+          </div>
+          <div class="gauge-wrap">
+            <canvas id="sweep-gauge-canvas"></canvas>
+            <div class="gauge-readout">
+              <strong id="sweep-mo-text">--%/mo</strong>
+              <span id="sweep-meta-text">MaxDD: -- • Liq: 0</span>
+            </div>
+          </div>
+          <dl class="overlay-list" id="frontier-stats-list"></dl>
         </article>
 
         <article class="panel mode-panel">

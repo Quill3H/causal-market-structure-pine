@@ -6,6 +6,7 @@ import {
   ALL_V6_ASSETS,
   hasExchangeCredentials,
   loadConfig,
+  normalizeRiskTier,
   redactConfig,
   scrubSecrets,
 } from './config.mjs';
@@ -15,6 +16,7 @@ import {
   loadOfflineOrDbDataset,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
+  runV7FrontierPortfolio,
   StandaloneTradingDaemon,
 } from './engine_runtime.mjs';
 import { isEquitySymbol, YahooEquitiesClient } from './market_equities.mjs';
@@ -118,11 +120,17 @@ export async function runDoctor({ config } = {}) {
       v6Engine: runtimeSpecs.hasV6Engine,
       v6CryptoModelsReady: runtimeSpecs.hasV6CryptoModels,
       v6StockModelsReady: runtimeSpecs.hasV6StockModels,
+      v7Engine: runtimeSpecs.hasV7Engine,
+      v7ModelsReady: runtimeSpecs.hasV7Models,
+      v7FrontierReady: runtimeSpecs.hasV7Frontier,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
       v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
       v6EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_eth_sol_5y.json')),
       v6StocksModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_stocks_v6.json')),
+      v7BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/models_v7_btc_bnb.json')),
+      v7EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/models_v7_eth_sol.json')),
+      v7FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v7/frontier_75wr_30mo_summary.json')),
     },
     connectivity: {
       okxPublic,
@@ -166,6 +174,8 @@ export async function runBacktest(flags, cfg) {
     const timeframe = String(flags.timeframe || (isEq ? '1d' : '1h')).toLowerCase();
     const profile = String(flags.profile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY')).toUpperCase();
     const mlEnabled = !flags['no-ml'];
+    const version = String(flags.version || 'auto').toLowerCase();
+    const riskTier = normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR');
 
     const loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol, timeframe, minBars: 220 });
     const evalRes = evaluateStrategy({
@@ -177,6 +187,8 @@ export async function runBacktest(flags, cfg) {
       exchange: isEq ? 'YAHOO' : cfg.exchange,
       execProfile: profile,
       mlEnabled,
+      version,
+      riskTier,
       config: cfg,
       runtimeSpecs,
     });
@@ -184,11 +196,25 @@ export async function runBacktest(flags, cfg) {
       source: loaded.source,
       summary: evalRes.summary,
       regime: evalRes.regime,
+      liquidationDistance: evalRes.liquidationDistance,
+      monthlySummary: evalRes.monthlySummary,
       execOptions: evalRes.execOptions,
     };
   } finally {
     store.close();
   }
+}
+
+export async function runPortfolio(flags, cfg) {
+  const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
+  const riskTier = normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR');
+  const profile = String(flags.profile || 'EXCHANGE_POST_ONLY').toUpperCase();
+  return runV7FrontierPortfolio({
+    runtimeSpecs,
+    config: cfg,
+    riskTier,
+    execProfile: profile,
+  });
 }
 
 export async function runServe(flags, cfg) {
@@ -242,10 +268,13 @@ async function main() {
   } else if (cmd === 'backtest') {
     const res = await runBacktest(flags, cfg);
     console.log(JSON.stringify({ ok: true, ...res }, null, 2));
+  } else if (cmd === 'portfolio') {
+    const res = await runPortfolio(flags, cfg);
+    console.log(JSON.stringify({ ok: true, ...res }, null, 2));
   } else if (cmd === 'serve') {
     await runServe(flags, cfg);
   } else {
-    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|serve>`);
+    console.error(`Unknown subcommand "${cmd}". Usage: node standalone/cli.mjs <doctor|sync|backtest|portfolio|serve>`);
     process.exitCode = 1;
   }
 }

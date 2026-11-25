@@ -289,7 +289,8 @@ input {
   align-items: center;
 }
 
-#ml-gauge-canvas {
+#ml-gauge-canvas,
+#sweep-gauge-canvas {
   width: 240px;
   height: 130px;
   display: block;

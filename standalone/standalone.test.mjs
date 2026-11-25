@@ -9,6 +9,7 @@ import {
   assertLiveOrderSafety,
   assertLoopbackHost,
   loadConfig,
+  normalizeRiskTier,
   parseDotEnv,
   redactConfig,
   scrubSecrets,
@@ -30,9 +31,11 @@ import {
 } from './exchange_okx.mjs';
 import {
   buildDatasetFromCandles,
+  computeLiquidationDistance,
   evaluateStrategy,
   loadRuntimeSpecs,
   normalizeAssetSymbol,
+  runV7FrontierPortfolio,
 } from './engine_runtime.mjs';
 import {
   parseYahooChartResponse,
@@ -567,6 +570,94 @@ describe('5. v6.0 BNB support, Yahoo Finance v8 equities & macro regime', () => 
       assert.equal(evalRes.regime.tnx, 4.31);
       assert.ok(evalRes.signalsAudit.length >= 1);
     } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('6. v7.0 Risk Tiers, Distance-to-Liquidation Buffer & /api/frontier', () => {
+  it('validates RISK_TIER defaults, normalization, and liquidation buffer math', () => {
+    assert.equal(normalizeRiskTier('SAFE_75WR'), 'SAFE_75WR');
+    assert.equal(normalizeRiskTier('TIER_2_BALANCED_75WR'), 'BALANCED_75WR');
+    assert.equal(normalizeRiskTier('30MO'), 'TARGET_30MO_75WR');
+    assert.throws(() => normalizeRiskTier('YOLO_100X'), /Invalid RISK_TIER/);
+
+    const tmp = makeTmpDir('tt7-cfg-');
+    try {
+      const cfg = loadConfig({ cwd: tmp, useProcessEnv: false, envOverrides: { RISK_TIER: 'BALANCED_75WR' } });
+      assert.equal(cfg.riskTier, 'BALANCED_75WR');
+      assert.equal(redactConfig(cfg).riskTier, 'BALANCED_75WR');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+
+    const longLiq = computeLiquidationDistance(
+      { status: 'OPEN_POSITION', side: 1, entry: 100000, lev: 2.0 },
+      100000,
+      { mmr: 0.005 },
+    );
+    assert.equal(longLiq.liqPrice, 50500);
+    assert.equal(longLiq.bufferPct, 49.5);
+    assert.equal(longLiq.status, 'SAFE');
+
+    const tightShortLiq = computeLiquidationDistance(
+      { status: 'OPEN_POSITION', side: -1, entry: 100000, lev: 5.0 },
+      115000,
+      { mmr: 0.005 },
+    );
+    assert.equal(tightShortLiq.liqPrice, 119500);
+    assert.ok(tightShortLiq.bufferPct > 0 && tightShortLiq.bufferPct < 10);
+    assert.equal(tightShortLiq.status, 'TIGHT');
+  });
+
+  it('serves /api/frontier and allows safe riskTier switching in PAPER mode', async () => {
+    const tmp = makeTmpDir('tt7-http-');
+    const cfg = loadConfig({
+      cwd: REPO_ROOT,
+      useProcessEnv: false,
+      envOverrides: { HOST: '127.0.0.1', PORT: '0', EXECUTION_MODE: 'PAPER', DRY_RUN: 'true' },
+    });
+    const store = new StandaloneStore({ dbPath: path.join(tmp, 'v7.sqlite'), allowedBaseDir: tmp });
+    const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+    const srv = createStandaloneServer({ config: cfg, store, runtimeSpecs });
+
+    try {
+      const bound = await srv.start();
+      const base = `http://${bound.host}:${bound.port}`;
+
+      const frontierRes = await fetch(`${base}/api/frontier?tier=SAFE_75WR`);
+      assert.equal(frontierRes.status, 200);
+      const frontierJson = await frontierRes.json();
+      assert.equal(frontierJson.ok, true);
+      assert.equal(frontierJson.ready, true);
+      assert.equal(frontierJson.riskTier, 'SAFE_75WR');
+      assert.equal(frontierJson.selectedTier.full5y.liquidationCount, 0);
+      assert.ok(frontierJson.selectedTier.full5y.winRatePct >= 75);
+      assert.ok(Array.isArray(frontierJson.monthlyTable) && frontierJson.monthlyTable.length > 0);
+
+      const switchTierRes = await fetch(`${base}/api/mode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ riskTier: 'TARGET_30MO_75WR' }),
+      });
+      assert.equal(switchTierRes.status, 200);
+      const switched = await switchTierRes.json();
+      assert.equal(switched.config.riskTier, 'TARGET_30MO_75WR');
+      assert.equal(switched.config.executionMode, 'PAPER');
+
+      const directFrontier = runV7FrontierPortfolio({ runtimeSpecs, config: cfg, riskTier: 'TARGET_30MO_75WR', execProfile: 'EXCHANGE_POST_ONLY' });
+      assert.equal(directFrontier.ready, true);
+      assert.equal(directFrontier.riskTier, 'TARGET_30MO_75WR');
+      assert.equal(directFrontier.selectedTier.full5y.liquidationCount, 0);
+      assert.ok(directFrontier.selectedTier.calVal_48m.meanMonthlySweepPct >= 30);
+
+      const takerFrontier = runV7FrontierPortfolio({ runtimeSpecs, config: cfg, riskTier: 'TARGET_30MO_75WR', execProfile: 'STRICT_TAKER' });
+      assert.equal(takerFrontier.ready, true);
+      assert.equal(takerFrontier.execProfile, 'STRICT_TAKER');
+      assert.equal(takerFrontier.selectedTier.full5y.liquidationCount, 0);
+    } finally {
+      await srv.stop();
+      store.close();
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });

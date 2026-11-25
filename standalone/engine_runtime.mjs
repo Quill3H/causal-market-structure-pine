@@ -5,6 +5,7 @@ import { alignHtfIndices, validateContiguousRows } from '../research/fetch_binan
 import { generateSignals15mV4 } from '../research/signals_15m_v4.mjs';
 import { generateSignals1h } from '../research/signals_1h.mjs';
 import { simulateTrades, wilsonLowerBound } from '../research/sim_engine.mjs';
+import { normalizeRiskTier, RISK_TIER_SPECS } from './config.mjs';
 import { BinanceFuturesClient } from './exchange_binance.mjs';
 import { OkxClient } from './exchange_okx.mjs';
 import {
@@ -93,9 +94,16 @@ export async function loadRuntimeSpecs(repoRoot) {
   const summaryEthSol5y = readJsonIfExists(path.join(researchDir, 'results_v6', 'crypto_eth_sol_5y.json'));
   const summaryStocksV6 = readJsonIfExists(path.join(researchDir, 'results_v6', 'stocks_indices_5y_10y.json'));
 
+  const modelsV7BtcBnb = readJsonIfExists(path.join(researchDir, 'results_v7', 'models_v7_btc_bnb.json'));
+  const modelsV7EthSol = readJsonIfExists(path.join(researchDir, 'results_v7', 'models_v7_eth_sol.json'));
+  const summaryV7BtcBnb = readJsonIfExists(path.join(researchDir, 'results_v7', 'btc_bnb_v7_5y.json'));
+  const summaryV7EthSol = readJsonIfExists(path.join(researchDir, 'results_v7', 'eth_sol_v7_5y.json'));
+  const frontierV7Summary = readJsonIfExists(path.join(researchDir, 'results_v7', 'frontier_75wr_30mo_summary.json'));
+
   const [
     simV5Mod,
     simV6Mod,
+    simV7Mod,
     fetchDerivsMod,
     featuresV5Mod,
     mlInfMod,
@@ -103,9 +111,13 @@ export async function loadRuntimeSpecs(repoRoot) {
     suiteV6BtcBnbMod,
     suiteV6EthSolMod,
     suiteV6StocksMod,
+    highWrV7BtcBnbMod,
+    highWrV7EthSolMod,
+    frontierV7Mod,
   ] = await Promise.all([
     tryImportOptional(path.join(researchDir, 'sim_engine_v5.mjs')),
     tryImportOptional(path.join(researchDir, 'sim_engine_v6.mjs')),
+    tryImportOptional(path.join(researchDir, 'sim_engine_v7.mjs')),
     tryImportOptional(path.join(researchDir, 'fetch_okx_derivs.mjs')),
     tryImportOptional(path.join(researchDir, 'features_v5.mjs')),
     tryImportOptional(path.join(researchDir, 'ml_inference.mjs')),
@@ -113,6 +125,9 @@ export async function loadRuntimeSpecs(repoRoot) {
     tryImportOptional(path.join(researchDir, 'suite_v6_btc_bnb.mjs')),
     tryImportOptional(path.join(researchDir, 'suite_v6_eth_sol.mjs')),
     tryImportOptional(path.join(researchDir, 'suite_v6_stocks.mjs')),
+    tryImportOptional(path.join(researchDir, 'high_wr_v7_btc_bnb.mjs')),
+    tryImportOptional(path.join(researchDir, 'high_wr_v7_eth_sol.mjs')),
+    tryImportOptional(path.join(researchDir, 'portfolio_v7_30pct_frontier.mjs')),
   ]);
 
   return {
@@ -127,8 +142,14 @@ export async function loadRuntimeSpecs(repoRoot) {
     summaryBtcBnb5y,
     summaryEthSol5y,
     summaryStocksV6,
+    modelsV7BtcBnb,
+    modelsV7EthSol,
+    summaryV7BtcBnb,
+    summaryV7EthSol,
+    frontierV7Summary,
     simV5Mod,
     simV6Mod,
+    simV7Mod,
     fetchDerivsMod,
     featuresV5Mod,
     mlInfMod,
@@ -136,11 +157,17 @@ export async function loadRuntimeSpecs(repoRoot) {
     suiteV6BtcBnbMod,
     suiteV6EthSolMod,
     suiteV6StocksMod,
+    highWrV7BtcBnbMod,
+    highWrV7EthSolMod,
+    frontierV7Mod,
     hasV5Engine: Boolean(simV5Mod?.simulateTradesV5),
     hasV5Ml: Boolean(featuresV5Mod && mlInfMod && mlModelsBtc),
     hasV6Engine: Boolean(simV6Mod?.simulateTradesV6),
     hasV6CryptoModels: Boolean(modelsBtcBnb5y || modelsEthSol5y),
     hasV6StockModels: Boolean(modelsStocksV6),
+    hasV7Engine: Boolean(simV7Mod?.simulateTradesV7),
+    hasV7Models: Boolean(modelsV7BtcBnb || modelsV7EthSol),
+    hasV7Frontier: Boolean(frontierV7Summary),
   };
 }
 
@@ -328,6 +355,7 @@ export function resolveLocalDatasetPath(repoRoot, { symbol = 'BTCUSDT.P', timefr
       if (prefer5y) candidates.push('crypto5y_btcusdt_1h.json');
       candidates.push('okx_btcusdt_swap_1h_3y.json', 'okx_btcusdt_1h_3y.json', 'btcusdt_1h_24m.json');
     } else if (tf === '15m') {
+      if (prefer5y) candidates.push('crypto5y_btcusdt_15m.json');
       candidates.push('okx_btcusdt_swap_15m_3y.json', 'okx_btcusdt_15m_3y.json', 'btcusdt_15m_12m.json');
     }
   } else if (sym.startsWith('ETH')) {
@@ -335,16 +363,21 @@ export function resolveLocalDatasetPath(repoRoot, { symbol = 'BTCUSDT.P', timefr
       if (prefer5y) candidates.push('crypto5y_ethusdt_1h.json');
       candidates.push('okx_ethusdt_swap_1h_3y.json', 'ethusdt_1h_12m.json');
     } else if (tf === '15m') {
+      if (prefer5y) candidates.push('crypto5y_ethusdt_15m.json');
       candidates.push('ethusdt_15m_6m.json');
     }
   } else if (sym.startsWith('SOL')) {
     if (tf === '1h') {
       if (prefer5y) candidates.push('crypto5y_solusdt_1h.json');
       candidates.push('okx_solusdt_swap_1h_3y.json');
+    } else if (tf === '15m') {
+      if (prefer5y) candidates.push('crypto5y_solusdt_15m.json');
     }
   } else if (sym.startsWith('BNB')) {
     if (tf === '1h') {
       candidates.push('crypto5y_bnbusdt_1h.json', 'okx_bnbusdt_swap_1h_3y.json');
+    } else if (tf === '15m') {
+      if (prefer5y) candidates.push('crypto5y_bnbusdt_15m.json');
     }
   }
 
@@ -632,8 +665,119 @@ export function computeRegimeTelemetry({ repoRoot, dataset, fundingRates = [], m
   };
 }
 
+export function computeLiquidationDistance(overlay, currentPrice, { mmr = 0.005, fallbackLev = 1.5 } = {}) {
+  const px = Number(currentPrice);
+  if (!Number.isFinite(px) || px <= 0) {
+    return { hasPosition: false, status: 'UNKNOWN', bufferPct: null, liqPrice: null, lev: fallbackLev, mmr };
+  }
+  const hasPos = overlay?.status === 'OPEN_POSITION' || overlay?.status === 'PENDING_LIMIT';
+  const side = overlay?.side === -1 ? -1 : 1;
+  const entryPrice = Number(overlay?.entry ?? overlay?.limitPrice ?? px);
+  const lev = Math.max(1.0, Number(overlay?.lev ?? fallbackLev));
+  const distFrac = Math.max(0.01, 1 / lev - mmr);
+  const liqPrice = side === 1 ? entryPrice * (1 - distFrac) : entryPrice * (1 + distFrac);
+  const bufferPct = side === 1
+    ? ((px - liqPrice) / px) * 100
+    : ((liqPrice - px) / px) * 100;
+  const roundedBuf = Number(bufferPct.toFixed(2));
+  const status = !hasPos
+    ? 'FLAT_EST'
+    : roundedBuf >= 20
+      ? 'SAFE'
+      : roundedBuf >= 10
+        ? 'MODERATE'
+        : 'TIGHT';
+  return {
+    hasPosition: overlay?.status === 'OPEN_POSITION',
+    pending: overlay?.status === 'PENDING_LIMIT',
+    side,
+    entryPrice: Number(entryPrice.toFixed(2)),
+    currentPrice: Number(px.toFixed(2)),
+    liqPrice: Number(Math.max(0, liqPrice).toFixed(2)),
+    lev: Number(lev.toFixed(2)),
+    mmr,
+    bufferPct: roundedBuf,
+    status,
+  };
+}
+
+function normalizeFrontierTierNode(node, prof) {
+  if (!node || typeof node !== 'object') return null;
+  const profData = node.profiles?.[prof] || null;
+  const fullRaw = profData?.full5y_60m || profData?.full5y || node.full5y_60m || node.full5y || null;
+  const holdoutRaw = profData?.blindHoldoutY5_12m || profData?.holdoutY5 || node.blindHoldoutY5_12m || node.holdoutY5 || null;
+  const calValRaw = profData?.calVal_48m || node.calVal_48m || null;
+  const stripTable = (block) => {
+    if (!block || typeof block !== 'object') return null;
+    const { monthlyTable: _omit, ...rest } = block;
+    return rest;
+  };
+  return {
+    tierKey: node.tierKey || node.constraints?.key || null,
+    constraints: node.constraints || null,
+    weightPreset: node.weightPreset || null,
+    weights: node.weights || null,
+    activeStreams: node.activeStreams || null,
+    levScale: node.levScale ?? null,
+    maxTotalOpenLev: node.maxTotalOpenLev ?? null,
+    full5y: stripTable(fullRaw),
+    holdoutY5: stripTable(holdoutRaw),
+    calVal_48m: stripTable(calValRaw),
+  };
+}
+
+export function runV7FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
+  const tierId = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
+  const tierSpec = RISK_TIER_SPECS[tierId];
+  const prof = String(execProfile || 'EXCHANGE_POST_ONLY').toUpperCase();
+  const frontier = runtimeSpecs?.frontierV7Summary;
+
+  if (frontier && typeof frontier === 'object') {
+    const profBlock = frontier.profiles?.[prof] || frontier.tracks?.[prof] || frontier[prof] || frontier.tiers || frontier;
+    const tiersMap = profBlock?.tiers || frontier.tiers || profBlock;
+    const rawSelected = tiersMap?.[tierSpec.frontierKey] || tiersMap?.[tierId] || null;
+    const allTiers = {};
+    for (const [k, spec] of Object.entries(RISK_TIER_SPECS)) {
+      const node = tiersMap?.[spec.frontierKey] || tiersMap?.[k] || null;
+      if (node) allTiers[k] = normalizeFrontierTierNode(node, prof);
+    }
+    if (rawSelected) {
+      const selected = normalizeFrontierTierNode(rawSelected, prof);
+      const profData = rawSelected.profiles?.[prof] || null;
+      const fullRaw = profData?.full5y_60m || profData?.full5y || rawSelected.full5y_60m || rawSelected.full5y || null;
+      return {
+        ready: true,
+        source: 'research/results_v7/frontier_75wr_30mo_summary.json',
+        execProfile: prof,
+        riskTier: tierId,
+        tierSpec,
+        selectedTier: selected,
+        tiers: allTiers,
+        target30MoQuestion: frontier.target30MoQuestion || null,
+        streams: fullRaw?.perStream || frontier.streams || frontier.streamSummaries || frontier.calValStreamScreening || null,
+        monthlyTable: fullRaw?.monthlyTable || rawSelected.monthlyTable || null,
+      };
+    }
+  }
+
+  return {
+    ready: false,
+    source: 'pending-v7-frontier',
+    execProfile: prof,
+    riskTier: tierId,
+    tierSpec,
+    selectedTier: null,
+    tiers: {},
+    streams: {
+      btcBnb: Boolean(runtimeSpecs?.summaryV7BtcBnb),
+      ethSol: Boolean(runtimeSpecs?.summaryV7EthSol),
+    },
+    monthlyTable: null,
+  };
+}
+
 /**
- * Evaluates causal signals, ML probability filtering, and simulation on any of the 7 v6.0 assets.
+ * Evaluates causal signals, ML probability filtering, and simulation on any of the v6.0 / v7.0 assets.
  */
 export function evaluateStrategy({
   dataset,
@@ -644,6 +788,8 @@ export function evaluateStrategy({
   exchange = 'OKX',
   execProfile,
   mlEnabled = true,
+  version = 'auto',
+  riskTier,
   config,
   runtimeSpecs,
 }) {
@@ -651,6 +797,8 @@ export function evaluateStrategy({
   const tf = String(timeframe).toLowerCase();
   const isEq = isEquitySymbol(sym);
   const effectiveProfile = execProfile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY');
+  const effTier = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
+  const ver = String(version || 'auto').toLowerCase();
   const regime = computeRegimeTelemetry({
     repoRoot: config.repoRoot,
     dataset,
@@ -658,6 +806,43 @@ export function evaluateStrategy({
     macroData,
     symbol: sym,
   });
+
+  const alignFn = runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal || runtimeSpecs.simV5Mod?.alignFundingToBarsCausal;
+  const alignedFunding = alignFn && fundingRates.length > 0
+    ? alignFn(dataset.rows, fundingRates)
+    : null;
+
+  // v7.0 High-WR path (when v7 modules + models are present and requested/auto for crypto)
+  const v7Runner = (!isEq && (ver === 'v7' || ver === 'auto'))
+    ? ((sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P')
+        ? runtimeSpecs.highWrV7BtcBnbMod?.evaluateSingleStreamV7
+        : runtimeSpecs.highWrV7EthSolMod?.evaluateSingleStreamV7)
+    : null;
+
+  if (typeof v7Runner === 'function') {
+    const v7Res = v7Runner({
+      symbol: sym,
+      timeframe: tf,
+      dataset,
+      fundingRates,
+      alignedFunding,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      riskTier: effTier,
+      maxLeverageCap: config.maxLeverageCap,
+    });
+    if (v7Res && v7Res.summary) {
+      const lastClose = dataset.rows[dataset.rows.length - 1]?.close;
+      const liqDist = computeLiquidationDistance(v7Res.activeOverlay, lastClose, {
+        fallbackLev: v7Res.execOptions?.minLev ?? 1.5,
+      });
+      return {
+        ...v7Res,
+        regime: v7Res.regime || regime,
+        liquidationDistance: v7Res.liquidationDistance || liqDist,
+      };
+    }
+  }
 
   // Check if dedicated v6.0 suite module exposes a clean runtime runner for this asset
   const v6SuiteRunner = isEq
@@ -678,21 +863,40 @@ export function evaluateStrategy({
       maxLeverageCap: config.maxLeverageCap,
     });
     if (suiteRes && suiteRes.summary) {
+      const lastClose = dataset.rows[dataset.rows.length - 1]?.close;
+      const liqDist = computeLiquidationDistance(suiteRes.activeOverlay, lastClose, {
+        fallbackLev: suiteRes.execOptions?.minLev ?? 1.5,
+      });
       return {
         ...suiteRes,
         regime: suiteRes.regime || regime,
+        liquidationDistance: suiteRes.liquidationDistance || liqDist,
       };
     }
   }
 
-  const alignFn = runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal || runtimeSpecs.simV5Mod?.alignFundingToBarsCausal;
-  const alignedFunding = alignFn && fundingRates.length > 0
-    ? alignFn(dataset.rows, fundingRates)
-    : null;
-
   const isBtc = sym === 'BTCUSDT.P';
+  const coinPrefix = sym.replace('USDT.P', '').replace('USDT', '');
+  const v7StreamKey = `${coinPrefix}_${tf}`;
+
+  const useV7BtcBnb = Boolean(
+    !isEq &&
+      (ver === 'v7' || ver === 'auto') &&
+      (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P') &&
+      runtimeSpecs.highWrV7BtcBnbMod?.generateStreamSignalsV7 &&
+      runtimeSpecs.modelsV7BtcBnb?.models?.[v7StreamKey],
+  );
+  const useV7EthSol = Boolean(
+    !isEq &&
+      (ver === 'v7' || ver === 'auto') &&
+      (sym === 'ETHUSDT.P' || sym === 'SOLUSDT.P') &&
+      runtimeSpecs.highWrV7EthSolMod?.generateEthSolStreamSignalsV7 &&
+      runtimeSpecs.modelsV7EthSol?.models?.[v7StreamKey],
+  );
+
   const useV6BtcBnb = Boolean(
     !isEq &&
+      !useV7BtcBnb &&
       tf === '1h' &&
       (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P') &&
       runtimeSpecs.suiteV6BtcBnbMod &&
@@ -700,6 +904,7 @@ export function evaluateStrategy({
   );
   const useV6EthSol = Boolean(
     !isEq &&
+      !useV7EthSol &&
       tf === '1h' &&
       (sym === 'ETHUSDT.P' || sym === 'SOLUSDT.P') &&
       runtimeSpecs.suiteV6EthSolMod &&
@@ -714,13 +919,19 @@ export function evaluateStrategy({
 
   const mlBundle = isEq
     ? runtimeSpecs.modelsStocksV6
-    : (useV6BtcBnb
-        ? runtimeSpecs.modelsBtcBnb5y
-        : useV6EthSol
-          ? runtimeSpecs.modelsEthSol5y
-          : (isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt));
+    : (useV7BtcBnb
+        ? runtimeSpecs.modelsV7BtcBnb
+        : useV7EthSol
+          ? runtimeSpecs.modelsV7EthSol
+          : useV6BtcBnb
+            ? runtimeSpecs.modelsBtcBnb5y
+            : useV6EthSol
+              ? runtimeSpecs.modelsEthSol5y
+              : (isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt));
 
-  const mlEntry = resolveMlModelEntry(mlBundle, tf, sym);
+  const mlEntry = isEq || useV6BtcBnb || useV6EthSol || (!useV7BtcBnb && !useV7EthSol)
+    ? resolveMlModelEntry(mlBundle, tf, sym)
+    : mlBundle.models[v7StreamKey];
 
   let rawSignals = [];
   let featureExtractor = null;
@@ -730,7 +941,44 @@ export function evaluateStrategy({
   let ofCtx = null;
   let ethCtx = null;
 
-  if (useV6Stocks && mlEntry?.signalSpec) {
+  if (useV7BtcBnb && mlEntry?.structuralSpec?.sigSpec) {
+    rawSignals = runtimeSpecs.highWrV7BtcBnbMod.generateStreamSignalsV7(
+      v7StreamKey,
+      dataset,
+      mlEntry.structuralSpec.sigSpec,
+      alignedFunding,
+    );
+    ofCtx = runtimeSpecs.suiteV6BtcBnbMod?.precomputeOrderflowContextV6?.(dataset, alignedFunding) || null;
+    if (ofCtx && runtimeSpecs.suiteV6BtcBnbMod?.extractCandidateFeaturesV6) {
+      featureExtractor = sig => runtimeSpecs.suiteV6BtcBnbMod.extractCandidateFeaturesV6(dataset, sig, sig.barIndex, alignedFunding, ofCtx);
+    }
+  } else if (useV7EthSol && mlEntry?.structuralSpec?.sigSpec) {
+    const isEth = sym === 'ETHUSDT.P';
+    if (isEth) {
+      const btcFile = tf === '15m' ? 'crypto5y_btcusdt_15m.json' : 'crypto5y_btcusdt_1h.json';
+      btcRefDs = readJsonIfExists(path.join(config.repoRoot, 'data', btcFile)) || dataset;
+      rawSignals = runtimeSpecs.highWrV7EthSolMod.generateEthSolStreamSignalsV7(
+        v7StreamKey,
+        dataset,
+        mlEntry.structuralSpec.sigSpec,
+        btcRefDs,
+      );
+      ethCtx = runtimeSpecs.suiteV6EthSolMod?.precomputeEthCrossContextV6?.(dataset, btcRefDs, alignedFunding) || null;
+      if (ethCtx && runtimeSpecs.suiteV6EthSolMod?.extractEthCandidateFeaturesV6) {
+        featureExtractor = sig => runtimeSpecs.suiteV6EthSolMod.extractEthCandidateFeaturesV6(dataset, btcRefDs, sig, sig.barIndex, alignedFunding, ethCtx);
+      }
+    } else {
+      rawSignals = runtimeSpecs.highWrV7EthSolMod.generateEthSolStreamSignalsV7(
+        v7StreamKey,
+        dataset,
+        mlEntry.structuralSpec.sigSpec,
+      );
+      ofCtx = runtimeSpecs.suiteV6BtcBnbMod?.precomputeOrderflowContextV6?.(dataset, alignedFunding) || null;
+      if (ofCtx && runtimeSpecs.suiteV6BtcBnbMod?.extractCandidateFeaturesV6) {
+        featureExtractor = sig => runtimeSpecs.suiteV6BtcBnbMod.extractCandidateFeaturesV6(dataset, sig, sig.barIndex, alignedFunding, ofCtx);
+      }
+    }
+  } else if (useV6Stocks && mlEntry?.signalSpec) {
     const macroObj = macroData || readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json'));
     const dowJson = readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_dow_1d.json'));
     const qqqJson = readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_nasdaq_1d.json'));
@@ -807,7 +1055,7 @@ export function evaluateStrategy({
   const modelSpec = mlEntry ? (mlEntry.model || mlEntry) : null;
   const tau = Number(modelSpec?.threshold ?? mlEntry?.threshold ?? mlEntry?.tau ?? 0.55);
   const modelVersion = canScoreMl
-    ? (mlEntry.version || (useV6BtcBnb || useV6EthSol || useV6Stocks ? `v6.0-${modelSpec?.modelType || 'ML'}` : modelSpec?.modelType) || 'v5.0-ML')
+    ? (mlEntry.version || ((useV7BtcBnb || useV7EthSol) ? `v7.0-${modelSpec?.modelType || 'ML'}` : (useV6BtcBnb || useV6EthSol || useV6Stocks ? `v6.0-${modelSpec?.modelType || 'ML'}` : modelSpec?.modelType)) || 'v5.0-ML')
     : (isEq ? 'v6.0-equity-fallback' : 'v4.1-fallback');
 
   const signalsAudit = [];
@@ -883,7 +1131,13 @@ export function evaluateStrategy({
   };
 
   let simResult;
-  if (runtimeSpecs.simV6Mod?.simulateTradesV6) {
+  if (!isEq && runtimeSpecs.simV7Mod?.simulateTradesV7) {
+    simResult = runtimeSpecs.simV7Mod.simulateTradesV7(dataset.rows, filteredSignals, {
+      ...simOpts,
+      isolatedLiqCheck: true,
+      mmr: 0.005,
+    });
+  } else if (runtimeSpecs.simV6Mod?.simulateTradesV6) {
     simResult = runtimeSpecs.simV6Mod.simulateTradesV6(dataset.rows, filteredSignals, simOpts);
   } else if (!isEq && runtimeSpecs.simV5Mod?.simulateTradesV5) {
     simResult = runtimeSpecs.simV5Mod.simulateTradesV5(dataset.rows, filteredSignals, simOpts);
@@ -918,11 +1172,23 @@ export function evaluateStrategy({
   });
 
   const activeOverlay = buildActiveOverlay(simResult, dataset.rows, signalsAudit);
+  const lastClose = dataset.rows[dataset.rows.length - 1]?.close;
+  const liquidationDistance = isEq
+    ? { hasPosition: false, status: 'CASH_ETF', bufferPct: 100, liqPrice: 0, lev: 1.0, mmr: 0 }
+    : computeLiquidationDistance(activeOverlay, lastClose, {
+        fallbackLev: execOptions.minLev ?? 1.5,
+      });
+
+  const monthlySummary = (!isEq && runtimeSpecs.simV7Mod?.summarizeMonthlyCashflowV7)
+    ? runtimeSpecs.simV7Mod.summarizeMonthlyCashflowV7(simResult.trades, dataset.rows)
+    : null;
+
   const summary = {
     exchange: isEq ? 'YAHOO' : exchange,
     symbol: sym,
     timeframe: tf,
     execProfile: effectiveProfile,
+    riskTier: effTier,
     modelVersion,
     mlThreshold: canScoreMl ? tau : null,
     bars: dataset.rows.length,
@@ -939,12 +1205,16 @@ export function evaluateStrategy({
     maxDrawdownPct: Number((simResult.maxDrawdownPct ?? 0).toFixed(2)),
     compoundedMaxDrawdownPct: Number((simResult.compoundedMaxDrawdownPct ?? 0).toFixed(2)),
     fundingDragPct: Number(fundingDragSum.toFixed(2)),
+    liquidationCount: simResult.liquidationCount ?? 0,
+    meanMonthlySweepPct: monthlySummary ? Number((monthlySummary.meanMonthlySweepPct ?? 0).toFixed(2)) : null,
     exitReasons: simResult.exitReasons,
   };
 
   return {
     summary,
     regime,
+    liquidationDistance,
+    monthlySummary,
     execOptions,
     signalsAudit,
     trades: enrichedTrades,
