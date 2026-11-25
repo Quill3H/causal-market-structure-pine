@@ -1,0 +1,675 @@
+{
+  "schema": "smc-v6-stocks-ml-models-v1",
+  "generatedAt": "2026-11-25T08:25:39.934801+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 50% Cal (~5Y), 30% Val (~3Y incl. 2022 bear market), 20% Blind Holdout (~2Y)",
+    "purging": "Purged all Cal/Val boundary-overlapping trades (exitIndex < calEnd for Cal, signalIndex >= calEnd && exitIndex < valEnd for Val)",
+    "fitScope": "Structural parameters calibrated on Cal+Val only; SimpleImputer + StandardScaler + Classifier fit strictly on Cal purged sequential trades; threshold tau & sizeCurve selected strictly on Val; Blind Holdout [valEnd..N) never accessed by trainer"
+  },
+  "models": {
+    "SPY": {
+      "modelType": "gradient_boosting",
+      "featureNames": [
+        "ibs_dir",
+        "vix_level",
+        "vix_chg_5d",
+        "dist_sma50_atr"
+      ],
+      "threshold": 0.6447,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.8,
+        "maxMult": 1.35,
+        "pMax": 0.7181
+      },
+      "imputer": {
+        "medians": [
+          0.3490203946158895,
+          19.65499973297119,
+          2.2899999618530273,
+          1.5828843101465275
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.31716773996956704,
+          20.83131574329577,
+          2.9335525537792004,
+          1.1954940808326355
+        ],
+        "scale": [
+          0.1641727453703967,
+          7.250210521981918,
+          4.37604044975131,
+          2.239274103000179
+        ]
+      },
+      "classifier": {
+        "initScore": 0.8347976976229722,
+        "learningRate": 0.05,
+        "trees": [
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.65845987200737,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.030701754385964834,
+              0.10723543888433149,
+              -1.4090237899917961
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              1,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.5101486146450043,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.020058115035942525,
+              0.4008027956392533,
+              -0.8982971609410247
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.0636539701372385,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.014481925908517535,
+              0.39712368586160174,
+              -0.8088938599282074
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              1,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.1508486457169056,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.003394492334127549,
+              0.3744189275790627,
+              -0.7335154118236527
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0274857878684998,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.029144944561025267,
+              0.7894140665402047,
+              -0.42521573927343914
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.6641729474067688,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.00944700169471033,
+              0.28987167097828376,
+              -1.6146101137543643
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.31616535782814026,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.026481124076004954,
+              0.7612299761695894,
+              -0.620724402813526
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              1,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.8563453853130341,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.04134173675744022,
+              0.1033208245243145,
+              -1.587547311422636
+            ]
+          }
+        ]
+      },
+      "asset": "SPY",
+      "symbol": "SPY",
+      "benchmarkSymbol": "^GSPC",
+      "signalSpec": {
+        "asset": "SPY",
+        "specId": "V6Stock:SPY:IBS_RSI2_Regime",
+        "entryMode": "MARKET_NEXT_OPEN",
+        "limitOffsetAtr": 0,
+        "warmup": 210,
+        "bullSmaBuf": 1,
+        "bullVixMax": 35,
+        "bullIbsMax": 0.3,
+        "bullRsi2Max": 35,
+        "bearEnabled": true,
+        "bearVixMin": 20,
+        "bearRsi2Min": 78,
+        "bearIbsMin": 0.65
+      },
+      "execOptions": {
+        "execProfile": "EQUITY_ETF",
+        "allowTimeGaps": true,
+        "costPct": 0.04,
+        "slippagePct": 0.015,
+        "fundingPctPer8h": 0,
+        "entryMode": "MARKET_NEXT_OPEN",
+        "limitExpiryBars": 3,
+        "pendingPolicy": "ignore",
+        "cooldown": 1,
+        "warmup": 210,
+        "stopAtr": 2.5,
+        "minStopPct": 0.8,
+        "rewardRisk": 0.88,
+        "maxHoldBars": 14,
+        "beTriggerR": 0.4,
+        "beOffsetPct": 0.15,
+        "volNormRiskPct": 2.2,
+        "minLev": 0.75,
+        "maxLev": 2,
+        "fixedLev": 1
+      },
+      "selectionMeta": {
+        "selectedId": "seq:ibs_macro:GB_d1_n8|t=0.6447|sc=linear_0.8_1.35",
+        "calCvAuc": 0.6035,
+        "calInAuc": 0.7469,
+        "valRocAuc": 0.534,
+        "valCorrNet": 0.0358,
+        "calRange": [
+          0,
+          1256
+        ],
+        "valRange": [
+          1256,
+          2010
+        ],
+        "holdoutRangeUntouched": [
+          2010,
+          2513
+        ],
+        "calTrainSamples": 76,
+        "valEvalSamples": 50,
+        "eligibleOnVal": false,
+        "valBaseline": {
+          "count": 50,
+          "wins": 34,
+          "losses": 16,
+          "ties": 0,
+          "winRatePct": 68,
+          "wilsonLower95Pct": 54.19,
+          "profitFactor": 1.48,
+          "totalNetPct": 17.52,
+          "compoundedNetPct": 17.88,
+          "cagrPct": 5.65,
+          "maxDrawdownPct": 9.47,
+          "compoundedMaxDrawdownPct": 9.16,
+          "sharpe": 0.69,
+          "sortino": 1.06,
+          "calmar": 0.62,
+          "buyHoldPct": 26.29,
+          "buyHoldMaxDdPct": 25.36,
+          "retToDd": 1.95
+        },
+        "valSelected": {
+          "count": 46,
+          "wins": 31,
+          "losses": 15,
+          "ties": 0,
+          "winRatePct": 67.39,
+          "wilsonLower95Pct": 52.97,
+          "profitFactor": 1.46,
+          "totalNetPct": 18.96,
+          "compoundedNetPct": 19.22,
+          "cagrPct": 6.04,
+          "maxDrawdownPct": 7.72,
+          "compoundedMaxDrawdownPct": 7.59,
+          "sharpe": 0.66,
+          "sortino": 1,
+          "calmar": 0.8,
+          "buyHoldPct": 26.29,
+          "buyHoldMaxDdPct": 25.36,
+          "retToDd": 2.53
+        }
+      }
+    },
+    "DIA": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "ibs_dir",
+        "dia_qqq_rot_z20",
+        "dia_qqq_rot_z60",
+        "vix_ratio_20"
+      ],
+      "threshold": 0.6748,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.75,
+        "maxMult": 1.5,
+        "pMax": 0.7266
+      },
+      "imputer": {
+        "medians": [
+          0.3320598238829614,
+          -0.7188735662675444,
+          -0.7379528931967164,
+          1.0691633904604103
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.2890313258625019,
+          -0.4704461240814208,
+          -0.656333370485548,
+          1.1088408810145503
+        ],
+        "scale": [
+          0.17977321094102033,
+          1.3208396841627985,
+          1.2693501133471319,
+          0.20312925862740114
+        ]
+      },
+      "classifier": {
+        "coef": [
+          -0.060557213279423795,
+          0.02414385328116646,
+          0.010180851092931155,
+          -0.059231413311227686
+        ],
+        "intercept": 0.783966021010491
+      },
+      "asset": "DIA",
+      "symbol": "DIA",
+      "benchmarkSymbol": "^DJI",
+      "signalSpec": {
+        "asset": "DIA",
+        "specId": "V6Stock:DIA:ValueMR_RotZ_Macro",
+        "entryMode": "MARKET_NEXT_OPEN",
+        "limitOffsetAtr": 0,
+        "warmup": 210,
+        "bullSmaBuf": 1,
+        "bullVixMax": 26,
+        "bullIbsMax": 0.32,
+        "bullRsi2Max": 20,
+        "minRotZ": -3,
+        "tnxMaxShock": 0.45,
+        "bearEnabled": false,
+        "bearRsi2Min": 78,
+        "bearIbsMin": 0.65
+      },
+      "execOptions": {
+        "execProfile": "EQUITY_ETF",
+        "allowTimeGaps": true,
+        "costPct": 0.04,
+        "slippagePct": 0.015,
+        "fundingPctPer8h": 0,
+        "entryMode": "MARKET_NEXT_OPEN",
+        "limitExpiryBars": 3,
+        "pendingPolicy": "ignore",
+        "cooldown": 1,
+        "warmup": 210,
+        "stopAtr": 2.8,
+        "minStopPct": 0.8,
+        "rewardRisk": 0.84,
+        "maxHoldBars": 14,
+        "beTriggerR": 0.45,
+        "beOffsetPct": 0.12,
+        "volNormRiskPct": 2.2,
+        "minLev": 0.75,
+        "maxLev": 2,
+        "fixedLev": 1
+      },
+      "selectionMeta": {
+        "selectedId": "seq:rot_vix:LR_C0.02_unw|t=0.6748|sc=linear_0.75_1.5",
+        "calCvAuc": 0.5202,
+        "calInAuc": 0.65,
+        "valRocAuc": 0.732,
+        "valCorrNet": 0.2372,
+        "calRange": [
+          0,
+          1256
+        ],
+        "valRange": [
+          1256,
+          2010
+        ],
+        "holdoutRangeUntouched": [
+          2010,
+          2513
+        ],
+        "calTrainSamples": 51,
+        "valEvalSamples": 26,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 26,
+          "wins": 17,
+          "losses": 9,
+          "ties": 0,
+          "winRatePct": 65.38,
+          "wilsonLower95Pct": 46.22,
+          "profitFactor": 1.6,
+          "totalNetPct": 11.08,
+          "compoundedNetPct": 11.16,
+          "cagrPct": 3.6,
+          "maxDrawdownPct": 6.91,
+          "compoundedMaxDrawdownPct": 6.76,
+          "sharpe": 0.64,
+          "sortino": 1,
+          "calmar": 0.53,
+          "buyHoldPct": 21.92,
+          "buyHoldMaxDdPct": 21.9,
+          "retToDd": 1.65
+        },
+        "valSelected": {
+          "count": 25,
+          "wins": 17,
+          "losses": 8,
+          "ties": 0,
+          "winRatePct": 68,
+          "wilsonLower95Pct": 48.41,
+          "profitFactor": 2,
+          "totalNetPct": 15.81,
+          "compoundedNetPct": 16.55,
+          "cagrPct": 5.24,
+          "maxDrawdownPct": 4.36,
+          "compoundedMaxDrawdownPct": 4.31,
+          "sharpe": 0.94,
+          "sortino": 1.61,
+          "calmar": 1.22,
+          "buyHoldPct": 21.92,
+          "buyHoldMaxDdPct": 21.9,
+          "retToDd": 3.84
+        }
+      }
+    },
+    "QQQ": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "ibs_dir",
+        "rsi2_dir",
+        "ret_3d_dir_atr",
+        "wk_ema20_dist_atr"
+      ],
+      "threshold": 0.614,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.75,
+        "maxMult": 1.5,
+        "pMax": 0.762
+      },
+      "imputer": {
+        "medians": [
+          -0.1975265616758345,
+          -0.713619569362046,
+          0.6544332965900823,
+          1.812790232167292
+        ]
+      },
+      "scaler": {
+        "mean": [
+          -0.06141372493644026,
+          -0.15461378202169812,
+          0.2188580873881126,
+          1.7912820297420187
+        ],
+        "scale": [
+          0.3656139358779797,
+          0.8096322038260277,
+          1.4136772779038724,
+          0.8937854910828825
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.008321124862890515,
+          -0.030870133017300065,
+          0.011486265247670473,
+          -0.2449691133101383
+        ],
+        "intercept": 0.7695433382478273
+      },
+      "asset": "QQQ",
+      "symbol": "QQQ",
+      "benchmarkSymbol": "^NDX",
+      "signalSpec": {
+        "asset": "QQQ",
+        "specId": "V6Stock:QQQ:TechMomPB_VolBrk_TnxVixGuard",
+        "entryMode": "LIMIT_PULLBACK",
+        "limitOffsetAtr": 0.35,
+        "warmup": 210,
+        "bullSmaBuf": 0.99,
+        "bullVixMax": 34,
+        "vixSpikeCap": 1.35,
+        "tnxShockMax": 0.3,
+        "pbIbsMax": 0.38,
+        "pbRsi2Max": 32,
+        "useBreakout": true,
+        "compRatioMax": 0.85,
+        "bearEnabled": true,
+        "bearRsi2Min": 78,
+        "bearIbsMin": 0.65
+      },
+      "execOptions": {
+        "execProfile": "EQUITY_ETF",
+        "allowTimeGaps": true,
+        "costPct": 0.04,
+        "slippagePct": 0.015,
+        "fundingPctPer8h": 0,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 2,
+        "pendingPolicy": "ignore",
+        "cooldown": 2,
+        "warmup": 210,
+        "stopAtr": 2.8,
+        "minStopPct": 1,
+        "rewardRisk": 0.88,
+        "maxHoldBars": 8,
+        "beTriggerR": 0.42,
+        "beOffsetPct": 0.15,
+        "volNormRiskPct": 2.2,
+        "minLev": 0.75,
+        "maxLev": 2,
+        "fixedLev": 1
+      },
+      "selectionMeta": {
+        "selectedId": "seq:core_mr:LR_C0.05_unw|t=0.6140|sc=linear_0.75_1.5",
+        "calCvAuc": 0.6621,
+        "calInAuc": 0.6809,
+        "valRocAuc": 0.604,
+        "valCorrNet": 0.1916,
+        "calRange": [
+          0,
+          1256
+        ],
+        "valRange": [
+          1256,
+          2010
+        ],
+        "holdoutRangeUntouched": [
+          2010,
+          2513
+        ],
+        "calTrainSamples": 69,
+        "valEvalSamples": 35,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 35,
+          "wins": 25,
+          "losses": 10,
+          "ties": 0,
+          "winRatePct": 71.43,
+          "wilsonLower95Pct": 54.94,
+          "profitFactor": 2.52,
+          "totalNetPct": 29.01,
+          "compoundedNetPct": 32.4,
+          "cagrPct": 9.82,
+          "maxDrawdownPct": 8.47,
+          "compoundedMaxDrawdownPct": 8.28,
+          "sharpe": 1.28,
+          "sortino": 2.16,
+          "calmar": 1.19,
+          "buyHoldPct": 26.01,
+          "buyHoldMaxDdPct": 35.54,
+          "retToDd": 3.91
+        },
+        "valSelected": {
+          "count": 33,
+          "wins": 26,
+          "losses": 7,
+          "ties": 0,
+          "winRatePct": 78.79,
+          "wilsonLower95Pct": 62.25,
+          "profitFactor": 3.58,
+          "totalNetPct": 35.75,
+          "compoundedNetPct": 41.67,
+          "cagrPct": 12.33,
+          "maxDrawdownPct": 8.47,
+          "compoundedMaxDrawdownPct": 8.28,
+          "sharpe": 1.69,
+          "sortino": 3.02,
+          "calmar": 1.49,
+          "buyHoldPct": 26.01,
+          "buyHoldMaxDdPct": 35.54,
+          "retToDd": 5.03
+        }
+      }
+    }
+  }
+}

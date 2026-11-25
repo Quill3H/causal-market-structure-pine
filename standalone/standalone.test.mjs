@@ -17,15 +17,28 @@ import {
   BinanceFuturesClient,
   buildBinancePostOnlyEntryOrder,
   buildBinanceReduceOnlySlTpOrders,
+  parseBinanceKline,
   signBinanceRequest,
+  toBinanceSymbol,
 } from './exchange_binance.mjs';
 import {
   buildPostOnlyEntryOrder,
   buildReduceOnlySlTpOrders,
   OkxClient,
   signOkxRequest,
+  toOkxInstId,
 } from './exchange_okx.mjs';
-import { loadRuntimeSpecs } from './engine_runtime.mjs';
+import {
+  buildDatasetFromCandles,
+  evaluateStrategy,
+  loadRuntimeSpecs,
+  normalizeAssetSymbol,
+} from './engine_runtime.mjs';
+import {
+  parseYahooChartResponse,
+  resolveEquityInstrument,
+  YahooEquitiesClient,
+} from './market_equities.mjs';
 import { createStandaloneServer } from './server.mjs';
 import { resolveSafeSqlitePath, StandaloneStore } from './store_sqlite.mjs';
 
@@ -432,5 +445,129 @@ describe('4. HTTP 127.0.0.1 Command Center APIs & Zero-XSS static audit', () => 
     assert.equal(/\son[a-z]+\s*=/i.test(indexHtml), false, 'Inline event handler found in index.html');
     const inlineScripts = indexHtml.match(/<script(?![^>]*\bsrc=)[^>]*>/gi);
     assert.equal(inlineScripts, null, 'Inline <script> tag without src found in index.html');
+  });
+});
+
+describe('5. v6.0 BNB support, Yahoo Finance v8 equities & macro regime', () => {
+  it('supports BNBUSDT / BNB-USDT-SWAP mapping and Binance takerBuyVol kline parsing', () => {
+    assert.equal(toOkxInstId('BNBUSDT.P'), 'BNB-USDT-SWAP');
+    assert.equal(toOkxInstId('BNB'), 'BNB-USDT-SWAP');
+    assert.equal(toBinanceSymbol('BNBUSDT.P'), 'BNBUSDT');
+    assert.equal(toBinanceSymbol('BNB-USDT-SWAP'), 'BNBUSDT');
+    assert.equal(normalizeAssetSymbol('BNB'), 'BNBUSDT.P');
+    assert.equal(normalizeAssetSymbol('^GSPC'), 'SPY');
+    assert.equal(normalizeAssetSymbol('Dow Jones'), 'DIA');
+    assert.equal(normalizeAssetSymbol('^NDX'), 'QQQ');
+
+    const kline = parseBinanceKline([
+      1700000000000,
+      '245.5',
+      '248.0',
+      '244.1',
+      '247.2',
+      '12000.5',
+      1700003599999,
+      '2950000',
+      842,
+      '6700.25',
+      '1650000',
+      '0',
+    ]);
+    assert.equal(kline.takerBuyVol, 6700.25);
+    assert.equal(kline.trades, 842);
+  });
+
+  it('parses Yahoo Finance v8 payloads, macro snapshot (^VIX/^TNX), and evaluates Equity ETF strategy', async () => {
+    const mockChart = (closes) => ({
+      chart: {
+        result: [{
+          timestamp: closes.map((_, idx) => 1700006400 + idx * 86400),
+          indicators: {
+            quote: [{
+              open: closes.map(c => c * 0.998),
+              high: closes.map(c => c * 1.005),
+              low: closes.map(c => c * 0.992),
+              close: closes,
+              volume: closes.map(() => 50000000),
+            }],
+          },
+        }],
+      },
+    });
+
+    const parsedSpy = parseYahooChartResponse({
+      chart: {
+        result: [{
+          timestamp: [1700006400, 1700092800, 1700179200],
+          indicators: {
+            quote: [{
+              open: [450, null, 452],
+              high: [452, 453, 455],
+              low: [449, 450, 451],
+              close: [451, NaN, 454],
+              volume: [1e7, 0, 1.2e7],
+            }],
+          },
+        }],
+      },
+    }, { interval: '1d' });
+    assert.equal(parsedSpy.length, 2);
+    assert.equal(resolveEquityInstrument('S&P 500').indexSymbol, '^GSPC');
+
+    const client = new YahooEquitiesClient({
+      fetchImpl: async (url) => {
+        const isVix = url.includes('%5EVIX');
+        const payload = isVix ? mockChart([16.2, 15.8]) : mockChart([4.25, 4.31]);
+        return { ok: true, status: 200, json: async () => payload };
+      },
+    });
+    const macro = await client.getMacroSnapshot();
+    assert.equal(macro.vix, 15.8);
+    assert.equal(macro.tnx, 4.31);
+
+    // Synthetic 260 daily bars with weekends/gaps + pullback triggers
+    const rows = [];
+    let t = 1680048000;
+    for (let i = 0; i < 260; i++) {
+      // skip every 6th & 7th day like weekends
+      t += (i % 5 === 0 && i > 0) ? 3 * 86400 : 86400;
+      const base = 400 + i * 0.35;
+      const dip = (i % 25 === 0 && i > 205) ? -6.5 : 0;
+      const close = base + dip;
+      const open = base;
+      const high = Math.max(open, close) + 2.5;
+      const low = dip < 0 ? close - 0.1 : Math.min(open, close) - 1.5;
+      rows.push({ time: t, open, high, low, close, volume: 1000000 });
+    }
+    const ds = buildDatasetFromCandles({ symbol: 'SPY', timeframe: '1d', rows });
+    assert.equal(ds.allowTimeGaps, true);
+    assert.ok(ds.htf['1wk'].rows.length > 10);
+
+    const tmp = makeTmpDir('tt6-eq-');
+    try {
+      const cfg = loadConfig({
+        cwd: REPO_ROOT,
+        useProcessEnv: false,
+        envOverrides: { ALPACA_API_KEY: 'alp-secret-key', ALPACA_API_SECRET: 'alp-secret-val' },
+      });
+      assert.ok(!JSON.stringify(cfg).includes('alp-secret-key'));
+      const runtimeSpecs = await loadRuntimeSpecs(REPO_ROOT);
+      const evalRes = evaluateStrategy({
+        dataset: ds,
+        macroData: macro,
+        timeframe: '1d',
+        symbol: 'SPY',
+        exchange: 'YAHOO',
+        execProfile: 'EQUITY_ETF',
+        config: cfg,
+        runtimeSpecs,
+      });
+      assert.equal(evalRes.summary.symbol, 'SPY');
+      assert.equal(evalRes.regime.vix, 15.8);
+      assert.equal(evalRes.regime.tnx, 4.31);
+      assert.ok(evalRes.signalsAudit.length >= 1);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });

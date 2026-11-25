@@ -1,0 +1,320 @@
+{
+  "schema": "smc-v6-btc-bnb-5y-models-v1",
+  "generatedAt": "2026-11-25T08:24:29.478201+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 50% Cal (Y1..2.5 incl 2022 bear), 30% Val (Y2.5..4), 20% Blind Holdout Y5",
+    "purging": "Purged all boundary-overlapping trades at calEnd and valEnd",
+    "fitScope": "Structural selection on Cal+Val only; ML imputer+scaler+classifier fit strictly on Cal; model+threshold+sizeCurve selected strictly on Val; Blind Holdout Y5 never accessed by trainer"
+  },
+  "models": {
+    "BTCUSDT": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "delta_ratio_1b",
+        "cvd_zscore_48",
+        "close_pos_dir",
+        "funding_dir_align"
+      ],
+      "threshold": 0.6131,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.7163
+      },
+      "imputer": {
+        "medians": [
+          0.026848494328300276,
+          0.3108206519663052,
+          0.6295857988165552,
+          0.1031
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.014335486069084668,
+          0.14900538221929638,
+          0.5513828928334693,
+          -0.0672
+        ],
+        "scale": [
+          0.08259105652368559,
+          1.0296702403619413,
+          0.3145847865272162,
+          1.290912862241504
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.09977239836446189,
+          0.0602050411462278,
+          0.027423384063236182,
+          -0.14598418474255126
+        ],
+        "intercept": 0.6340423458020525
+      },
+      "structuralSpec": {
+        "id": "BTC_5Y_Adapt_H4_50_off0.18_s3.2_rr1.25_be0.45_0.4",
+        "sigSpec": {
+          "specId": "BTC_5Y_Adapt_H4_50_off0.18_s3.2_rr1.25_be0.45_0.4",
+          "family": "AdaptiveTrapPolarity",
+          "baseFamily": "HtfSmcMultiTrap",
+          "lookback": 20,
+          "trapMaxBars": 4,
+          "p4Lookback": 10,
+          "includePdhl": true,
+          "htfMode": "H4_50",
+          "limitOffsetAtr": 0.18,
+          "winLen": 6,
+          "slThresh": 2,
+          "requireNegNet": true,
+          "sharedHistory": false,
+          "virtExec": {
+            "entryMode": "LIMIT_PULLBACK",
+            "limitExpiryBars": 6,
+            "pendingPolicy": "ignore",
+            "limitSameBarTp": "close",
+            "cooldown": 4,
+            "warmup": 250,
+            "stopAtr": 3.2,
+            "minStopPct": 1.4,
+            "rewardRisk": 1.25,
+            "maxHoldBars": 96,
+            "beTriggerR": 0.45,
+            "beOffsetPct": 0.4,
+            "costPct": 0.1,
+            "slippagePct": 0.025
+          }
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 3.2,
+          "minStopPct": 1.4,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.45,
+          "beOffsetPct": 0.4,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 4.5,
+          "minLev": 1.4,
+          "maxLev": 2.8
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:of_cvd_fund:LR_C0.02_unw|t=0.6131|sc=linear_0.85_1.4",
+        "calCvAuc": 0.543,
+        "calInAuc": 0.5991,
+        "valRocAuc": 0.5514,
+        "valCorrNet": 0.1395,
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 181,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 130,
+          "wins": 97,
+          "losses": 33,
+          "winRatePct": 74.62,
+          "profitFactor": 1.43,
+          "totalNetPct": 66.38,
+          "compoundedNetPct": 77.88,
+          "cagrPct": 46.62,
+          "maxDrawdownPct": 38.08,
+          "compoundedMaxDrawdownPct": 32.4,
+          "sharpe": 1.3,
+          "sortino": 1.96,
+          "calmar": 1.44,
+          "buyHoldPct": 27.77,
+          "buyHoldMaxDdPct": 34.76
+        },
+        "valSelected": {
+          "count": 110,
+          "wins": 85,
+          "losses": 25,
+          "winRatePct": 77.27,
+          "profitFactor": 1.74,
+          "totalNetPct": 94.13,
+          "compoundedNetPct": 134.84,
+          "cagrPct": 76.34,
+          "maxDrawdownPct": 30.16,
+          "compoundedMaxDrawdownPct": 27.08,
+          "sharpe": 1.86,
+          "sortino": 2.96,
+          "calmar": 2.82,
+          "buyHoldPct": 27.77,
+          "buyHoldMaxDdPct": 34.76
+        }
+      }
+    },
+    "BNBUSDT": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "ltf_ema50_slope_atr",
+        "atr_pct",
+        "ret_12_dir_atr",
+        "funding_ma3_dir"
+      ],
+      "threshold": 0.651,
+      "sizeCurve": {
+        "mode": "flat"
+      },
+      "imputer": {
+        "medians": [
+          0.0409592577548754,
+          0.8951504771448053,
+          -0.6340538351305817,
+          0.0
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.08885008543464669,
+          0.970989791798525,
+          -0.38593384351675925,
+          0.13764014598540147
+        ],
+        "scale": [
+          0.3924725192734535,
+          0.5931340862837238,
+          1.6184538957242391,
+          2.567711027652252
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.09219445543931314,
+          0.13232236832929095,
+          0.0626062376742547,
+          -0.08612011794394389
+        ],
+        "intercept": 0.75391131052355
+      },
+      "structuralSpec": {
+        "id": "BNB_5Y_Ad_H4_20_lp0_off0.22_s3.4_rr1.25",
+        "sigSpec": {
+          "specId": "BNB_5Y_Ad_H4_20_lp0_off0.22_s3.4_rr1.25",
+          "family": "AdaptiveTrapPolarity",
+          "baseFamily": "HtfSmcMultiTrap",
+          "lookback": 20,
+          "trapMaxBars": 4,
+          "p4Lookback": 10,
+          "includePdhl": true,
+          "htfMode": "H4_20",
+          "limitOffsetAtr": 0.22,
+          "winLen": 6,
+          "slThresh": 2,
+          "requireNegNet": true,
+          "sharedHistory": false,
+          "useLaunchpoolSqueeze": false,
+          "launchpoolFundingThresh": -0.0001,
+          "virtExec": {
+            "entryMode": "LIMIT_PULLBACK",
+            "limitExpiryBars": 6,
+            "pendingPolicy": "ignore",
+            "limitSameBarTp": "close",
+            "cooldown": 4,
+            "warmup": 250,
+            "stopAtr": 3.4,
+            "minStopPct": 1.4,
+            "rewardRisk": 1.25,
+            "maxHoldBars": 96,
+            "beTriggerR": 0.43,
+            "beOffsetPct": 0.36,
+            "costPct": 0.1,
+            "slippagePct": 0.025
+          }
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 3.4,
+          "minStopPct": 1.4,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.43,
+          "beOffsetPct": 0.36,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 3.5,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:fallback_LR_C0.05|t=0.6510|sc=flat_1_1",
+        "calCvAuc": 0.5421,
+        "calInAuc": 0.6004,
+        "valRocAuc": 0.5248,
+        "valCorrNet": 0.0115,
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 137,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 88,
+          "wins": 59,
+          "losses": 29,
+          "winRatePct": 67.05,
+          "profitFactor": 1.33,
+          "totalNetPct": 37.52,
+          "compoundedNetPct": 37.43,
+          "cagrPct": 23.52,
+          "maxDrawdownPct": 32.2,
+          "compoundedMaxDrawdownPct": 29.25,
+          "sharpe": 0.9,
+          "sortino": 1.46,
+          "calmar": 0.8,
+          "buyHoldPct": 40.85,
+          "buyHoldMaxDdPct": 42.7
+        },
+        "valSelected": {
+          "count": 78,
+          "wins": 55,
+          "losses": 23,
+          "winRatePct": 70.51,
+          "profitFactor": 1.51,
+          "totalNetPct": 46.09,
+          "compoundedNetPct": 50.75,
+          "cagrPct": 31.35,
+          "maxDrawdownPct": 22.46,
+          "compoundedMaxDrawdownPct": 21.72,
+          "sharpe": 1.18,
+          "sortino": 1.98,
+          "calmar": 1.44,
+          "buyHoldPct": 40.85,
+          "buyHoldMaxDdPct": 42.7
+        }
+      }
+    }
+  }
+}

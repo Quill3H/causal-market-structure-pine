@@ -1,0 +1,402 @@
+{
+  "schema": "smc-v6-eth-sol-5y-models-v1",
+  "generatedAt": "2026-11-25T08:25:09.332010+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 50% Cal (Y1..2.5 incl 2022 bear), 30% Val (Y2.5..4), 20% Blind Holdout Y5",
+    "purging": "Purged all boundary-overlapping trades at calEnd and valEnd",
+    "fitScope": "Structural selection on Cal+Val only; ML imputer+scaler+classifier fit strictly on Cal; model+threshold+sizeCurve selected strictly on Val; Blind Holdout Y5 never accessed by trainer"
+  },
+  "models": {
+    "ETHUSDT": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "funding_dir_align",
+        "eth_btc_ret_24h_dir",
+        "eth_btc_ema20_dist",
+        "eth_btc_residual_12h_dir",
+        "atr_pct_rank_200",
+        "cvd_imb_24b"
+      ],
+      "threshold": 0.6877,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.7596
+      },
+      "imputer": {
+        "medians": [
+          0.2289,
+          -0.4155940746414367,
+          -0.2396821525422786,
+          -0.23857364805861173,
+          0.47250000000000003,
+          -0.008278712379238157
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.48671323529411753,
+          -0.5086295568570653,
+          -0.26509250605483486,
+          -0.301744242613563,
+          0.5088970588235295,
+          -0.00702286077206403
+        ],
+        "scale": [
+          2.808313469488951,
+          1.2665309513291638,
+          0.5143163444273964,
+          0.8719364140169168,
+          0.2940348688659162,
+          0.01652107473786612
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.05672009681828285,
+          -0.04150624452613291,
+          0.032081351240670845,
+          -0.11890393688259603,
+          0.05677437251321366,
+          -0.058024600253793815
+        ],
+        "intercept": 0.8816684534732504
+      },
+      "structuralSpec": {
+        "id": "ETH_5Y_H4_20_K3_off0.22_dall_s2.2_rr1.25",
+        "sigSpec": {
+          "specId": "ETH_5Y_H4_20_K3_off0.22_dall_s2.2_rr1.25",
+          "family": "HtfSmcMultiTrap",
+          "lookback": 20,
+          "trapMaxBars": 3,
+          "p4Lookback": 10,
+          "includePdhl": true,
+          "htfMode": "H4_20",
+          "limitOffsetAtr": 0.22,
+          "minDeltaRatio": null,
+          "maxEbLagPct": null,
+          "warmup": 250
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 2.2,
+          "minStopPct": 1.6,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.43,
+          "beOffsetPct": 0.45,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 4,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "qualifiedForLive": false,
+      "selectionLockSha256": "fb5f11bad97c448bbb87d065705822c3a1a9ba22b248ed5871a73749a2005dbf",
+      "selectionMeta": {
+        "selectedId": "seq:fallback_LR_C0.05|t=0.6877|sc=linear_0.85_1.4",
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 136,
+        "valEvalSamples": 92,
+        "calCvAuc": 0.3308,
+        "calInSampleAuc": 0.5664,
+        "valRocAuc": 0.6914,
+        "valCorrNet": 0.2087,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 92,
+          "wins": 64,
+          "losses": 28,
+          "winRatePct": 69.57,
+          "profitFactor": 1.6,
+          "totalNetPct": 70.83,
+          "compoundedNetPct": 89.87,
+          "cagrPct": 53.11,
+          "maxDrawdownPct": 18,
+          "compoundedMaxDrawdownPct": 16.82,
+          "sharpe": 1.59,
+          "sortino": 2.58,
+          "calmar": 3.16,
+          "retToDd": 5.34,
+          "buyHoldPct": -26.64,
+          "buyHoldMaxDdPct": 65.31
+        },
+        "valSelected": {
+          "count": 68,
+          "wins": 54,
+          "losses": 14,
+          "winRatePct": 79.41,
+          "profitFactor": 2.71,
+          "totalNetPct": 107.84,
+          "compoundedNetPct": 177.88,
+          "cagrPct": 97.2,
+          "maxDrawdownPct": 13.11,
+          "compoundedMaxDrawdownPct": 12.54,
+          "sharpe": 2.79,
+          "sortino": 5.2,
+          "calmar": 7.75,
+          "retToDd": 14.18,
+          "buyHoldPct": -26.64,
+          "buyHoldMaxDdPct": 65.31
+        }
+      },
+      "holdoutY5Gate": {
+        "evaluatedAt": "2026-11-25T08:25:51.681Z",
+        "qualifiedForLive": false,
+        "postOnlyPassY5": false,
+        "strictTakerPassY5": false,
+        "postOnlyY5": {
+          "count": 29,
+          "wins": 17,
+          "losses": 12,
+          "winRatePct": 58.62,
+          "profitFactor": 0.85,
+          "totalNetPct": -8.12,
+          "compoundedNetPct": -9.9,
+          "cagrPct": -9.87,
+          "maxDrawdownPct": 30.85,
+          "compoundedMaxDrawdownPct": 27.29,
+          "sharpe": -0.37,
+          "sortino": -0.51,
+          "calmar": -0.36,
+          "retToDd": -0.36,
+          "buyHoldPct": -41.52,
+          "buyHoldMaxDdPct": 55.1
+        },
+        "strictTakerY5": {
+          "count": 29,
+          "wins": 17,
+          "losses": 12,
+          "winRatePct": 58.62,
+          "profitFactor": 0.81,
+          "totalNetPct": -10.7,
+          "compoundedNetPct": -12.17,
+          "cagrPct": -12.13,
+          "maxDrawdownPct": 31.97,
+          "compoundedMaxDrawdownPct": 28.47,
+          "sharpe": -0.5,
+          "sortino": -0.67,
+          "calmar": -0.43,
+          "retToDd": -0.43,
+          "buyHoldPct": -41.52,
+          "buyHoldMaxDdPct": 55.1
+        }
+      }
+    },
+    "SOLUSDT": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "funding_rate_bps",
+        "recent_chop_cross_20",
+        "close_pos_dir",
+        "wick_opp_atr",
+        "ltf_ema50_slope_atr"
+      ],
+      "threshold": 0.6055,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.6869
+      },
+      "imputer": {
+        "medians": [
+          0.6085,
+          0.1,
+          0.8356164383561591,
+          0.18689143619315726,
+          0.5365396041718081
+        ]
+      },
+      "scaler": {
+        "mean": [
+          -0.04264434389140282,
+          0.15271493212669693,
+          0.8164918505223401,
+          0.2681441538376393,
+          0.5345041261062905
+        ],
+        "scale": [
+          1.852800403407284,
+          0.10853552165208175,
+          0.1272682209056859,
+          0.27798248427681604,
+          0.3817665182113506
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.08523407516130413,
+          -0.13511340360690868,
+          0.07285905409727232,
+          0.036693688447093815,
+          -0.01675560712445279
+        ],
+        "intercept": 0.58997990883154
+      },
+      "structuralSpec": {
+        "id": "SOL_5Y_TrendPbThrust_off0.35_th0.55_s2_BE",
+        "sigSpec": {
+          "specId": "SOL_5Y_TrendPbThrust_off0.35_th0.55_s2_BE",
+          "mode": "TrendPbThrust",
+          "limitOffsetAtr": 0.35,
+          "thrustMin": 0.55,
+          "pbTouchAtr": 0.35,
+          "pbBodyAtr": 0.35,
+          "squeezeRatio": 0.92,
+          "sqLookback": 14,
+          "sqRvolMin": 1.1,
+          "warmup": 250
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 2,
+          "minStopPct": 1.6,
+          "maxHoldBars": 96,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 4,
+          "minLev": 1,
+          "maxLev": 2.5,
+          "rewardRisk": 1.25,
+          "beTriggerR": 0.43,
+          "beOffsetPct": 0.45,
+          "tp1TriggerR": 0,
+          "tp1QtyPct": 0,
+          "tp1LockOffsetR": 0,
+          "trailTriggerR": 0,
+          "trailAtrMult": 0
+        }
+      },
+      "qualifiedForLive": true,
+      "selectionLockSha256": "763ac26d5cc5c368b94b1124ced4f81120f0e7bae4a749f710b0cacf0870a7c2",
+      "selectionMeta": {
+        "selectedId": "seq:sol_regime_fund:LR_C0.05_unw|t=0.6055|sc=linear_0.85_1.4",
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 221,
+        "valEvalSamples": 169,
+        "calCvAuc": 0.5204,
+        "calInSampleAuc": 0.5603,
+        "valRocAuc": 0.5738,
+        "valCorrNet": 0.1783,
+        "eligibleOnVal": true,
+        "valBaseline": {
+          "count": 169,
+          "wins": 115,
+          "losses": 54,
+          "winRatePct": 68.05,
+          "profitFactor": 1.63,
+          "totalNetPct": 141.37,
+          "compoundedNetPct": 260.68,
+          "cagrPct": 134.5,
+          "maxDrawdownPct": 26.17,
+          "compoundedMaxDrawdownPct": 23.51,
+          "sharpe": 2.29,
+          "sortino": 3.75,
+          "calmar": 5.72,
+          "retToDd": 11.09,
+          "buyHoldPct": -24.59,
+          "buyHoldMaxDdPct": 66.07
+        },
+        "valSelected": {
+          "count": 154,
+          "wins": 111,
+          "losses": 43,
+          "winRatePct": 72.08,
+          "profitFactor": 1.98,
+          "totalNetPct": 207.6,
+          "compoundedNetPct": 576.11,
+          "cagrPct": 256.01,
+          "maxDrawdownPct": 15.44,
+          "compoundedMaxDrawdownPct": 14.7,
+          "sharpe": 3.05,
+          "sortino": 5.21,
+          "calmar": 17.42,
+          "retToDd": 39.2,
+          "buyHoldPct": -24.59,
+          "buyHoldMaxDdPct": 66.07
+        }
+      },
+      "holdoutY5Gate": {
+        "evaluatedAt": "2026-11-25T08:25:52.112Z",
+        "qualifiedForLive": true,
+        "postOnlyPassY5": true,
+        "strictTakerPassY5": true,
+        "postOnlyY5": {
+          "count": 130,
+          "wins": 89,
+          "losses": 41,
+          "winRatePct": 68.46,
+          "profitFactor": 1.29,
+          "totalNetPct": 54.5,
+          "compoundedNetPct": 56.54,
+          "cagrPct": 56.29,
+          "maxDrawdownPct": 28.22,
+          "compoundedMaxDrawdownPct": 26.6,
+          "sharpe": 1.24,
+          "sortino": 1.86,
+          "calmar": 2.12,
+          "retToDd": 2.13,
+          "buyHoldPct": -48.44,
+          "buyHoldMaxDdPct": 58.77
+        },
+        "strictTakerY5": {
+          "count": 128,
+          "wins": 87,
+          "losses": 41,
+          "winRatePct": 67.97,
+          "profitFactor": 1.16,
+          "totalNetPct": 30.31,
+          "compoundedNetPct": 23.51,
+          "cagrPct": 23.42,
+          "maxDrawdownPct": 30.15,
+          "compoundedMaxDrawdownPct": 27.17,
+          "sharpe": 0.7,
+          "sortino": 1.02,
+          "calmar": 0.86,
+          "retToDd": 0.87,
+          "buyHoldPct": -48.44,
+          "buyHoldMaxDdPct": 58.77
+        }
+      }
+    }
+  },
+  "holdoutEvaluatedAt": "2026-11-25T08:25:52.112Z",
+  "qualifiedSymbols": [
+    "SOLUSDT"
+  ]
+}

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  ALL_V6_ASSETS,
   hasExchangeCredentials,
   loadConfig,
   redactConfig,
@@ -13,8 +14,10 @@ import {
   evaluateStrategy,
   loadOfflineOrDbDataset,
   loadRuntimeSpecs,
+  normalizeAssetSymbol,
   StandaloneTradingDaemon,
 } from './engine_runtime.mjs';
+import { isEquitySymbol, YahooEquitiesClient } from './market_equities.mjs';
 import { createStandaloneServer } from './server.mjs';
 import { StandaloneStore } from './store_sqlite.mjs';
 
@@ -61,10 +64,11 @@ export async function runDoctor({ config } = {}) {
 
   const okxClient = createExchangeClient(cfg, 'OKX');
   const binanceClient = createExchangeClient(cfg, 'BINANCE');
+  const yahooClient = new YahooEquitiesClient();
 
   let okxPublic = { ok: false };
   try {
-    const ticker = await okxClient.getOrderbookTicker(cfg.symbols[0] || 'BTCUSDT.P');
+    const ticker = await okxClient.getOrderbookTicker('BTCUSDT.P');
     okxPublic = { ok: true, instId: ticker.instId, last: ticker.last };
   } catch (err) {
     okxPublic = { ok: false, error: scrubSecrets(err.message, cfg) };
@@ -72,10 +76,18 @@ export async function runDoctor({ config } = {}) {
 
   let binancePublic = { ok: false };
   try {
-    const ticker = await binanceClient.getOrderbookTicker(cfg.symbols[0] || 'BTCUSDT.P');
+    const ticker = await binanceClient.getOrderbookTicker('BTCUSDT.P');
     binancePublic = { ok: true, symbol: ticker.symbol, bid: ticker.bidPrice, ask: ticker.askPrice };
   } catch (err) {
     binancePublic = { ok: false, error: scrubSecrets(err.message, cfg) };
+  }
+
+  let yahooMacro = { ok: false };
+  try {
+    const macro = await yahooClient.getMacroSnapshot({ range: '1mo' });
+    yahooMacro = { ok: true, vix: macro.vix, tnx: macro.tnx };
+  } catch (err) {
+    yahooMacro = { ok: false, error: scrubSecrets(err.message, cfg) };
   }
 
   let activeAccountHealth = { configured: hasExchangeCredentials(cfg), connected: false, mode: 'PAPER_NO_KEYS' };
@@ -92,28 +104,34 @@ export async function runDoctor({ config } = {}) {
     }
   }
 
-  const report = {
+  return {
     ok: nodeMajor >= 22 && sqliteOk && Boolean(runtimeSpecs.lock1h && runtimeSpecs.lock15m),
     nodeVersion: process.version,
     nodeMajorOk: nodeMajor >= 22,
     sqlite: { ok: sqliteOk, journalMode: sqliteJournalMode, path: path.relative(cfg.repoRoot, cfg.sqlitePath), error: sqliteError },
+    supportedAssets: ALL_V6_ASSETS.map(a => a.symbol),
     models: {
       v41Lock1h: Boolean(runtimeSpecs.lock1h),
       v41Lock15m: Boolean(runtimeSpecs.lock15m),
       v5Engine: runtimeSpecs.hasV5Engine,
       v5MlReady: runtimeSpecs.hasV5Ml,
+      v6Engine: runtimeSpecs.hasV6Engine,
+      v6CryptoModelsReady: runtimeSpecs.hasV6CryptoModels,
+      v6StockModelsReady: runtimeSpecs.hasV6StockModels,
       btcV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_btc_v5.json')),
       altV5ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v5/ml_models_alt_v5.json')),
+      v6BtcBnbModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_btc_bnb_5y.json')),
+      v6EthSolModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_eth_sol_5y.json')),
+      v6StocksModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v6/models_stocks_v6.json')),
     },
     connectivity: {
       okxPublic,
       binancePublic,
+      yahooMacro,
     },
     accountHealth: activeAccountHealth,
     configRedacted: redactConfig(cfg),
   };
-
-  return report;
 }
 
 export async function runSync(flags, cfg) {
@@ -121,12 +139,14 @@ export async function runSync(flags, cfg) {
   try {
     const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
     const daemon = new StandaloneTradingDaemon({ config: cfg, store, runtimeSpecs });
-    const symbols = flags.symbol ? [String(flags.symbol).toUpperCase()] : cfg.symbols;
-    const timeframes = flags.timeframe ? [String(flags.timeframe).toLowerCase()] : cfg.timeframes;
+    const symbols = flags.symbol ? [normalizeAssetSymbol(flags.symbol)] : cfg.symbols.map(normalizeAssetSymbol);
     const bars = Math.max(100, Math.min(2000, Number(flags.bars || 600)));
     const results = [];
     for (const symbol of symbols) {
-      for (const timeframe of timeframes) {
+      const tfs = flags.timeframe
+        ? [String(flags.timeframe).toLowerCase()]
+        : (isEquitySymbol(symbol) ? ['1d'] : (symbol === 'BTCUSDT.P' ? ['1h', '15m'] : ['1h']));
+      for (const timeframe of tfs) {
         const res = await daemon.syncMarketData({ symbol, timeframe, bars });
         results.push(res);
       }
@@ -141,18 +161,20 @@ export async function runBacktest(flags, cfg) {
   const store = new StandaloneStore({ dbPath: cfg.sqlitePath, allowedBaseDir: cfg.allowedDataDir });
   try {
     const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
-    const symbol = String(flags.symbol || cfg.symbols[0] || 'BTCUSDT.P').toUpperCase();
-    const timeframe = String(flags.timeframe || cfg.timeframes[0] || '1h').toLowerCase();
-    const profile = String(flags.profile || 'EXCHANGE_POST_ONLY').toUpperCase();
+    const symbol = normalizeAssetSymbol(flags.symbol || cfg.symbols[0] || 'BTCUSDT.P');
+    const isEq = isEquitySymbol(symbol);
+    const timeframe = String(flags.timeframe || (isEq ? '1d' : '1h')).toLowerCase();
+    const profile = String(flags.profile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY')).toUpperCase();
     const mlEnabled = !flags['no-ml'];
 
-    const loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol, timeframe, minBars: 300 });
+    const loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol, timeframe, minBars: 220 });
     const evalRes = evaluateStrategy({
       dataset: loaded.dataset,
       fundingRates: loaded.fundingRates,
+      macroData: loaded.macroData,
       timeframe,
       symbol,
-      exchange: cfg.exchange,
+      exchange: isEq ? 'YAHOO' : cfg.exchange,
       execProfile: profile,
       mlEnabled,
       config: cfg,
@@ -161,6 +183,7 @@ export async function runBacktest(flags, cfg) {
     return {
       source: loaded.source,
       summary: evalRes.summary,
+      regime: evalRes.regime,
       execOptions: evalRes.execOptions,
     };
   } finally {
@@ -175,19 +198,20 @@ export async function runServe(flags, cfg) {
   const daemon = new StandaloneTradingDaemon({ config: cfg, store, runtimeSpecs });
   const srv = createStandaloneServer({ config: cfg, store, runtimeSpecs, daemon, checkAccountHealth: true });
 
-  // Evaluate initial offline/db state immediately so UI renders instantly
-  for (const symbol of cfg.symbols) {
-    for (const timeframe of cfg.timeframes) {
+  for (const rawSym of cfg.symbols) {
+    const symbol = normalizeAssetSymbol(rawSym);
+    const tfs = isEquitySymbol(symbol) ? ['1d'] : (symbol === 'BTCUSDT.P' ? ['1h', '15m'] : ['1h']);
+    for (const timeframe of tfs) {
       try {
         daemon.evaluateAndPersist({ symbol, timeframe });
       } catch {
-        // non-fatal if no local data yet; background sync will populate
+        // non-fatal if local data missing before background sync
       }
     }
   }
   daemon.start(60000);
   const bound = await srv.start();
-  console.log(`[standalone] Command Center running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
+  console.log(`[standalone] v6.0 Command Center running at http://${bound.host}:${bound.port} (mode=${cfg.executionMode}, dryRun=${cfg.dryRun})`);
 
   const shutdown = async () => {
     daemon.stop();
@@ -205,7 +229,7 @@ async function main() {
   const cfg = loadConfig();
   if (flags.exchange) {
     const ex = String(flags.exchange).toUpperCase();
-    if (ex === 'OKX' || ex === 'BINANCE') cfg.exchange = ex;
+    if (['OKX', 'BINANCE', 'YAHOO'].includes(ex)) cfg.exchange = ex;
   }
 
   if (cmd === 'doctor') {

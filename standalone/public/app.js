@@ -1,6 +1,8 @@
-/* Zero-XSS Dashboard Controller: uses ONLY textContent and document.createElement */
+/* Zero-XSS Dashboard Controller (v6.0): uses ONLY textContent and document.createElement */
 (function () {
   'use strict';
+
+  const EQUITY_SYMBOLS = new Set(['SPY', 'DIA', 'QQQ']);
 
   const state = {
     symbol: 'BTCUSDT.P',
@@ -9,6 +11,7 @@
     candles: [],
     overlay: null,
     summary: null,
+    regime: null,
     signals: [],
     trades: [],
     status: null,
@@ -58,7 +61,10 @@
     const acct = status.accountHealth || {};
 
     const apiBadge = el('api-badge');
-    if (acct.connected) {
+    if (EQUITY_SYMBOLS.has(state.symbol)) {
+      apiBadge.textContent = 'YAHOO PUBLIC • EQUITIES';
+      apiBadge.className = 'badge badge-safe';
+    } else if (acct.connected) {
       apiBadge.textContent = `${cfg.exchange} ${acct.simulated || acct.testnet ? 'DEMO/TESTNET' : 'LIVE'} CONNECTED`;
       apiBadge.className = 'badge badge-safe';
     } else if (acct.configured) {
@@ -79,33 +85,48 @@
     }
 
     const subtitle = el('model-subtitle');
-    subtitle.textContent = `Off-TradingView ML & Execution Engine • ${status.models?.activeModelVersion || 'v4.1-fallback'}`;
+    subtitle.textContent = `v6.0 Multi-Asset Engine • ${status.models?.activeModelVersion || 'v5.0/v4.1'}`;
   }
 
   function renderScoreboard(sourceLabel) {
     const s = state.summary;
-    if (!s) return;
+    const r = state.regime;
 
-    const wrEl = el('kpi-winrate');
-    wrEl.textContent = `${fmtNum(s.winRatePct, 2)}% (${s.wins}W/${s.losses}L)`;
-    wrEl.className = `kpi-value ${Number(s.winRatePct) >= 65 ? 'pos' : ''}`;
-    el('kpi-wilson').textContent = `Wilson95: ${fmtNum(s.wilsonLower95Pct, 2)}%`;
+    if (s) {
+      const wrEl = el('kpi-winrate');
+      wrEl.textContent = `${fmtNum(s.winRatePct, 2)}% (${s.wins}W/${s.losses}L)`;
+      wrEl.className = `kpi-value ${Number(s.winRatePct) >= 65 ? 'pos' : ''}`;
+      el('kpi-wilson').textContent = `Wilson95: ${fmtNum(s.wilsonLower95Pct, 2)}%`;
 
-    const pfEl = el('kpi-pf');
-    pfEl.textContent = fmtNum(s.profitFactor, 2);
-    pfEl.className = `kpi-value ${Number(s.profitFactor) >= 1.2 ? 'pos' : 'neg'}`;
-    el('kpi-trades').textContent = `Trades: ${s.count} (Raw ${s.rawSignalsCount ?? s.count})`;
+      const pfEl = el('kpi-pf');
+      pfEl.textContent = fmtNum(s.profitFactor, 2);
+      pfEl.className = `kpi-value ${Number(s.profitFactor) >= 1.2 ? 'pos' : 'neg'}`;
+      el('kpi-trades').textContent = `Trades: ${s.count} (Raw ${s.rawSignalsCount ?? s.count})`;
 
-    const netEl = el('kpi-total-net');
-    netEl.textContent = fmtPct(s.totalNetPct, 2);
-    netEl.className = `kpi-value ${Number(s.totalNetPct) >= 0 ? 'pos' : 'neg'}`;
-    el('kpi-comp-net').textContent = `Compounded: ${fmtPct(s.compoundedNetPct, 2)}`;
+      const compEl = el('kpi-comp-net-main');
+      compEl.textContent = fmtPct(s.compoundedNetPct, 2);
+      compEl.className = `kpi-value ${Number(s.compoundedNetPct) >= 0 ? 'pos' : 'neg'}`;
+      el('kpi-total-net-sub').textContent = `Additive: ${fmtPct(s.totalNetPct, 2)}`;
 
-    el('kpi-dd').textContent = `${fmtNum(s.maxDrawdownPct, 2)}%`;
-    el('kpi-funding').textContent = `Funding Drag: ${fmtPct(-Math.abs(Number(s.fundingDragPct || 0)), 2)}`;
+      el('kpi-dd').textContent = `${fmtNum(s.compoundedMaxDrawdownPct ?? s.maxDrawdownPct, 2)}%`;
+      el('kpi-funding').textContent = EQUITY_SYMBOLS.has(state.symbol)
+        ? 'Funding: 0.00% (ETF)'
+        : `Funding Drag: ${fmtPct(-Math.abs(Number(s.fundingDragPct || 0)), 2)}`;
 
-    el('kpi-model').textContent = s.modelVersion || 'v4.1-fallback';
-    el('kpi-source').textContent = `Profile: ${s.execProfile || state.profile} (${sourceLabel || 'local'})`;
+      el('kpi-model').textContent = s.modelVersion || 'v4.1-fallback';
+      el('kpi-source').textContent = `Profile: ${s.execProfile || state.profile} (${sourceLabel || 'local'})`;
+    }
+
+    const regEl = el('kpi-regime');
+    const regSub = el('kpi-regime-sub');
+    if (r) {
+      const vixPart = r.vix !== null && r.vix !== undefined ? `VIX ${fmtNum(r.vix, 1)} (${r.vixRegime})` : 'VIX --';
+      const tnxPart = r.tnx !== null && r.tnx !== undefined ? `TNX ${fmtNum(r.tnx, 2)}%` : 'TNX --';
+      regEl.textContent = `${vixPart} • ${tnxPart}`;
+      const fundPart = r.fundingRateBps !== null && r.fundingRateBps !== undefined ? `Fund ${fmtNum(r.fundingRateBps, 2)}bps` : 'Fund --';
+      const cvdPart = r.cvd24hPct !== null && r.cvd24hPct !== undefined ? `CVD24h ${fmtPct(r.cvd24hPct, 1)}` : 'CVD --';
+      regSub.textContent = `${fundPart} | ${cvdPart}`;
+    }
   }
 
   function renderOverlayDetails() {
@@ -157,7 +178,6 @@
     const cy = 112;
     const radius = 84;
 
-    // Background arc
     ctx.lineWidth = 14;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#1e293b';
@@ -165,7 +185,6 @@
     ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
     ctx.stroke();
 
-    // Threshold marker
     const tauAngle = Math.PI + Math.max(0, Math.min(1, tau)) * Math.PI;
     ctx.save();
     ctx.strokeStyle = '#fbbf24';
@@ -182,7 +201,7 @@
     tauText.textContent = `Threshold tau: ${(tau * 100).toFixed(1)}%`;
 
     if (prob === null) {
-      pctText.textContent = 'v4.1 Rules';
+      pctText.textContent = 'Rules/Fallback';
       decBadge.textContent = state.summary?.modelVersion || 'FALLBACK';
       decBadge.className = 'badge badge-neutral';
       return;
@@ -217,7 +236,7 @@
     if (rows.length === 0) {
       ctx.fillStyle = '#93a4bf';
       ctx.font = '13px sans-serif';
-      ctx.fillText('No closed candles available yet. Run sync or select BTCUSDT.P.', 24, 40);
+      ctx.fillText('No closed candles available yet. Run sync or select a loaded dataset.', 24, 40);
       return;
     }
 
@@ -254,7 +273,6 @@
     maxP += span * 0.06;
     const yOf = p => padT + ((maxP - p) / (maxP - minP)) * plotH;
 
-    // Horizontal grid & price labels
     ctx.strokeStyle = 'rgba(37, 48, 71, 0.6)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#93a4bf';
@@ -295,7 +313,6 @@
       ctx.fillRect(cx - bodyW / 2, top, bodyW, h);
     }
 
-    // Active LMT / SL / BE+ / TP lines
     for (const l of levelLines) {
       const y = Math.round(yOf(l.price)) + 0.5;
       ctx.save();
@@ -315,7 +332,6 @@
       ctx.restore();
     }
 
-    // Crosshair hover
     if (state.hoverIdx >= 0 && state.hoverIdx < rows.length) {
       const r = rows[state.hoverIdx];
       const cx = padL + state.hoverIdx * step + step * 0.5;
@@ -327,7 +343,7 @@
       ctx.stroke();
       ctx.setLineDash([]);
       el('chart-hover-info').textContent =
-        `${fmtUtc(r.time)} UTC  O:${fmtNum(r.open, 1)}  H:${fmtNum(r.high, 1)}  L:${fmtNum(r.low, 1)}  C:${fmtNum(r.close, 1)}`;
+        `${fmtUtc(r.time)} UTC  O:${fmtNum(r.open, 2)}  H:${fmtNum(r.high, 2)}  L:${fmtNum(r.low, 2)}  C:${fmtNum(r.close, 2)}`;
     }
   }
 
@@ -394,6 +410,7 @@
     state.status = statusData;
     state.candles = candleData.candles || [];
     state.overlay = candleData.overlay || statusData.activeOverlay || null;
+    state.regime = candleData.regime || statusData.regime || null;
     state.trades = tradeData.trades || [];
     state.summary = tradeData.summary || statusData.summary || null;
     state.signals = sigData.signals || [];
@@ -412,15 +429,26 @@
     msg.textContent = 'Running offline replay...';
     const data = await apiGet(`/api/backtest?${q}`);
     state.summary = data.summary;
+    state.regime = data.regime || state.regime;
     state.trades = data.recentTrades || [];
     renderScoreboard(data.source);
     renderTables();
-    msg.textContent = `Replay complete: ${data.summary.count} trades, WR ${fmtNum(data.summary.winRatePct, 2)}%, PF ${fmtNum(data.summary.profitFactor, 2)}`;
+    msg.textContent = `Replay complete: ${data.summary.count} trades, WR ${fmtNum(data.summary.winRatePct, 2)}%, PF ${fmtNum(data.summary.profitFactor, 2)}, Comp ${fmtPct(data.summary.compoundedNetPct, 2)}`;
   }
 
   function wireEvents() {
     el('symbol-select').addEventListener('change', e => {
       state.symbol = e.target.value;
+      if (EQUITY_SYMBOLS.has(state.symbol)) {
+        state.timeframe = '1d';
+        state.profile = 'EQUITY_ETF';
+      } else {
+        if (state.timeframe === '1d') state.timeframe = '1h';
+        if (state.symbol !== 'BTCUSDT.P' && state.timeframe === '15m') state.timeframe = '1h';
+        if (state.profile === 'EQUITY_ETF') state.profile = 'EXCHANGE_POST_ONLY';
+      }
+      el('timeframe-select').value = state.timeframe;
+      el('profile-select').value = state.profile;
       refreshAll().catch(err => { el('mode-status-msg').textContent = err.message; });
     });
     el('timeframe-select').addEventListener('change', e => {

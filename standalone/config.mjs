@@ -6,9 +6,19 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(HERE, '..');
 
-export const VALID_EXCHANGES = Object.freeze(['OKX', 'BINANCE']);
+export const VALID_EXCHANGES = Object.freeze(['OKX', 'BINANCE', 'YAHOO']);
 export const VALID_EXECUTION_MODES = Object.freeze(['PAPER', 'LIVE_ARMED']);
 export const LOOPBACK_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '::1']);
+
+export const ALL_V6_ASSETS = Object.freeze([
+  { symbol: 'BTCUSDT.P', label: 'BTCUSDT.P (5Y Perp)', assetClass: 'CRYPTO', defaultTimeframe: '1h', supportedTimeframes: ['1h', '15m'] },
+  { symbol: 'ETHUSDT.P', label: 'ETHUSDT.P (5Y Perp)', assetClass: 'CRYPTO', defaultTimeframe: '1h', supportedTimeframes: ['1h'] },
+  { symbol: 'SOLUSDT.P', label: 'SOLUSDT.P (5Y Perp)', assetClass: 'CRYPTO', defaultTimeframe: '1h', supportedTimeframes: ['1h'] },
+  { symbol: 'BNBUSDT.P', label: 'BNBUSDT.P (5Y Perp)', assetClass: 'CRYPTO', defaultTimeframe: '1h', supportedTimeframes: ['1h'] },
+  { symbol: 'SPY', label: 'S&P 500 (SPY / ^GSPC)', assetClass: 'EQUITY_ETF', defaultTimeframe: '1d', supportedTimeframes: ['1d', '1h'] },
+  { symbol: 'DIA', label: 'Dow Jones (DIA / ^DJI)', assetClass: 'EQUITY_ETF', defaultTimeframe: '1d', supportedTimeframes: ['1d', '1h'] },
+  { symbol: 'QQQ', label: 'Nasdaq 100 (QQQ / ^NDX)', assetClass: 'EQUITY_ETF', defaultTimeframe: '1d', supportedTimeframes: ['1d', '1h'] },
+]);
 
 const SECRET_KEYS = Object.freeze([
   'OKX_API_KEY',
@@ -16,6 +26,9 @@ const SECRET_KEYS = Object.freeze([
   'OKX_PASSPHRASE',
   'BINANCE_API_KEY',
   'BINANCE_API_SECRET',
+  'ALPACA_API_KEY',
+  'ALPACA_API_SECRET',
+  'TWELVEDATA_API_KEY',
   'LIVE_CONFIRM_TOKEN',
 ]);
 
@@ -168,6 +181,13 @@ export function loadConfig({
     testnet: parseBool(merged.BINANCE_TESTNET, true),
   };
 
+  const equities = {
+    alpacaApiKey: String(merged.ALPACA_API_KEY || '').trim(),
+    alpacaApiSecret: String(merged.ALPACA_API_SECRET || '').trim(),
+    alpacaPaper: parseBool(merged.ALPACA_PAPER, true),
+    twelveDataApiKey: String(merged.TWELVEDATA_API_KEY || '').trim(),
+  };
+
   const liveConfirmToken = String(merged.LIVE_CONFIRM_TOKEN || '').trim();
 
   const config = {
@@ -187,6 +207,7 @@ export function loadConfig({
     liveConfirmToken,
     okx,
     binance,
+    equities,
   };
 
   // Non-enumerable secret getter protection against accidental JSON.stringify
@@ -263,6 +284,12 @@ export function redactConfig(config) {
       configured: hasExchangeCredentials(config, 'BINANCE'),
       testnet: Boolean(config.binance?.testnet),
     },
+    equities: {
+      yahooPublic: true,
+      alpacaConfigured: Boolean(config.equities?.alpacaApiKey && config.equities?.alpacaApiSecret),
+      alpacaPaper: Boolean(config.equities?.alpacaPaper ?? true),
+      twelveDataConfigured: Boolean(config.equities?.twelveDataApiKey),
+    },
   };
 }
 
@@ -279,6 +306,9 @@ export function scrubSecrets(text, config) {
     config.okx?.passphrase,
     config.binance?.apiKey,
     config.binance?.apiSecret,
+    config.equities?.alpacaApiKey,
+    config.equities?.alpacaApiSecret,
+    config.equities?.twelveDataApiKey,
   ].filter(s => typeof s === 'string' && s.length >= 4);
   for (const secret of secrets) {
     out = out.split(secret).join('[REDACTED]');

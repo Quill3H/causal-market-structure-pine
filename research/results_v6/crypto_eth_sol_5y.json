@@ -1,0 +1,2687 @@
+{
+  "schema": "smc-v6-eth-sol-5y-summary-v1",
+  "generatedAt": "2026-11-25T08:25:53.006Z",
+  "promotionGateCriteria": {
+    "minHoldoutY5WinRatePct": 65,
+    "minHoldoutY5NetPct": 0,
+    "minHoldoutY5ProfitFactor": 1.15,
+    "minHoldoutY5Trades": 30
+  },
+  "qualifiedForLiveAltcoins": [
+    "SOLUSDT"
+  ],
+  "modelMetadata": {
+    "ETHUSDT": {
+      "selectedId": "seq:fallback_LR_C0.05|t=0.6877|sc=linear_0.85_1.4",
+      "calRange": [
+        0,
+        21976
+      ],
+      "valRange": [
+        21976,
+        35161
+      ],
+      "holdoutRangeUntouched": [
+        35161,
+        43952
+      ],
+      "calTrainSamples": 136,
+      "valEvalSamples": 92,
+      "calCvAuc": 0.3308,
+      "calInSampleAuc": 0.5664,
+      "valRocAuc": 0.6914,
+      "valCorrNet": 0.2087,
+      "eligibleOnVal": true,
+      "valBaseline": {
+        "count": 92,
+        "wins": 64,
+        "losses": 28,
+        "winRatePct": 69.57,
+        "profitFactor": 1.6,
+        "totalNetPct": 70.83,
+        "compoundedNetPct": 89.87,
+        "cagrPct": 53.11,
+        "maxDrawdownPct": 18,
+        "compoundedMaxDrawdownPct": 16.82,
+        "sharpe": 1.59,
+        "sortino": 2.58,
+        "calmar": 3.16,
+        "retToDd": 5.34,
+        "buyHoldPct": -26.64,
+        "buyHoldMaxDdPct": 65.31
+      },
+      "valSelected": {
+        "count": 68,
+        "wins": 54,
+        "losses": 14,
+        "winRatePct": 79.41,
+        "profitFactor": 2.71,
+        "totalNetPct": 107.84,
+        "compoundedNetPct": 177.88,
+        "cagrPct": 97.2,
+        "maxDrawdownPct": 13.11,
+        "compoundedMaxDrawdownPct": 12.54,
+        "sharpe": 2.79,
+        "sortino": 5.2,
+        "calmar": 7.75,
+        "retToDd": 14.18,
+        "buyHoldPct": -26.64,
+        "buyHoldMaxDdPct": 65.31
+      }
+    },
+    "SOLUSDT": {
+      "selectedId": "seq:sol_regime_fund:LR_C0.05_unw|t=0.6055|sc=linear_0.85_1.4",
+      "calRange": [
+        0,
+        21976
+      ],
+      "valRange": [
+        21976,
+        35161
+      ],
+      "holdoutRangeUntouched": [
+        35161,
+        43952
+      ],
+      "calTrainSamples": 221,
+      "valEvalSamples": 169,
+      "calCvAuc": 0.5204,
+      "calInSampleAuc": 0.5603,
+      "valRocAuc": 0.5738,
+      "valCorrNet": 0.1783,
+      "eligibleOnVal": true,
+      "valBaseline": {
+        "count": 169,
+        "wins": 115,
+        "losses": 54,
+        "winRatePct": 68.05,
+        "profitFactor": 1.63,
+        "totalNetPct": 141.37,
+        "compoundedNetPct": 260.68,
+        "cagrPct": 134.5,
+        "maxDrawdownPct": 26.17,
+        "compoundedMaxDrawdownPct": 23.51,
+        "sharpe": 2.29,
+        "sortino": 3.75,
+        "calmar": 5.72,
+        "retToDd": 11.09,
+        "buyHoldPct": -24.59,
+        "buyHoldMaxDdPct": 66.07
+      },
+      "valSelected": {
+        "count": 154,
+        "wins": 111,
+        "losses": 43,
+        "winRatePct": 72.08,
+        "profitFactor": 1.98,
+        "totalNetPct": 207.6,
+        "compoundedNetPct": 576.11,
+        "cagrPct": 256.01,
+        "maxDrawdownPct": 15.44,
+        "compoundedMaxDrawdownPct": 14.7,
+        "sharpe": 3.05,
+        "sortino": 5.21,
+        "calmar": 17.42,
+        "retToDd": 39.2,
+        "buyHoldPct": -24.59,
+        "buyHoldMaxDdPct": 66.07
+      }
+    }
+  },
+  "assets": {
+    "ETHUSDT": {
+      "EXCHANGE_POST_ONLY": {
+        "symbol": "ETHUSDT",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "signalCounts": {
+          "raw": 399,
+          "mlFiltered": 273
+        },
+        "baseline": {
+          "cal": {
+            "count": 136,
+            "wins": 96,
+            "losses": 40,
+            "winRatePct": 70.59,
+            "profitFactor": 1.52,
+            "totalNetPct": 85.66,
+            "compoundedNetPct": 115.52,
+            "cagrPct": 35.81,
+            "maxDrawdownPct": 19.69,
+            "compoundedMaxDrawdownPct": 18.25,
+            "sharpe": 1.29,
+            "sortino": 2.06,
+            "calmar": 1.96,
+            "retToDd": 6.33,
+            "buyHoldPct": -11.22,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "val": {
+            "count": 92,
+            "wins": 64,
+            "losses": 28,
+            "winRatePct": 69.57,
+            "profitFactor": 1.6,
+            "totalNetPct": 70.83,
+            "compoundedNetPct": 89.87,
+            "cagrPct": 53.11,
+            "maxDrawdownPct": 18,
+            "compoundedMaxDrawdownPct": 16.82,
+            "sharpe": 1.59,
+            "sortino": 2.58,
+            "calmar": 3.16,
+            "retToDd": 5.34,
+            "buyHoldPct": -26.64,
+            "buyHoldMaxDdPct": 65.31
+          },
+          "holdoutY5": {
+            "count": 47,
+            "wins": 28,
+            "losses": 19,
+            "winRatePct": 59.57,
+            "profitFactor": 0.92,
+            "totalNetPct": -6.45,
+            "compoundedNetPct": -9.25,
+            "cagrPct": -9.22,
+            "maxDrawdownPct": 48.06,
+            "compoundedMaxDrawdownPct": 39.03,
+            "sharpe": -0.25,
+            "sortino": -0.35,
+            "calmar": -0.24,
+            "retToDd": -0.24,
+            "buyHoldPct": -41.52,
+            "buyHoldMaxDdPct": 55.1
+          },
+          "full5y": {
+            "count": 276,
+            "wins": 188,
+            "losses": 88,
+            "winRatePct": 68.12,
+            "profitFactor": 1.4,
+            "totalNetPct": 145.88,
+            "compoundedNetPct": 255.89,
+            "cagrPct": 28.79,
+            "maxDrawdownPct": 48.06,
+            "compoundedMaxDrawdownPct": 39.03,
+            "sharpe": 1.06,
+            "sortino": 1.66,
+            "calmar": 0.74,
+            "retToDd": 6.56,
+            "buyHoldPct": -61.83,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 56,
+              "wins": 41,
+              "losses": 15,
+              "winRatePct": 73.21,
+              "profitFactor": 1.77,
+              "totalNetPct": 47.85,
+              "compoundedNetPct": 55.42,
+              "cagrPct": 55.19,
+              "maxDrawdownPct": 15.85,
+              "compoundedMaxDrawdownPct": 14.96,
+              "sharpe": 1.77,
+              "sortino": 2.97,
+              "calmar": 3.69,
+              "retToDd": 3.7,
+              "buyHoldPct": -73.58,
+              "buyHoldMaxDdPct": 81.06
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 51,
+              "wins": 32,
+              "losses": 19,
+              "winRatePct": 62.75,
+              "profitFactor": 1.21,
+              "totalNetPct": 15.63,
+              "compoundedNetPct": 12.84,
+              "cagrPct": 12.8,
+              "maxDrawdownPct": 19.32,
+              "compoundedMaxDrawdownPct": 17.95,
+              "sharpe": 0.58,
+              "sortino": 0.88,
+              "calmar": 0.71,
+              "retToDd": 0.72,
+              "buyHoldPct": 78.75,
+              "buyHoldMaxDdPct": 28.29
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 60,
+              "wins": 47,
+              "losses": 13,
+              "winRatePct": 78.33,
+              "profitFactor": 2.09,
+              "totalNetPct": 60.32,
+              "compoundedNetPct": 76.27,
+              "cagrPct": 75.93,
+              "maxDrawdownPct": 12.09,
+              "compoundedMaxDrawdownPct": 11.86,
+              "sharpe": 2.3,
+              "sortino": 3.9,
+              "calmar": 6.4,
+              "retToDd": 6.43,
+              "buyHoldPct": 63.17,
+              "buyHoldMaxDdPct": 46.73
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 60,
+              "wins": 39,
+              "losses": 21,
+              "winRatePct": 65,
+              "profitFactor": 1.31,
+              "totalNetPct": 27.84,
+              "compoundedNetPct": 26.25,
+              "cagrPct": 26.15,
+              "maxDrawdownPct": 18,
+              "compoundedMaxDrawdownPct": 16.82,
+              "sharpe": 0.92,
+              "sortino": 1.43,
+              "calmar": 1.55,
+              "retToDd": 1.56,
+              "buyHoldPct": -14.66,
+              "buyHoldMaxDdPct": 65.31
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 47,
+              "wins": 28,
+              "losses": 19,
+              "winRatePct": 59.57,
+              "profitFactor": 0.92,
+              "totalNetPct": -6.45,
+              "compoundedNetPct": -9.25,
+              "cagrPct": -9.22,
+              "maxDrawdownPct": 48.06,
+              "compoundedMaxDrawdownPct": 39.03,
+              "sharpe": -0.25,
+              "sortino": -0.35,
+              "calmar": -0.24,
+              "retToDd": -0.24,
+              "buyHoldPct": -41.14,
+              "buyHoldMaxDdPct": 55.1
+            }
+          ]
+        },
+        "ml": {
+          "cal": {
+            "count": 97,
+            "wins": 70,
+            "losses": 27,
+            "winRatePct": 72.16,
+            "profitFactor": 1.48,
+            "totalNetPct": 56.42,
+            "compoundedNetPct": 64.77,
+            "cagrPct": 22.03,
+            "maxDrawdownPct": 22.25,
+            "compoundedMaxDrawdownPct": 21.32,
+            "sharpe": 0.99,
+            "sortino": 1.57,
+            "calmar": 1.03,
+            "retToDd": 3.04,
+            "buyHoldPct": -11.22,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "val": {
+            "count": 68,
+            "wins": 54,
+            "losses": 14,
+            "winRatePct": 79.41,
+            "profitFactor": 2.71,
+            "totalNetPct": 107.84,
+            "compoundedNetPct": 177.88,
+            "cagrPct": 97.2,
+            "maxDrawdownPct": 13.11,
+            "compoundedMaxDrawdownPct": 12.54,
+            "sharpe": 2.79,
+            "sortino": 5.2,
+            "calmar": 7.75,
+            "retToDd": 14.18,
+            "buyHoldPct": -26.64,
+            "buyHoldMaxDdPct": 65.31
+          },
+          "holdoutY5": {
+            "count": 29,
+            "wins": 17,
+            "losses": 12,
+            "winRatePct": 58.62,
+            "profitFactor": 0.85,
+            "totalNetPct": -8.12,
+            "compoundedNetPct": -9.9,
+            "cagrPct": -9.87,
+            "maxDrawdownPct": 30.85,
+            "compoundedMaxDrawdownPct": 27.29,
+            "sharpe": -0.37,
+            "sortino": -0.51,
+            "calmar": -0.36,
+            "retToDd": -0.36,
+            "buyHoldPct": -41.52,
+            "buyHoldMaxDdPct": 55.1
+          },
+          "full5y": {
+            "count": 194,
+            "wins": 141,
+            "losses": 53,
+            "winRatePct": 72.68,
+            "profitFactor": 1.67,
+            "totalNetPct": 156.13,
+            "compoundedNetPct": 312.53,
+            "cagrPct": 32.64,
+            "maxDrawdownPct": 30.85,
+            "compoundedMaxDrawdownPct": 27.29,
+            "sharpe": 1.32,
+            "sortino": 2.15,
+            "calmar": 1.2,
+            "retToDd": 11.45,
+            "buyHoldPct": -61.83,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 44,
+              "wins": 33,
+              "losses": 11,
+              "winRatePct": 75,
+              "profitFactor": 1.88,
+              "totalNetPct": 40.44,
+              "compoundedNetPct": 45.4,
+              "cagrPct": 45.22,
+              "maxDrawdownPct": 12.97,
+              "compoundedMaxDrawdownPct": 12.42,
+              "sharpe": 1.67,
+              "sortino": 2.91,
+              "calmar": 3.64,
+              "retToDd": 3.65,
+              "buyHoldPct": -73.58,
+              "buyHoldMaxDdPct": 81.06
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 34,
+              "wins": 20,
+              "losses": 14,
+              "winRatePct": 58.82,
+              "profitFactor": 0.83,
+              "totalNetPct": -10.33,
+              "compoundedNetPct": -11.95,
+              "cagrPct": -11.92,
+              "maxDrawdownPct": 22.25,
+              "compoundedMaxDrawdownPct": 20.37,
+              "sharpe": -0.47,
+              "sortino": -0.63,
+              "calmar": -0.58,
+              "retToDd": -0.59,
+              "buyHoldPct": 78.75,
+              "buyHoldMaxDdPct": 28.29
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 41,
+              "wins": 36,
+              "losses": 5,
+              "winRatePct": 87.8,
+              "profitFactor": 4.18,
+              "totalNetPct": 74.99,
+              "compoundedNetPct": 105.51,
+              "cagrPct": 105,
+              "maxDrawdownPct": 10.02,
+              "compoundedMaxDrawdownPct": 9.77,
+              "sharpe": 3.41,
+              "sortino": 7.08,
+              "calmar": 10.74,
+              "retToDd": 10.8,
+              "buyHoldPct": 63.17,
+              "buyHoldMaxDdPct": 46.73
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 45,
+              "wins": 34,
+              "losses": 11,
+              "winRatePct": 75.56,
+              "profitFactor": 2.06,
+              "totalNetPct": 52.38,
+              "compoundedNetPct": 62.98,
+              "cagrPct": 62.71,
+              "maxDrawdownPct": 13.11,
+              "compoundedMaxDrawdownPct": 12.54,
+              "sharpe": 2.02,
+              "sortino": 3.5,
+              "calmar": 5,
+              "retToDd": 5.02,
+              "buyHoldPct": -14.66,
+              "buyHoldMaxDdPct": 65.31
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 29,
+              "wins": 17,
+              "losses": 12,
+              "winRatePct": 58.62,
+              "profitFactor": 0.85,
+              "totalNetPct": -8.12,
+              "compoundedNetPct": -9.9,
+              "cagrPct": -9.87,
+              "maxDrawdownPct": 30.85,
+              "compoundedMaxDrawdownPct": 27.29,
+              "sharpe": -0.37,
+              "sortino": -0.51,
+              "calmar": -0.36,
+              "retToDd": -0.36,
+              "buyHoldPct": -41.14,
+              "buyHoldMaxDdPct": 55.1
+            }
+          ]
+        }
+      },
+      "STRICT_TAKER": {
+        "symbol": "ETHUSDT",
+        "execProfile": "STRICT_TAKER",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "signalCounts": {
+          "raw": 399,
+          "mlFiltered": 273
+        },
+        "baseline": {
+          "cal": {
+            "count": 138,
+            "wins": 98,
+            "losses": 40,
+            "winRatePct": 71.01,
+            "profitFactor": 1.45,
+            "totalNetPct": 74.4,
+            "compoundedNetPct": 93.07,
+            "cagrPct": 29.98,
+            "maxDrawdownPct": 20.14,
+            "compoundedMaxDrawdownPct": 18.63,
+            "sharpe": 1.14,
+            "sortino": 1.76,
+            "calmar": 1.61,
+            "retToDd": 5,
+            "buyHoldPct": -11.22,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "val": {
+            "count": 94,
+            "wins": 66,
+            "losses": 28,
+            "winRatePct": 70.21,
+            "profitFactor": 1.57,
+            "totalNetPct": 67.69,
+            "compoundedNetPct": 84.12,
+            "cagrPct": 50.01,
+            "maxDrawdownPct": 18.18,
+            "compoundedMaxDrawdownPct": 16.98,
+            "sharpe": 1.53,
+            "sortino": 2.44,
+            "calmar": 2.95,
+            "retToDd": 4.95,
+            "buyHoldPct": -26.64,
+            "buyHoldMaxDdPct": 65.31
+          },
+          "holdoutY5": {
+            "count": 47,
+            "wins": 28,
+            "losses": 19,
+            "winRatePct": 59.57,
+            "profitFactor": 0.92,
+            "totalNetPct": -6.84,
+            "compoundedNetPct": -9.66,
+            "cagrPct": -9.63,
+            "maxDrawdownPct": 45.88,
+            "compoundedMaxDrawdownPct": 37.77,
+            "sharpe": -0.26,
+            "sortino": -0.37,
+            "calmar": -0.25,
+            "retToDd": -0.26,
+            "buyHoldPct": -41.52,
+            "buyHoldMaxDdPct": 55.1
+          },
+          "full5y": {
+            "count": 280,
+            "wins": 192,
+            "losses": 88,
+            "winRatePct": 68.57,
+            "profitFactor": 1.35,
+            "totalNetPct": 131.03,
+            "compoundedNetPct": 207.6,
+            "cagrPct": 25.1,
+            "maxDrawdownPct": 45.88,
+            "compoundedMaxDrawdownPct": 37.77,
+            "sharpe": 0.96,
+            "sortino": 1.47,
+            "calmar": 0.66,
+            "retToDd": 5.5,
+            "buyHoldPct": -61.83,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 58,
+              "wins": 43,
+              "losses": 15,
+              "winRatePct": 74.14,
+              "profitFactor": 1.71,
+              "totalNetPct": 44.72,
+              "compoundedNetPct": 50.77,
+              "cagrPct": 50.56,
+              "maxDrawdownPct": 16.09,
+              "compoundedMaxDrawdownPct": 15.17,
+              "sharpe": 1.67,
+              "sortino": 2.74,
+              "calmar": 3.33,
+              "retToDd": 3.35,
+              "buyHoldPct": -73.58,
+              "buyHoldMaxDdPct": 81.06
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 51,
+              "wins": 32,
+              "losses": 19,
+              "winRatePct": 62.75,
+              "profitFactor": 1.13,
+              "totalNetPct": 9.94,
+              "compoundedNetPct": 6.71,
+              "cagrPct": 6.69,
+              "maxDrawdownPct": 19.81,
+              "compoundedMaxDrawdownPct": 18.36,
+              "sharpe": 0.37,
+              "sortino": 0.55,
+              "calmar": 0.36,
+              "retToDd": 0.37,
+              "buyHoldPct": 78.75,
+              "buyHoldMaxDdPct": 28.29
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 60,
+              "wins": 47,
+              "losses": 13,
+              "winRatePct": 78.33,
+              "profitFactor": 1.9,
+              "totalNetPct": 50.83,
+              "compoundedNetPct": 60.66,
+              "cagrPct": 60.41,
+              "maxDrawdownPct": 12.5,
+              "compoundedMaxDrawdownPct": 12.22,
+              "sharpe": 1.98,
+              "sortino": 3.24,
+              "calmar": 4.94,
+              "retToDd": 4.96,
+              "buyHoldPct": 63.17,
+              "buyHoldMaxDdPct": 46.73
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 62,
+              "wins": 41,
+              "losses": 21,
+              "winRatePct": 66.13,
+              "profitFactor": 1.35,
+              "totalNetPct": 31.88,
+              "compoundedNetPct": 31.31,
+              "cagrPct": 31.19,
+              "maxDrawdownPct": 18.18,
+              "compoundedMaxDrawdownPct": 16.98,
+              "sharpe": 1.04,
+              "sortino": 1.62,
+              "calmar": 1.84,
+              "retToDd": 1.84,
+              "buyHoldPct": -14.66,
+              "buyHoldMaxDdPct": 65.31
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 47,
+              "wins": 28,
+              "losses": 19,
+              "winRatePct": 59.57,
+              "profitFactor": 0.92,
+              "totalNetPct": -6.84,
+              "compoundedNetPct": -9.66,
+              "cagrPct": -9.63,
+              "maxDrawdownPct": 45.88,
+              "compoundedMaxDrawdownPct": 37.77,
+              "sharpe": -0.26,
+              "sortino": -0.37,
+              "calmar": -0.25,
+              "retToDd": -0.26,
+              "buyHoldPct": -41.14,
+              "buyHoldMaxDdPct": 55.1
+            }
+          ]
+        },
+        "ml": {
+          "cal": {
+            "count": 98,
+            "wins": 71,
+            "losses": 27,
+            "winRatePct": 72.45,
+            "profitFactor": 1.41,
+            "totalNetPct": 48.4,
+            "compoundedNetPct": 52.32,
+            "cagrPct": 18.26,
+            "maxDrawdownPct": 23.92,
+            "compoundedMaxDrawdownPct": 22.65,
+            "sharpe": 0.86,
+            "sortino": 1.33,
+            "calmar": 0.81,
+            "retToDd": 2.31,
+            "buyHoldPct": -11.22,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "val": {
+            "count": 69,
+            "wins": 55,
+            "losses": 14,
+            "winRatePct": 79.71,
+            "profitFactor": 2.51,
+            "totalNetPct": 96.48,
+            "compoundedNetPct": 148.93,
+            "cagrPct": 83.3,
+            "maxDrawdownPct": 13.26,
+            "compoundedMaxDrawdownPct": 12.69,
+            "sharpe": 2.55,
+            "sortino": 4.59,
+            "calmar": 6.57,
+            "retToDd": 11.74,
+            "buyHoldPct": -26.64,
+            "buyHoldMaxDdPct": 65.31
+          },
+          "holdoutY5": {
+            "count": 29,
+            "wins": 17,
+            "losses": 12,
+            "winRatePct": 58.62,
+            "profitFactor": 0.81,
+            "totalNetPct": -10.7,
+            "compoundedNetPct": -12.17,
+            "cagrPct": -12.13,
+            "maxDrawdownPct": 31.97,
+            "compoundedMaxDrawdownPct": 28.47,
+            "sharpe": -0.5,
+            "sortino": -0.67,
+            "calmar": -0.43,
+            "retToDd": -0.43,
+            "buyHoldPct": -41.52,
+            "buyHoldMaxDdPct": 55.1
+          },
+          "full5y": {
+            "count": 196,
+            "wins": 143,
+            "losses": 53,
+            "winRatePct": 72.96,
+            "profitFactor": 1.57,
+            "totalNetPct": 134.18,
+            "compoundedNetPct": 233.05,
+            "cagrPct": 27.1,
+            "maxDrawdownPct": 31.97,
+            "compoundedMaxDrawdownPct": 28.47,
+            "sharpe": 1.15,
+            "sortino": 1.82,
+            "calmar": 0.95,
+            "retToDd": 8.18,
+            "buyHoldPct": -61.83,
+            "buyHoldMaxDdPct": 81.06
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 45,
+              "wins": 34,
+              "losses": 11,
+              "winRatePct": 75.56,
+              "profitFactor": 1.82,
+              "totalNetPct": 37.74,
+              "compoundedNetPct": 41.64,
+              "cagrPct": 41.47,
+              "maxDrawdownPct": 13.15,
+              "compoundedMaxDrawdownPct": 12.58,
+              "sharpe": 1.57,
+              "sortino": 2.68,
+              "calmar": 3.3,
+              "retToDd": 3.31,
+              "buyHoldPct": -73.58,
+              "buyHoldMaxDdPct": 81.06
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 34,
+              "wins": 20,
+              "losses": 14,
+              "winRatePct": 58.82,
+              "profitFactor": 0.78,
+              "totalNetPct": -13.83,
+              "compoundedNetPct": -14.94,
+              "cagrPct": -14.89,
+              "maxDrawdownPct": 22.61,
+              "compoundedMaxDrawdownPct": 20.67,
+              "sharpe": -0.63,
+              "sortino": -0.83,
+              "calmar": -0.72,
+              "retToDd": -0.72,
+              "buyHoldPct": 78.75,
+              "buyHoldMaxDdPct": 28.29
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 41,
+              "wins": 36,
+              "losses": 5,
+              "winRatePct": 87.8,
+              "profitFactor": 3.74,
+              "totalNetPct": 65.61,
+              "compoundedNetPct": 87.65,
+              "cagrPct": 87.25,
+              "maxDrawdownPct": 10.17,
+              "compoundedMaxDrawdownPct": 9.91,
+              "sharpe": 3.09,
+              "sortino": 6.1,
+              "calmar": 8.8,
+              "retToDd": 8.84,
+              "buyHoldPct": 63.17,
+              "buyHoldMaxDdPct": 46.73
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 46,
+              "wins": 35,
+              "losses": 11,
+              "winRatePct": 76.09,
+              "profitFactor": 1.98,
+              "totalNetPct": 48.75,
+              "compoundedNetPct": 57.32,
+              "cagrPct": 57.08,
+              "maxDrawdownPct": 13.26,
+              "compoundedMaxDrawdownPct": 12.69,
+              "sharpe": 1.9,
+              "sortino": 3.21,
+              "calmar": 4.5,
+              "retToDd": 4.52,
+              "buyHoldPct": -14.66,
+              "buyHoldMaxDdPct": 65.31
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 29,
+              "wins": 17,
+              "losses": 12,
+              "winRatePct": 58.62,
+              "profitFactor": 0.81,
+              "totalNetPct": -10.7,
+              "compoundedNetPct": -12.17,
+              "cagrPct": -12.12,
+              "maxDrawdownPct": 31.97,
+              "compoundedMaxDrawdownPct": 28.47,
+              "sharpe": -0.5,
+              "sortino": -0.67,
+              "calmar": -0.43,
+              "retToDd": -0.43,
+              "buyHoldPct": -41.14,
+              "buyHoldMaxDdPct": 55.1
+            }
+          ]
+        }
+      },
+      "qualifiedForLive": false,
+      "gateCheck": {
+        "postOnlyPassY5": false,
+        "strictTakerPassY5": false
+      }
+    },
+    "SOLUSDT": {
+      "EXCHANGE_POST_ONLY": {
+        "symbol": "SOLUSDT",
+        "execProfile": "EXCHANGE_POST_ONLY",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "signalCounts": {
+          "raw": 908,
+          "mlFiltered": 770
+        },
+        "baseline": {
+          "cal": {
+            "count": 221,
+            "wins": 142,
+            "losses": 79,
+            "winRatePct": 64.25,
+            "profitFactor": 1.28,
+            "totalNetPct": 96.29,
+            "compoundedNetPct": 118.01,
+            "cagrPct": 36.43,
+            "maxDrawdownPct": 58.08,
+            "compoundedMaxDrawdownPct": 45.17,
+            "sharpe": 1,
+            "sortino": 1.56,
+            "calmar": 0.81,
+            "retToDd": 2.61,
+            "buyHoldPct": -20.66,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "val": {
+            "count": 169,
+            "wins": 115,
+            "losses": 54,
+            "winRatePct": 68.05,
+            "profitFactor": 1.63,
+            "totalNetPct": 141.37,
+            "compoundedNetPct": 260.68,
+            "cagrPct": 134.5,
+            "maxDrawdownPct": 26.17,
+            "compoundedMaxDrawdownPct": 23.51,
+            "sharpe": 2.29,
+            "sortino": 3.75,
+            "calmar": 5.72,
+            "retToDd": 11.09,
+            "buyHoldPct": -24.59,
+            "buyHoldMaxDdPct": 66.07
+          },
+          "holdoutY5": {
+            "count": 146,
+            "wins": 100,
+            "losses": 46,
+            "winRatePct": 68.49,
+            "profitFactor": 1.39,
+            "totalNetPct": 74.88,
+            "compoundedNetPct": 91.65,
+            "cagrPct": 91.21,
+            "maxDrawdownPct": 24.74,
+            "compoundedMaxDrawdownPct": 22.59,
+            "sharpe": 1.69,
+            "sortino": 2.62,
+            "calmar": 4.04,
+            "retToDd": 4.06,
+            "buyHoldPct": -48.44,
+            "buyHoldMaxDdPct": 58.77
+          },
+          "full5y": {
+            "count": 536,
+            "wins": 357,
+            "losses": 179,
+            "winRatePct": 66.6,
+            "profitFactor": 1.41,
+            "totalNetPct": 312.54,
+            "compoundedNetPct": 1406.97,
+            "cagrPct": 71.71,
+            "maxDrawdownPct": 58.08,
+            "compoundedMaxDrawdownPct": 45.17,
+            "sharpe": 1.55,
+            "sortino": 2.43,
+            "calmar": 1.59,
+            "retToDd": 31.15,
+            "buyHoldPct": -68.87,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 101,
+              "wins": 61,
+              "losses": 40,
+              "winRatePct": 60.4,
+              "profitFactor": 1.19,
+              "totalNetPct": 33.8,
+              "compoundedNetPct": 27.05,
+              "cagrPct": 26.95,
+              "maxDrawdownPct": 58.08,
+              "compoundedMaxDrawdownPct": 45.17,
+              "sharpe": 0.76,
+              "sortino": 1.17,
+              "calmar": 0.6,
+              "retToDd": 0.6,
+              "buyHoldPct": -94.51,
+              "buyHoldMaxDdPct": 95.87
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 91,
+              "wins": 61,
+              "losses": 30,
+              "winRatePct": 67.03,
+              "profitFactor": 1.34,
+              "totalNetPct": 42.15,
+              "compoundedNetPct": 43.1,
+              "cagrPct": 42.92,
+              "maxDrawdownPct": 27.48,
+              "compoundedMaxDrawdownPct": 24.66,
+              "sharpe": 1.18,
+              "sortino": 1.84,
+              "calmar": 1.74,
+              "retToDd": 1.75,
+              "buyHoldPct": 363.93,
+              "buyHoldMaxDdPct": 47.28
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 85,
+              "wins": 60,
+              "losses": 25,
+              "winRatePct": 70.59,
+              "profitFactor": 1.86,
+              "totalNetPct": 90.59,
+              "compoundedNetPct": 131.31,
+              "cagrPct": 130.65,
+              "maxDrawdownPct": 16.74,
+              "compoundedMaxDrawdownPct": 15.72,
+              "sharpe": 2.53,
+              "sortino": 4.27,
+              "calmar": 8.31,
+              "retToDd": 8.35,
+              "buyHoldPct": 363.35,
+              "buyHoldMaxDdPct": 46.57
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 113,
+              "wins": 75,
+              "losses": 38,
+              "winRatePct": 66.37,
+              "profitFactor": 1.45,
+              "totalNetPct": 71.12,
+              "compoundedNetPct": 86.97,
+              "cagrPct": 86.57,
+              "maxDrawdownPct": 26.17,
+              "compoundedMaxDrawdownPct": 23.51,
+              "sharpe": 1.73,
+              "sortino": 2.76,
+              "calmar": 3.68,
+              "retToDd": 3.7,
+              "buyHoldPct": -48.43,
+              "buyHoldMaxDdPct": 66.07
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 146,
+              "wins": 100,
+              "losses": 46,
+              "winRatePct": 68.49,
+              "profitFactor": 1.39,
+              "totalNetPct": 74.88,
+              "compoundedNetPct": 91.65,
+              "cagrPct": 91.2,
+              "maxDrawdownPct": 24.74,
+              "compoundedMaxDrawdownPct": 22.59,
+              "sharpe": 1.69,
+              "sortino": 2.62,
+              "calmar": 4.04,
+              "retToDd": 4.06,
+              "buyHoldPct": -48.16,
+              "buyHoldMaxDdPct": 58.77
+            }
+          ]
+        },
+        "ml": {
+          "cal": {
+            "count": 194,
+            "wins": 128,
+            "losses": 66,
+            "winRatePct": 65.98,
+            "profitFactor": 1.34,
+            "totalNetPct": 109.73,
+            "compoundedNetPct": 146.28,
+            "cagrPct": 43.23,
+            "maxDrawdownPct": 57.74,
+            "compoundedMaxDrawdownPct": 45.24,
+            "sharpe": 1.11,
+            "sortino": 1.72,
+            "calmar": 0.96,
+            "retToDd": 3.23,
+            "buyHoldPct": -20.66,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "val": {
+            "count": 154,
+            "wins": 111,
+            "losses": 43,
+            "winRatePct": 72.08,
+            "profitFactor": 1.98,
+            "totalNetPct": 207.6,
+            "compoundedNetPct": 576.11,
+            "cagrPct": 256.01,
+            "maxDrawdownPct": 15.44,
+            "compoundedMaxDrawdownPct": 14.7,
+            "sharpe": 3.05,
+            "sortino": 5.21,
+            "calmar": 17.42,
+            "retToDd": 39.2,
+            "buyHoldPct": -24.59,
+            "buyHoldMaxDdPct": 66.07
+          },
+          "holdoutY5": {
+            "count": 130,
+            "wins": 89,
+            "losses": 41,
+            "winRatePct": 68.46,
+            "profitFactor": 1.29,
+            "totalNetPct": 54.5,
+            "compoundedNetPct": 56.54,
+            "cagrPct": 56.29,
+            "maxDrawdownPct": 28.22,
+            "compoundedMaxDrawdownPct": 26.6,
+            "sharpe": 1.24,
+            "sortino": 1.86,
+            "calmar": 2.12,
+            "retToDd": 2.13,
+            "buyHoldPct": -48.44,
+            "buyHoldMaxDdPct": 58.77
+          },
+          "full5y": {
+            "count": 478,
+            "wins": 328,
+            "losses": 150,
+            "winRatePct": 68.62,
+            "profitFactor": 1.52,
+            "totalNetPct": 371.83,
+            "compoundedNetPct": 2506.56,
+            "cagrPct": 91.53,
+            "maxDrawdownPct": 57.74,
+            "compoundedMaxDrawdownPct": 45.24,
+            "sharpe": 1.75,
+            "sortino": 2.8,
+            "calmar": 2.02,
+            "retToDd": 55.41,
+            "buyHoldPct": -68.87,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 92,
+              "wins": 56,
+              "losses": 36,
+              "winRatePct": 60.87,
+              "profitFactor": 1.13,
+              "totalNetPct": 24.14,
+              "compoundedNetPct": 14.49,
+              "cagrPct": 14.43,
+              "maxDrawdownPct": 57.74,
+              "compoundedMaxDrawdownPct": 45.24,
+              "sharpe": 0.52,
+              "sortino": 0.78,
+              "calmar": 0.32,
+              "retToDd": 0.32,
+              "buyHoldPct": -94.51,
+              "buyHoldMaxDdPct": 95.87
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 74,
+              "wins": 52,
+              "losses": 22,
+              "winRatePct": 70.27,
+              "profitFactor": 1.58,
+              "totalNetPct": 58.34,
+              "compoundedNetPct": 68.54,
+              "cagrPct": 68.24,
+              "maxDrawdownPct": 22.85,
+              "compoundedMaxDrawdownPct": 20.87,
+              "sharpe": 1.67,
+              "sortino": 2.72,
+              "calmar": 3.27,
+              "retToDd": 3.28,
+              "buyHoldPct": 363.93,
+              "buyHoldMaxDdPct": 47.28
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 80,
+              "wins": 59,
+              "losses": 21,
+              "winRatePct": 73.75,
+              "profitFactor": 2.26,
+              "totalNetPct": 129.09,
+              "compoundedNetPct": 233.15,
+              "cagrPct": 231.79,
+              "maxDrawdownPct": 14.66,
+              "compoundedMaxDrawdownPct": 14,
+              "sharpe": 3.23,
+              "sortino": 5.75,
+              "calmar": 16.56,
+              "retToDd": 16.66,
+              "buyHoldPct": 363.35,
+              "buyHoldMaxDdPct": 46.57
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 102,
+              "wins": 72,
+              "losses": 30,
+              "winRatePct": 70.59,
+              "profitFactor": 1.7,
+              "totalNetPct": 105.76,
+              "compoundedNetPct": 159.04,
+              "cagrPct": 158.2,
+              "maxDrawdownPct": 15.44,
+              "compoundedMaxDrawdownPct": 14.7,
+              "sharpe": 2.33,
+              "sortino": 3.82,
+              "calmar": 10.76,
+              "retToDd": 10.82,
+              "buyHoldPct": -48.43,
+              "buyHoldMaxDdPct": 66.07
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 130,
+              "wins": 89,
+              "losses": 41,
+              "winRatePct": 68.46,
+              "profitFactor": 1.29,
+              "totalNetPct": 54.5,
+              "compoundedNetPct": 56.54,
+              "cagrPct": 56.28,
+              "maxDrawdownPct": 28.22,
+              "compoundedMaxDrawdownPct": 26.6,
+              "sharpe": 1.24,
+              "sortino": 1.86,
+              "calmar": 2.12,
+              "retToDd": 2.13,
+              "buyHoldPct": -48.16,
+              "buyHoldMaxDdPct": 58.77
+            }
+          ]
+        }
+      },
+      "STRICT_TAKER": {
+        "symbol": "SOLUSDT",
+        "execProfile": "STRICT_TAKER",
+        "bars": 43952,
+        "splits": {
+          "cal": [
+            0,
+            21976
+          ],
+          "val": [
+            21976,
+            35161
+          ],
+          "holdoutY5": [
+            35161,
+            43952
+          ]
+        },
+        "signalCounts": {
+          "raw": 908,
+          "mlFiltered": 770
+        },
+        "baseline": {
+          "cal": {
+            "count": 221,
+            "wins": 140,
+            "losses": 81,
+            "winRatePct": 63.35,
+            "profitFactor": 1.19,
+            "totalNetPct": 68.59,
+            "compoundedNetPct": 65.56,
+            "cagrPct": 22.26,
+            "maxDrawdownPct": 59.57,
+            "compoundedMaxDrawdownPct": 45.99,
+            "sharpe": 0.72,
+            "sortino": 1.08,
+            "calmar": 0.48,
+            "retToDd": 1.43,
+            "buyHoldPct": -20.66,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "val": {
+            "count": 169,
+            "wins": 115,
+            "losses": 54,
+            "winRatePct": 68.05,
+            "profitFactor": 1.55,
+            "totalNetPct": 126.23,
+            "compoundedNetPct": 211.15,
+            "cagrPct": 112.58,
+            "maxDrawdownPct": 27.96,
+            "compoundedMaxDrawdownPct": 25.39,
+            "sharpe": 2.06,
+            "sortino": 3.31,
+            "calmar": 4.43,
+            "retToDd": 8.31,
+            "buyHoldPct": -24.59,
+            "buyHoldMaxDdPct": 66.07
+          },
+          "holdoutY5": {
+            "count": 146,
+            "wins": 100,
+            "losses": 46,
+            "winRatePct": 68.49,
+            "profitFactor": 1.26,
+            "totalNetPct": 51.02,
+            "compoundedNetPct": 51.81,
+            "cagrPct": 51.59,
+            "maxDrawdownPct": 25.81,
+            "compoundedMaxDrawdownPct": 23.43,
+            "sharpe": 1.18,
+            "sortino": 1.76,
+            "calmar": 2.2,
+            "retToDd": 2.21,
+            "buyHoldPct": -48.44,
+            "buyHoldMaxDdPct": 58.77
+          },
+          "full5y": {
+            "count": 536,
+            "wins": 355,
+            "losses": 181,
+            "winRatePct": 66.23,
+            "profitFactor": 1.32,
+            "totalNetPct": 245.84,
+            "compoundedNetPct": 682.01,
+            "cagrPct": 50.67,
+            "maxDrawdownPct": 59.57,
+            "compoundedMaxDrawdownPct": 45.99,
+            "sharpe": 1.23,
+            "sortino": 1.88,
+            "calmar": 1.1,
+            "retToDd": 14.83,
+            "buyHoldPct": -68.87,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 101,
+              "wins": 60,
+              "losses": 41,
+              "winRatePct": 59.41,
+              "profitFactor": 1.12,
+              "totalNetPct": 21.89,
+              "compoundedNetPct": 12.85,
+              "cagrPct": 12.81,
+              "maxDrawdownPct": 59.57,
+              "compoundedMaxDrawdownPct": 45.99,
+              "sharpe": 0.49,
+              "sortino": 0.74,
+              "calmar": 0.28,
+              "retToDd": 0.28,
+              "buyHoldPct": -94.51,
+              "buyHoldMaxDdPct": 95.87
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 91,
+              "wins": 60,
+              "losses": 31,
+              "winRatePct": 65.93,
+              "profitFactor": 1.22,
+              "totalNetPct": 28.47,
+              "compoundedNetPct": 24.89,
+              "cagrPct": 24.8,
+              "maxDrawdownPct": 28.18,
+              "compoundedMaxDrawdownPct": 25.2,
+              "sharpe": 0.8,
+              "sortino": 1.2,
+              "calmar": 0.98,
+              "retToDd": 0.99,
+              "buyHoldPct": 363.93,
+              "buyHoldMaxDdPct": 47.28
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 85,
+              "wins": 60,
+              "losses": 25,
+              "winRatePct": 70.59,
+              "profitFactor": 1.77,
+              "totalNetPct": 82.69,
+              "compoundedNetPct": 114.17,
+              "cagrPct": 113.62,
+              "maxDrawdownPct": 16.98,
+              "compoundedMaxDrawdownPct": 15.93,
+              "sharpe": 2.33,
+              "sortino": 3.85,
+              "calmar": 7.13,
+              "retToDd": 7.17,
+              "buyHoldPct": 363.35,
+              "buyHoldMaxDdPct": 46.57
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 113,
+              "wins": 75,
+              "losses": 38,
+              "winRatePct": 66.37,
+              "profitFactor": 1.39,
+              "totalNetPct": 61.77,
+              "compoundedNetPct": 70.65,
+              "cagrPct": 70.34,
+              "maxDrawdownPct": 27.96,
+              "compoundedMaxDrawdownPct": 25.39,
+              "sharpe": 1.51,
+              "sortino": 2.37,
+              "calmar": 2.77,
+              "retToDd": 2.78,
+              "buyHoldPct": -48.43,
+              "buyHoldMaxDdPct": 66.07
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 146,
+              "wins": 100,
+              "losses": 46,
+              "winRatePct": 68.49,
+              "profitFactor": 1.26,
+              "totalNetPct": 51.02,
+              "compoundedNetPct": 51.81,
+              "cagrPct": 51.58,
+              "maxDrawdownPct": 25.81,
+              "compoundedMaxDrawdownPct": 23.43,
+              "sharpe": 1.18,
+              "sortino": 1.76,
+              "calmar": 2.2,
+              "retToDd": 2.21,
+              "buyHoldPct": -48.16,
+              "buyHoldMaxDdPct": 58.77
+            }
+          ]
+        },
+        "ml": {
+          "cal": {
+            "count": 194,
+            "wins": 126,
+            "losses": 68,
+            "winRatePct": 64.95,
+            "profitFactor": 1.23,
+            "totalNetPct": 77.36,
+            "compoundedNetPct": 78.7,
+            "cagrPct": 26.04,
+            "maxDrawdownPct": 59.43,
+            "compoundedMaxDrawdownPct": 46.17,
+            "sharpe": 0.79,
+            "sortino": 1.19,
+            "calmar": 0.56,
+            "retToDd": 1.7,
+            "buyHoldPct": -20.66,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "val": {
+            "count": 154,
+            "wins": 111,
+            "losses": 43,
+            "winRatePct": 72.08,
+            "profitFactor": 1.89,
+            "totalNetPct": 191.43,
+            "compoundedNetPct": 477.99,
+            "cagrPct": 220.79,
+            "maxDrawdownPct": 14.93,
+            "compoundedMaxDrawdownPct": 14.43,
+            "sharpe": 2.84,
+            "sortino": 4.75,
+            "calmar": 15.3,
+            "retToDd": 33.13,
+            "buyHoldPct": -24.59,
+            "buyHoldMaxDdPct": 66.07
+          },
+          "holdoutY5": {
+            "count": 128,
+            "wins": 87,
+            "losses": 41,
+            "winRatePct": 67.97,
+            "profitFactor": 1.16,
+            "totalNetPct": 30.31,
+            "compoundedNetPct": 23.51,
+            "cagrPct": 23.42,
+            "maxDrawdownPct": 30.15,
+            "compoundedMaxDrawdownPct": 27.17,
+            "sharpe": 0.7,
+            "sortino": 1.02,
+            "calmar": 0.86,
+            "retToDd": 0.87,
+            "buyHoldPct": -48.44,
+            "buyHoldMaxDdPct": 58.77
+          },
+          "full5y": {
+            "count": 476,
+            "wins": 324,
+            "losses": 152,
+            "winRatePct": 68.07,
+            "profitFactor": 1.41,
+            "totalNetPct": 299.09,
+            "compoundedNetPct": 1175.71,
+            "cagrPct": 66.11,
+            "maxDrawdownPct": 59.43,
+            "compoundedMaxDrawdownPct": 46.17,
+            "sharpe": 1.42,
+            "sortino": 2.21,
+            "calmar": 1.43,
+            "retToDd": 25.47,
+            "buyHoldPct": -68.87,
+            "buyHoldMaxDdPct": 96.59
+          },
+          "yearly": [
+            {
+              "year": "Y1",
+              "range": [
+                0,
+                8790
+              ],
+              "count": 92,
+              "wins": 55,
+              "losses": 37,
+              "winRatePct": 59.78,
+              "profitFactor": 1.06,
+              "totalNetPct": 10.76,
+              "compoundedNetPct": 0.21,
+              "cagrPct": 0.21,
+              "maxDrawdownPct": 59.43,
+              "compoundedMaxDrawdownPct": 46.17,
+              "sharpe": 0.23,
+              "sortino": 0.34,
+              "calmar": 0,
+              "retToDd": 0,
+              "buyHoldPct": -94.51,
+              "buyHoldMaxDdPct": 95.87
+            },
+            {
+              "year": "Y2",
+              "range": [
+                8790,
+                17580
+              ],
+              "count": 74,
+              "wins": 51,
+              "losses": 23,
+              "winRatePct": 68.92,
+              "profitFactor": 1.4,
+              "totalNetPct": 41.77,
+              "compoundedNetPct": 43.06,
+              "cagrPct": 42.89,
+              "maxDrawdownPct": 23.18,
+              "compoundedMaxDrawdownPct": 21.15,
+              "sharpe": 1.21,
+              "sortino": 1.88,
+              "calmar": 2.03,
+              "retToDd": 2.04,
+              "buyHoldPct": 363.93,
+              "buyHoldMaxDdPct": 47.28
+            },
+            {
+              "year": "Y3",
+              "range": [
+                17580,
+                26370
+              ],
+              "count": 80,
+              "wins": 59,
+              "losses": 21,
+              "winRatePct": 73.75,
+              "profitFactor": 2.16,
+              "totalNetPct": 120.19,
+              "compoundedNetPct": 205.66,
+              "cagrPct": 204.49,
+              "maxDrawdownPct": 14.93,
+              "compoundedMaxDrawdownPct": 14.24,
+              "sharpe": 3.04,
+              "sortino": 5.29,
+              "calmar": 14.36,
+              "retToDd": 14.44,
+              "buyHoldPct": 363.35,
+              "buyHoldMaxDdPct": 46.57
+            },
+            {
+              "year": "Y4",
+              "range": [
+                26370,
+                35160
+              ],
+              "count": 102,
+              "wins": 72,
+              "losses": 30,
+              "winRatePct": 70.59,
+              "profitFactor": 1.63,
+              "totalNetPct": 96.06,
+              "compoundedNetPct": 135.72,
+              "cagrPct": 135.03,
+              "maxDrawdownPct": 14.89,
+              "compoundedMaxDrawdownPct": 14.43,
+              "sharpe": 2.14,
+              "sortino": 3.44,
+              "calmar": 9.36,
+              "retToDd": 9.41,
+              "buyHoldPct": -48.43,
+              "buyHoldMaxDdPct": 66.07
+            },
+            {
+              "year": "Y5",
+              "range": [
+                35160,
+                43952
+              ],
+              "count": 128,
+              "wins": 87,
+              "losses": 41,
+              "winRatePct": 67.97,
+              "profitFactor": 1.16,
+              "totalNetPct": 30.31,
+              "compoundedNetPct": 23.51,
+              "cagrPct": 23.41,
+              "maxDrawdownPct": 30.15,
+              "compoundedMaxDrawdownPct": 27.17,
+              "sharpe": 0.7,
+              "sortino": 1.02,
+              "calmar": 0.86,
+              "retToDd": 0.87,
+              "buyHoldPct": -48.16,
+              "buyHoldMaxDdPct": 58.77
+            }
+          ]
+        }
+      },
+      "qualifiedForLive": true,
+      "gateCheck": {
+        "postOnlyPassY5": true,
+        "strictTakerPassY5": true
+      }
+    }
+  },
+  "portfolio4Crypto": {
+    "EXCHANGE_POST_ONLY": {
+      "qualifiedStreams": [
+        "BTC_5Y",
+        "BNB_5Y",
+        "SOL_5Y"
+      ],
+      "qualifiedOnly": {
+        "cal": {
+          "count": 464,
+          "wins": 311,
+          "losses": 153,
+          "winRatePct": 67.03,
+          "profitFactor": 1.29,
+          "totalNetPct": 203.87,
+          "compoundedNetPct": 399.17,
+          "cagrPct": 89.82,
+          "maxDrawdownPct": 64.81,
+          "compoundedMaxDrawdownPct": 51.49,
+          "sharpe": 1.39,
+          "sortino": 2.13,
+          "calmar": 1.74,
+          "retToDd": 7.75,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 39,
+          "skippedByCapCount": 2,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 152,
+              "executedCount": 152,
+              "wins": 101,
+              "losses": 51,
+              "totalNetPct": 26.58033157274717,
+              "scaledByCapCount": 12,
+              "skippedByCapCount": 0
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 120,
+              "executedCount": 120,
+              "wins": 84,
+              "losses": 36,
+              "totalNetPct": 75.16742229260136,
+              "scaledByCapCount": 8,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 194,
+              "executedCount": 192,
+              "wins": 126,
+              "losses": 66,
+              "totalNetPct": 102.12552494637663,
+              "scaledByCapCount": 19,
+              "skippedByCapCount": 2
+            }
+          }
+        },
+        "val": {
+          "count": 335,
+          "wins": 247,
+          "losses": 88,
+          "winRatePct": 73.73,
+          "profitFactor": 1.81,
+          "totalNetPct": 322.57,
+          "compoundedNetPct": 1814.53,
+          "cagrPct": 610.87,
+          "maxDrawdownPct": 32.63,
+          "compoundedMaxDrawdownPct": 28.67,
+          "sharpe": 3.63,
+          "sortino": 6.06,
+          "calmar": 21.31,
+          "retToDd": 63.29,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 42,
+          "skippedByCapCount": 7,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 110,
+              "executedCount": 109,
+              "wins": 84,
+              "losses": 25,
+              "totalNetPct": 86.83918639372037,
+              "scaledByCapCount": 7,
+              "skippedByCapCount": 1
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 78,
+              "executedCount": 78,
+              "wins": 55,
+              "losses": 23,
+              "totalNetPct": 41.06684166495379,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 154,
+              "executedCount": 148,
+              "wins": 108,
+              "losses": 40,
+              "totalNetPct": 194.66750741163025,
+              "scaledByCapCount": 24,
+              "skippedByCapCount": 6
+            }
+          }
+        },
+        "holdoutY5": {
+          "count": 236,
+          "wins": 163,
+          "losses": 73,
+          "winRatePct": 69.07,
+          "profitFactor": 1.29,
+          "totalNetPct": 90.99,
+          "compoundedNetPct": 111.22,
+          "cagrPct": 110.67,
+          "maxDrawdownPct": 37.12,
+          "compoundedMaxDrawdownPct": 32.85,
+          "sharpe": 1.6,
+          "sortino": 2.42,
+          "calmar": 3.37,
+          "retToDd": 3.39,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 34,
+          "skippedByCapCount": 3,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 66,
+              "executedCount": 66,
+              "wins": 47,
+              "losses": 19,
+              "totalNetPct": 43.163828772664075,
+              "scaledByCapCount": 10,
+              "skippedByCapCount": 0
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 43,
+              "executedCount": 43,
+              "wins": 29,
+              "losses": 14,
+              "totalNetPct": 0.10035769549317664,
+              "scaledByCapCount": 9,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 130,
+              "executedCount": 127,
+              "wins": 87,
+              "losses": 40,
+              "totalNetPct": 47.72519357815039,
+              "scaledByCapCount": 15,
+              "skippedByCapCount": 3
+            }
+          }
+        },
+        "full5y": {
+          "count": 1038,
+          "wins": 722,
+          "losses": 316,
+          "winRatePct": 69.56,
+          "profitFactor": 1.43,
+          "totalNetPct": 616.17,
+          "compoundedNetPct": 19750.27,
+          "cagrPct": 187.05,
+          "maxDrawdownPct": 64.81,
+          "compoundedMaxDrawdownPct": 51.49,
+          "sharpe": 2.1,
+          "sortino": 3.29,
+          "calmar": 3.63,
+          "retToDd": 383.6,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 117,
+          "skippedByCapCount": 12,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 330,
+              "executedCount": 329,
+              "wins": 233,
+              "losses": 96,
+              "totalNetPct": 156.4383869096275,
+              "scaledByCapCount": 29,
+              "skippedByCapCount": 1
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 242,
+              "executedCount": 242,
+              "wins": 168,
+              "losses": 74,
+              "totalNetPct": 114.65901259026326,
+              "scaledByCapCount": 29,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 478,
+              "executedCount": 467,
+              "wins": 321,
+              "losses": 146,
+              "totalNetPct": 345.0700746525185,
+              "scaledByCapCount": 59,
+              "skippedByCapCount": 11
+            }
+          }
+        }
+      },
+      "full4CryptoAllCoins": {
+        "cal": {
+          "count": 556,
+          "wins": 379,
+          "losses": 177,
+          "winRatePct": 68.17,
+          "profitFactor": 1.36,
+          "totalNetPct": 284.69,
+          "compoundedNetPct": 962.2,
+          "cagrPct": 156.49,
+          "maxDrawdownPct": 57.97,
+          "compoundedMaxDrawdownPct": 48.3,
+          "sharpe": 1.83,
+          "sortino": 2.85,
+          "calmar": 3.24,
+          "retToDd": 19.92,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 65,
+          "skippedByCapCount": 7,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 152,
+              "executedCount": 152,
+              "wins": 101,
+              "losses": 51,
+              "totalNetPct": 28.862256560842273,
+              "scaledByCapCount": 15,
+              "skippedByCapCount": 0
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 97,
+              "executedCount": 95,
+              "wins": 70,
+              "losses": 25,
+              "totalNetPct": 61.46023287241608,
+              "scaledByCapCount": 19,
+              "skippedByCapCount": 2
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 194,
+              "executedCount": 191,
+              "wins": 126,
+              "losses": 65,
+              "totalNetPct": 114.4130752141709,
+              "scaledByCapCount": 21,
+              "skippedByCapCount": 3
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 120,
+              "executedCount": 118,
+              "wins": 82,
+              "losses": 36,
+              "totalNetPct": 79.953624983592,
+              "scaledByCapCount": 10,
+              "skippedByCapCount": 2
+            }
+          }
+        },
+        "val": {
+          "count": 398,
+          "wins": 295,
+          "losses": 103,
+          "winRatePct": 74.12,
+          "profitFactor": 1.91,
+          "totalNetPct": 410.85,
+          "compoundedNetPct": 4331.79,
+          "cagrPct": 1141.58,
+          "maxDrawdownPct": 32.63,
+          "compoundedMaxDrawdownPct": 28.67,
+          "sharpe": 4.31,
+          "sortino": 7.35,
+          "calmar": 39.82,
+          "retToDd": 151.09,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 67,
+          "skippedByCapCount": 12,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 110,
+              "executedCount": 109,
+              "wins": 84,
+              "losses": 25,
+              "totalNetPct": 85.85772209330426,
+              "scaledByCapCount": 15,
+              "skippedByCapCount": 1
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 68,
+              "executedCount": 68,
+              "wins": 54,
+              "losses": 14,
+              "totalNetPct": 111.09034111947477,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 154,
+              "executedCount": 147,
+              "wins": 106,
+              "losses": 41,
+              "totalNetPct": 184.6694685352861,
+              "scaledByCapCount": 30,
+              "skippedByCapCount": 7
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 78,
+              "executedCount": 74,
+              "wins": 51,
+              "losses": 23,
+              "totalNetPct": 29.23698713714028,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 4
+            }
+          }
+        },
+        "holdoutY5": {
+          "count": 261,
+          "wins": 176,
+          "losses": 85,
+          "winRatePct": 67.43,
+          "profitFactor": 1.22,
+          "totalNetPct": 80.21,
+          "compoundedNetPct": 86.52,
+          "cagrPct": 86.11,
+          "maxDrawdownPct": 49.32,
+          "compoundedMaxDrawdownPct": 40.95,
+          "sharpe": 1.34,
+          "sortino": 2.01,
+          "calmar": 2.1,
+          "retToDd": 2.11,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 40,
+          "skippedByCapCount": 7,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 66,
+              "executedCount": 66,
+              "wins": 47,
+              "losses": 19,
+              "totalNetPct": 42.02486912666273,
+              "scaledByCapCount": 14,
+              "skippedByCapCount": 0
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 29,
+              "executedCount": 29,
+              "wins": 17,
+              "losses": 12,
+              "totalNetPct": -5.009532561709821,
+              "scaledByCapCount": 6,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 130,
+              "executedCount": 126,
+              "wins": 86,
+              "losses": 40,
+              "totalNetPct": 46.77030934609953,
+              "scaledByCapCount": 15,
+              "skippedByCapCount": 4
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 43,
+              "executedCount": 40,
+              "wins": 26,
+              "losses": 14,
+              "totalNetPct": -3.5776157441654615,
+              "scaledByCapCount": 5,
+              "skippedByCapCount": 3
+            }
+          }
+        },
+        "full5y": {
+          "count": 1218,
+          "wins": 851,
+          "losses": 367,
+          "winRatePct": 69.87,
+          "profitFactor": 1.48,
+          "totalNetPct": 774.48,
+          "compoundedNetPct": 86243.13,
+          "cagrPct": 284.78,
+          "maxDrawdownPct": 57.97,
+          "compoundedMaxDrawdownPct": 48.3,
+          "sharpe": 2.48,
+          "sortino": 3.94,
+          "calmar": 5.9,
+          "retToDd": 1785.45,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 174,
+          "skippedByCapCount": 26,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 330,
+              "executedCount": 329,
+              "wins": 233,
+              "losses": 96,
+              "totalNetPct": 156.59988795130516,
+              "scaledByCapCount": 44,
+              "skippedByCapCount": 1
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 194,
+              "executedCount": 192,
+              "wins": 141,
+              "losses": 51,
+              "totalNetPct": 167.54104143018125,
+              "scaledByCapCount": 36,
+              "skippedByCapCount": 2
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 478,
+              "executedCount": 464,
+              "wins": 318,
+              "losses": 146,
+              "totalNetPct": 346.40470181191756,
+              "scaledByCapCount": 67,
+              "skippedByCapCount": 14
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 242,
+              "executedCount": 233,
+              "wins": 159,
+              "losses": 74,
+              "totalNetPct": 103.9373873137817,
+              "scaledByCapCount": 27,
+              "skippedByCapCount": 9
+            }
+          }
+        }
+      }
+    },
+    "STRICT_TAKER": {
+      "qualifiedStreams": [
+        "BTC_5Y",
+        "BNB_5Y",
+        "SOL_5Y"
+      ],
+      "qualifiedOnly": {
+        "cal": {
+          "count": 464,
+          "wins": 307,
+          "losses": 157,
+          "winRatePct": 66.16,
+          "profitFactor": 1.19,
+          "totalNetPct": 137.17,
+          "compoundedNetPct": 157.6,
+          "cagrPct": 45.82,
+          "maxDrawdownPct": 76.09,
+          "compoundedMaxDrawdownPct": 58.06,
+          "sharpe": 0.94,
+          "sortino": 1.4,
+          "calmar": 0.79,
+          "retToDd": 2.71,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 38,
+          "skippedByCapCount": 3,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 153,
+              "executedCount": 153,
+              "wins": 100,
+              "losses": 53,
+              "totalNetPct": -14.120175424209027,
+              "scaledByCapCount": 12,
+              "skippedByCapCount": 0
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 120,
+              "executedCount": 119,
+              "wins": 83,
+              "losses": 36,
+              "totalNetPct": 75.93913564403437,
+              "scaledByCapCount": 6,
+              "skippedByCapCount": 1
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 194,
+              "executedCount": 192,
+              "wins": 124,
+              "losses": 68,
+              "totalNetPct": 75.35088594692573,
+              "scaledByCapCount": 20,
+              "skippedByCapCount": 2
+            }
+          }
+        },
+        "val": {
+          "count": 336,
+          "wins": 247,
+          "losses": 89,
+          "winRatePct": 73.51,
+          "profitFactor": 1.72,
+          "totalNetPct": 290.63,
+          "compoundedNetPct": 1298.32,
+          "cagrPct": 476.94,
+          "maxDrawdownPct": 33.12,
+          "compoundedMaxDrawdownPct": 29.03,
+          "sharpe": 3.29,
+          "sortino": 5.37,
+          "calmar": 16.43,
+          "retToDd": 44.72,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 44,
+          "skippedByCapCount": 7,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 112,
+              "executedCount": 111,
+              "wins": 85,
+              "losses": 26,
+              "totalNetPct": 79.3194395017704,
+              "scaledByCapCount": 7,
+              "skippedByCapCount": 1
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 77,
+              "executedCount": 77,
+              "wins": 54,
+              "losses": 23,
+              "totalNetPct": 28.4281834720919,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 154,
+              "executedCount": 148,
+              "wins": 108,
+              "losses": 40,
+              "totalNetPct": 182.88294845196012,
+              "scaledByCapCount": 26,
+              "skippedByCapCount": 6
+            }
+          }
+        },
+        "holdoutY5": {
+          "count": 237,
+          "wins": 162,
+          "losses": 75,
+          "winRatePct": 68.35,
+          "profitFactor": 1.15,
+          "totalNetPct": 48.6,
+          "compoundedNetPct": 38.91,
+          "cagrPct": 38.75,
+          "maxDrawdownPct": 40.29,
+          "compoundedMaxDrawdownPct": 34.93,
+          "sharpe": 0.86,
+          "sortino": 1.25,
+          "calmar": 1.11,
+          "retToDd": 1.11,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 35,
+          "skippedByCapCount": 3,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 66,
+              "executedCount": 66,
+              "wins": 46,
+              "losses": 20,
+              "totalNetPct": 22.495234272299818,
+              "scaledByCapCount": 10,
+              "skippedByCapCount": 0
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 46,
+              "executedCount": 46,
+              "wins": 31,
+              "losses": 15,
+              "totalNetPct": 2.0010568471095116,
+              "scaledByCapCount": 8,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 128,
+              "executedCount": 125,
+              "wins": 85,
+              "losses": 40,
+              "totalNetPct": 24.099299967079556,
+              "scaledByCapCount": 17,
+              "skippedByCapCount": 3
+            }
+          }
+        },
+        "full5y": {
+          "count": 1040,
+          "wins": 717,
+          "losses": 323,
+          "winRatePct": 68.94,
+          "profitFactor": 1.32,
+          "totalNetPct": 474.88,
+          "compoundedNetPct": 4808.67,
+          "cagrPct": 117.28,
+          "maxDrawdownPct": 76.09,
+          "compoundedMaxDrawdownPct": 58.06,
+          "sharpe": 1.63,
+          "sortino": 2.48,
+          "calmar": 2.02,
+          "retToDd": 82.82,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 119,
+          "skippedByCapCount": 13,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 333,
+              "executedCount": 332,
+              "wins": 232,
+              "losses": 100,
+              "totalNetPct": 87.31621495190397,
+              "scaledByCapCount": 29,
+              "skippedByCapCount": 1
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 244,
+              "executedCount": 243,
+              "wins": 168,
+              "losses": 75,
+              "totalNetPct": 104.67486611154101,
+              "scaledByCapCount": 26,
+              "skippedByCapCount": 1
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 476,
+              "executedCount": 465,
+              "wins": 317,
+              "losses": 148,
+              "totalNetPct": 282.8904790156307,
+              "scaledByCapCount": 64,
+              "skippedByCapCount": 11
+            }
+          }
+        }
+      },
+      "full4CryptoAllCoins": {
+        "cal": {
+          "count": 557,
+          "wins": 376,
+          "losses": 181,
+          "winRatePct": 67.5,
+          "profitFactor": 1.26,
+          "totalNetPct": 212.31,
+          "compoundedNetPct": 418.53,
+          "cagrPct": 92.72,
+          "maxDrawdownPct": 61.62,
+          "compoundedMaxDrawdownPct": 50.19,
+          "sharpe": 1.37,
+          "sortino": 2.08,
+          "calmar": 1.85,
+          "retToDd": 8.34,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 63,
+          "skippedByCapCount": 8,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 153,
+              "executedCount": 153,
+              "wins": 100,
+              "losses": 53,
+              "totalNetPct": -11.760415698813144,
+              "scaledByCapCount": 15,
+              "skippedByCapCount": 0
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 98,
+              "executedCount": 96,
+              "wins": 71,
+              "losses": 25,
+              "totalNetPct": 55.49546895699268,
+              "scaledByCapCount": 18,
+              "skippedByCapCount": 2
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 194,
+              "executedCount": 191,
+              "wins": 124,
+              "losses": 67,
+              "totalNetPct": 87.7012447539726,
+              "scaledByCapCount": 22,
+              "skippedByCapCount": 3
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 120,
+              "executedCount": 117,
+              "wins": 81,
+              "losses": 36,
+              "totalNetPct": 80.87383970845426,
+              "scaledByCapCount": 8,
+              "skippedByCapCount": 3
+            }
+          }
+        },
+        "val": {
+          "count": 398,
+          "wins": 295,
+          "losses": 103,
+          "winRatePct": 74.12,
+          "profitFactor": 1.83,
+          "totalNetPct": 375.82,
+          "compoundedNetPct": 3050.69,
+          "cagrPct": 889.76,
+          "maxDrawdownPct": 33.12,
+          "compoundedMaxDrawdownPct": 29.03,
+          "sharpe": 3.99,
+          "sortino": 6.66,
+          "calmar": 30.65,
+          "retToDd": 105.08,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 67,
+          "skippedByCapCount": 14,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 112,
+              "executedCount": 111,
+              "wins": 85,
+              "losses": 26,
+              "totalNetPct": 79.06621821696523,
+              "scaledByCapCount": 14,
+              "skippedByCapCount": 1
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 69,
+              "executedCount": 68,
+              "wins": 54,
+              "losses": 14,
+              "totalNetPct": 96.21050500489082,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 1
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 154,
+              "executedCount": 146,
+              "wins": 106,
+              "losses": 40,
+              "totalNetPct": 179.65860889539624,
+              "scaledByCapCount": 31,
+              "skippedByCapCount": 8
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 77,
+              "executedCount": 73,
+              "wins": 50,
+              "losses": 23,
+              "totalNetPct": 20.88017920065278,
+              "scaledByCapCount": 11,
+              "skippedByCapCount": 4
+            }
+          }
+        },
+        "holdoutY5": {
+          "count": 262,
+          "wins": 175,
+          "losses": 87,
+          "winRatePct": 66.79,
+          "profitFactor": 1.09,
+          "totalNetPct": 33.78,
+          "compoundedNetPct": 17.88,
+          "cagrPct": 17.81,
+          "maxDrawdownPct": 53.28,
+          "compoundedMaxDrawdownPct": 43.23,
+          "sharpe": 0.57,
+          "sortino": 0.82,
+          "calmar": 0.41,
+          "retToDd": 0.41,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 41,
+          "skippedByCapCount": 7,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 66,
+              "executedCount": 66,
+              "wins": 46,
+              "losses": 20,
+              "totalNetPct": 21.619977947411755,
+              "scaledByCapCount": 14,
+              "skippedByCapCount": 0
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 29,
+              "executedCount": 29,
+              "wins": 17,
+              "losses": 12,
+              "totalNetPct": -7.4921047098186495,
+              "scaledByCapCount": 6,
+              "skippedByCapCount": 0
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 128,
+              "executedCount": 124,
+              "wins": 84,
+              "losses": 40,
+              "totalNetPct": 23.271581544299952,
+              "scaledByCapCount": 17,
+              "skippedByCapCount": 4
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 46,
+              "executedCount": 43,
+              "wins": 28,
+              "losses": 15,
+              "totalNetPct": -3.614888767114045,
+              "scaledByCapCount": 4,
+              "skippedByCapCount": 3
+            }
+          }
+        },
+        "full5y": {
+          "count": 1220,
+          "wins": 847,
+          "losses": 373,
+          "winRatePct": 69.43,
+          "profitFactor": 1.38,
+          "totalNetPct": 620.4,
+          "compoundedNetPct": 18791.67,
+          "cagrPct": 184.24,
+          "maxDrawdownPct": 61.62,
+          "compoundedMaxDrawdownPct": 50.19,
+          "sharpe": 2,
+          "sortino": 3.1,
+          "calmar": 3.67,
+          "retToDd": 374.4,
+          "peakOpenLev": 4,
+          "scaledByCapCount": 173,
+          "skippedByCapCount": 29,
+          "perStream": {
+            "BTC_5Y": {
+              "id": "BTC_5Y",
+              "inputCount": 333,
+              "executedCount": 332,
+              "wins": 232,
+              "losses": 100,
+              "totalNetPct": 88.54749706760664,
+              "scaledByCapCount": 43,
+              "skippedByCapCount": 1
+            },
+            "ETH_5Y": {
+              "id": "ETH_5Y",
+              "inputCount": 196,
+              "executedCount": 193,
+              "wins": 142,
+              "losses": 51,
+              "totalNetPct": 144.21386925206485,
+              "scaledByCapCount": 35,
+              "skippedByCapCount": 3
+            },
+            "SOL_5Y": {
+              "id": "SOL_5Y",
+              "inputCount": 476,
+              "executedCount": 461,
+              "wins": 314,
+              "losses": 147,
+              "totalNetPct": 291.188779843334,
+              "scaledByCapCount": 71,
+              "skippedByCapCount": 15
+            },
+            "BNB_5Y": {
+              "id": "BNB_5Y",
+              "inputCount": 244,
+              "executedCount": 234,
+              "wins": 159,
+              "losses": 75,
+              "totalNetPct": 96.44562029029821,
+              "scaledByCapCount": 24,
+              "skippedByCapCount": 10
+            }
+          }
+        }
+      }
+    }
+  }
+}

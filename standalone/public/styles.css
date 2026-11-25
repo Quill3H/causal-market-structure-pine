@@ -188,6 +188,10 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
+.regime-val {
+  font-size: 1.05rem;
+}
+
 .kpi-meta {
   font-size: 0.78rem;
   color: var(--text-muted);

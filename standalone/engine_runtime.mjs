@@ -5,10 +5,13 @@ import { alignHtfIndices, validateContiguousRows } from '../research/fetch_binan
 import { generateSignals15mV4 } from '../research/signals_15m_v4.mjs';
 import { generateSignals1h } from '../research/signals_1h.mjs';
 import { simulateTrades, wilsonLowerBound } from '../research/sim_engine.mjs';
-import { OkxClient } from './exchange_okx.mjs';
 import { BinanceFuturesClient } from './exchange_binance.mjs';
-
-const EPS = 1e-12;
+import { OkxClient } from './exchange_okx.mjs';
+import {
+  isEquitySymbol,
+  resolveEquityInstrument,
+  YahooEquitiesClient,
+} from './market_equities.mjs';
 
 export function intervalSecondsFor(timeframe) {
   const tf = String(timeframe || '1h').toLowerCase();
@@ -16,10 +19,25 @@ export function intervalSecondsFor(timeframe) {
   if (tf === '1h') return 3600;
   if (tf === '4h') return 14400;
   if (tf === '1d') return 86400;
+  if (tf === '1wk' || tf === '1w') return 604800;
   throw new Error(`Unsupported timeframe: ${timeframe}`);
 }
 
-export function createExchangeClient(config, exchangeOverride) {
+export function normalizeAssetSymbol(symbol) {
+  const s = String(symbol || 'BTCUSDT.P').trim().toUpperCase();
+  if (s === 'BTC' || s === 'BTCUSDT' || s === 'BTC-USDT-SWAP' || s === 'BTCUSDT.P') return 'BTCUSDT.P';
+  if (s === 'ETH' || s === 'ETHUSDT' || s === 'ETH-USDT-SWAP' || s === 'ETHUSDT.P') return 'ETHUSDT.P';
+  if (s === 'SOL' || s === 'SOLUSDT' || s === 'SOL-USDT-SWAP' || s === 'SOLUSDT.P') return 'SOLUSDT.P';
+  if (s === 'BNB' || s === 'BNBUSDT' || s === 'BNB-USDT-SWAP' || s === 'BNBUSDT.P') return 'BNBUSDT.P';
+  const eq = resolveEquityInstrument(s);
+  if (eq) return eq.tradeSymbol;
+  return s;
+}
+
+export function createExchangeClient(config, exchangeOverride, symbolHint) {
+  if ((symbolHint && isEquitySymbol(symbolHint)) || exchangeOverride === 'YAHOO') {
+    return new YahooEquitiesClient();
+  }
   const exchange = (exchangeOverride || config.exchange || 'OKX').toUpperCase();
   if (exchange === 'BINANCE') {
     return new BinanceFuturesClient({
@@ -57,7 +75,7 @@ function readJsonIfExists(absPath) {
 }
 
 /**
- * Loads v5 ML modules/models if present, with clean fallback to locked v4.1 specs.
+ * Loads v6.0, v5.0 ML, and locked v4.1 specs/models when present on disk.
  */
 export async function loadRuntimeSpecs(repoRoot) {
   const researchDir = path.join(repoRoot, 'research');
@@ -68,12 +86,33 @@ export async function loadRuntimeSpecs(repoRoot) {
   const mlModelsBtc = readJsonIfExists(path.join(researchDir, 'results_v5', 'ml_models_btc_v5.json'));
   const mlModelsAlt = readJsonIfExists(path.join(researchDir, 'results_v5', 'ml_models_alt_v5.json'));
 
-  const [simV5Mod, fetchDerivsMod, featuresV5Mod, mlInfMod, altSignalsMod] = await Promise.all([
+  const modelsBtcBnb5y = readJsonIfExists(path.join(researchDir, 'results_v6', 'models_btc_bnb_5y.json'));
+  const modelsEthSol5y = readJsonIfExists(path.join(researchDir, 'results_v6', 'models_eth_sol_5y.json'));
+  const modelsStocksV6 = readJsonIfExists(path.join(researchDir, 'results_v6', 'models_stocks_v6.json'));
+  const summaryBtcBnb5y = readJsonIfExists(path.join(researchDir, 'results_v6', 'crypto_btc_bnb_5y.json'));
+  const summaryEthSol5y = readJsonIfExists(path.join(researchDir, 'results_v6', 'crypto_eth_sol_5y.json'));
+  const summaryStocksV6 = readJsonIfExists(path.join(researchDir, 'results_v6', 'stocks_indices_5y_10y.json'));
+
+  const [
+    simV5Mod,
+    simV6Mod,
+    fetchDerivsMod,
+    featuresV5Mod,
+    mlInfMod,
+    altSignalsMod,
+    suiteV6BtcBnbMod,
+    suiteV6EthSolMod,
+    suiteV6StocksMod,
+  ] = await Promise.all([
     tryImportOptional(path.join(researchDir, 'sim_engine_v5.mjs')),
+    tryImportOptional(path.join(researchDir, 'sim_engine_v6.mjs')),
     tryImportOptional(path.join(researchDir, 'fetch_okx_derivs.mjs')),
     tryImportOptional(path.join(researchDir, 'features_v5.mjs')),
     tryImportOptional(path.join(researchDir, 'ml_inference.mjs')),
     tryImportOptional(path.join(researchDir, 'signals_v5_alt.mjs')),
+    tryImportOptional(path.join(researchDir, 'suite_v6_btc_bnb.mjs')),
+    tryImportOptional(path.join(researchDir, 'suite_v6_eth_sol.mjs')),
+    tryImportOptional(path.join(researchDir, 'suite_v6_stocks.mjs')),
   ]);
 
   return {
@@ -82,19 +121,29 @@ export async function loadRuntimeSpecs(repoRoot) {
     v41Summary,
     mlModelsBtc,
     mlModelsAlt,
+    modelsBtcBnb5y,
+    modelsEthSol5y,
+    modelsStocksV6,
+    summaryBtcBnb5y,
+    summaryEthSol5y,
+    summaryStocksV6,
     simV5Mod,
+    simV6Mod,
     fetchDerivsMod,
     featuresV5Mod,
     mlInfMod,
     altSignalsMod,
+    suiteV6BtcBnbMod,
+    suiteV6EthSolMod,
+    suiteV6StocksMod,
     hasV5Engine: Boolean(simV5Mod?.simulateTradesV5),
     hasV5Ml: Boolean(featuresV5Mod && mlInfMod && mlModelsBtc),
+    hasV6Engine: Boolean(simV6Mod?.simulateTradesV6),
+    hasV6CryptoModels: Boolean(modelsBtcBnb5y || modelsEthSol5y),
+    hasV6StockModels: Boolean(modelsStocksV6),
   };
 }
 
-/**
- * Resamples contiguous closed LTF bars into strictly closed HTF bars.
- */
 export function buildClosedHtfFromLtf(ltfRows, ltfSec, htfSec) {
   if (!Array.isArray(ltfRows) || ltfRows.length === 0) return [];
   const expectedSubBars = Math.round(htfSec / ltfSec);
@@ -138,11 +187,46 @@ export function buildClosedHtfFromLtf(ltfRows, ltfSec, htfSec) {
   return closed;
 }
 
+function buildWeeklyFromDaily(dailyRows) {
+  const buckets = new Map();
+  for (const r of dailyRows) {
+    // Align UTC week starting Monday (epoch 1970-01-05 is Monday = 4*86400)
+    const offset = 3 * 86400;
+    const weekStart = Math.floor((r.time + offset) / 604800) * 604800 - offset;
+    let b = buckets.get(weekStart);
+    if (!b) {
+      b = { time: weekStart, open: r.open, high: r.high, low: r.low, close: r.close, volume: r.volume ?? 0 };
+      buckets.set(weekStart, b);
+    } else {
+      if (r.high > b.high) b.high = r.high;
+      if (r.low < b.low) b.low = r.low;
+      b.close = r.close;
+      b.volume += r.volume ?? 0;
+    }
+  }
+  const rows = Array.from(buckets.values()).sort((a, b) => a.time - b.time);
+  return rows.length > 1 ? rows.slice(0, -1) : rows;
+}
+
+function alignMonotonicHtf(ltfRows, htfRows, htfSec) {
+  const aligned = new Array(ltfRows.length);
+  let j = -1;
+  for (let i = 0; i < ltfRows.length; i++) {
+    while (j + 1 < htfRows.length && htfRows[j + 1].time + htfSec <= ltfRows[i].time) {
+      j++;
+    }
+    aligned[i] = j;
+  }
+  return aligned;
+}
+
 /**
- * Keeps only contiguous tail rows if minor gaps exist, and builds causal HTF alignment.
+ * Builds causal dataset from closed candles. Supports both contiguous crypto bars
+ * and market-hour equities bars (non-contiguous weekends/holidays).
  */
 export function buildDatasetFromCandles({ symbol, timeframe, rows, htfOverrides = {} }) {
   const intervalSeconds = intervalSecondsFor(timeframe);
+  const isEq = isEquitySymbol(symbol);
   const dedup = new Map();
   for (const r of rows) {
     if (r && Number.isSafeInteger(r.time) && r.close > 0) {
@@ -153,6 +237,8 @@ export function buildDatasetFromCandles({ symbol, timeframe, rows, htfOverrides 
         low: r.low,
         close: r.close,
         volume: r.volume ?? 0,
+        ...(r.takerBuyVol !== undefined ? { takerBuyVol: r.takerBuyVol } : {}),
+        ...(r.trades !== undefined ? { trades: r.trades } : {}),
       });
     }
   }
@@ -160,69 +246,108 @@ export function buildDatasetFromCandles({ symbol, timeframe, rows, htfOverrides 
   if (sorted.length < 2) {
     throw new Error(`Insufficient closed candles (${sorted.length}) for ${symbol} ${timeframe}`);
   }
-  // Keep longest contiguous suffix so strict simulation invariants hold
-  let startIdx = sorted.length - 1;
-  while (startIdx > 0 && sorted[startIdx].time - sorted[startIdx - 1].time === intervalSeconds) {
-    startIdx--;
-  }
-  const contiguousRows = sorted.slice(startIdx);
-  validateContiguousRows(contiguousRows, intervalSeconds, `${symbol} ${timeframe}`);
 
-  const neededHtfs = timeframe === '15m'
-    ? [['1h', 3600], ['4h', 14400]]
-    : [['4h', 14400], ['1d', 86400]];
+  let workingRows = sorted;
+  if (!isEq) {
+    let startIdx = sorted.length - 1;
+    while (startIdx > 0 && sorted[startIdx].time - sorted[startIdx - 1].time === intervalSeconds) {
+      startIdx--;
+    }
+    workingRows = sorted.slice(startIdx);
+    validateContiguousRows(workingRows, intervalSeconds, `${symbol} ${timeframe}`);
+  }
 
   const htf = {};
-  for (const [htfName, htfSec] of neededHtfs) {
-    const rawHtf = Array.isArray(htfOverrides[htfName]) && htfOverrides[htfName].length > 0
-      ? htfOverrides[htfName]
-      : buildClosedHtfFromLtf(contiguousRows, intervalSeconds, htfSec);
-    if (rawHtf.length === 0) continue;
-    // Align only if there is a closed HTF bar before first LTF bar; otherwise slice LTF start
-    const firstValidHtfClose = rawHtf[0].time + htfSec;
-    if (contiguousRows[0].time < firstValidHtfClose) {
-      const trimIdx = contiguousRows.findIndex(r => r.time >= firstValidHtfClose);
-      if (trimIdx > 0) {
-        contiguousRows.splice(0, trimIdx);
+  if (isEq) {
+    if (timeframe === '1d') {
+      const wk = htfOverrides['1wk'] || buildWeeklyFromDaily(workingRows);
+      if (wk.length > 0) {
+        htf['1wk'] = {
+          interval: '1wk',
+          intervalSeconds: 604800,
+          rows: wk,
+          alignedIndex: alignMonotonicHtf(workingRows, wk, 604800),
+        };
       }
     }
-    const alignedIndex = alignHtfIndices(contiguousRows, rawHtf, htfSec);
-    htf[htfName] = {
-      interval: htfName,
-      intervalSeconds: htfSec,
-      rows: rawHtf,
-      alignedIndex,
-    };
+  } else {
+    const neededHtfs = timeframe === '15m'
+      ? [['1h', 3600], ['4h', 14400]]
+      : [['4h', 14400], ['1d', 86400]];
+
+    for (const [htfName, htfSec] of neededHtfs) {
+      const rawHtf = Array.isArray(htfOverrides[htfName]) && htfOverrides[htfName].length > 0
+        ? htfOverrides[htfName]
+        : buildClosedHtfFromLtf(workingRows, intervalSeconds, htfSec);
+      if (rawHtf.length === 0) continue;
+      const firstValidHtfClose = rawHtf[0].time + htfSec;
+      if (workingRows[0].time < firstValidHtfClose) {
+        const trimIdx = workingRows.findIndex(r => r.time >= firstValidHtfClose);
+        if (trimIdx > 0) workingRows.splice(0, trimIdx);
+      }
+      const alignedIndex = alignHtfIndices(workingRows, rawHtf, htfSec);
+      htf[htfName] = {
+        interval: htfName,
+        intervalSeconds: htfSec,
+        rows: rawHtf,
+        alignedIndex,
+      };
+    }
   }
 
   return {
     symbol,
     interval: timeframe,
     intervalSeconds,
-    count: contiguousRows.length,
-    firstTime: contiguousRows[0].time,
-    lastTime: contiguousRows[contiguousRows.length - 1].time,
-    rows: contiguousRows,
+    allowTimeGaps: isEq,
+    count: workingRows.length,
+    firstTime: workingRows[0].time,
+    lastTime: workingRows[workingRows.length - 1].time,
+    rows: workingRows,
     htf,
   };
 }
 
-export function resolveLocalDatasetPath(repoRoot, { exchange = 'OKX', symbol = 'BTCUSDT.P', timeframe = '1h' }) {
-  const sym = String(symbol).toUpperCase();
+export function resolveLocalDatasetPath(repoRoot, { symbol = 'BTCUSDT.P', timeframe = '1h', prefer5y = true } = {}) {
+  const sym = normalizeAssetSymbol(symbol);
+  const tf = String(timeframe || '1h').toLowerCase();
   const dataDir = path.join(repoRoot, 'data');
+
+  const eq = resolveEquityInstrument(sym);
+  if (eq) {
+    const p10 = path.join(dataDir, eq.dataset10y);
+    const p1h = path.join(dataDir, eq.dataset2y1h);
+    if (tf === '1h' && fs.existsSync(p1h)) return p1h;
+    if (fs.existsSync(p10)) return p10;
+    return null;
+  }
+
   const candidates = [];
   if (sym.startsWith('BTC')) {
-    if (timeframe === '1h') {
+    if (tf === '1h') {
+      if (prefer5y) candidates.push('crypto5y_btcusdt_1h.json');
       candidates.push('okx_btcusdt_swap_1h_3y.json', 'okx_btcusdt_1h_3y.json', 'btcusdt_1h_24m.json');
-    } else if (timeframe === '15m') {
+    } else if (tf === '15m') {
       candidates.push('okx_btcusdt_swap_15m_3y.json', 'okx_btcusdt_15m_3y.json', 'btcusdt_15m_12m.json');
     }
   } else if (sym.startsWith('ETH')) {
-    if (timeframe === '1h') candidates.push('okx_ethusdt_swap_1h_3y.json', 'ethusdt_1h_12m.json');
-    if (timeframe === '15m') candidates.push('ethusdt_15m_6m.json');
+    if (tf === '1h') {
+      if (prefer5y) candidates.push('crypto5y_ethusdt_1h.json');
+      candidates.push('okx_ethusdt_swap_1h_3y.json', 'ethusdt_1h_12m.json');
+    } else if (tf === '15m') {
+      candidates.push('ethusdt_15m_6m.json');
+    }
   } else if (sym.startsWith('SOL')) {
-    if (timeframe === '1h') candidates.push('okx_solusdt_swap_1h_3y.json');
+    if (tf === '1h') {
+      if (prefer5y) candidates.push('crypto5y_solusdt_1h.json');
+      candidates.push('okx_solusdt_swap_1h_3y.json');
+    }
+  } else if (sym.startsWith('BNB')) {
+    if (tf === '1h') {
+      candidates.push('crypto5y_bnbusdt_1h.json', 'okx_bnbusdt_swap_1h_3y.json');
+    }
   }
+
   for (const name of candidates) {
     const p = path.join(dataDir, name);
     if (fs.existsSync(p)) return p;
@@ -233,26 +358,24 @@ export function resolveLocalDatasetPath(repoRoot, { exchange = 'OKX', symbol = '
 function resolveMlModelEntry(mlBundle, timeframe, symbol) {
   if (!mlBundle || typeof mlBundle !== 'object') return null;
   const tf = String(timeframe).toLowerCase();
-  const sym = String(symbol || '').toUpperCase();
+  const sym = normalizeAssetSymbol(symbol);
+  const baseCoin = sym.replace('USDT.P', '').replace('USDT', '');
+  const pairCoin = `${baseCoin}USDT`;
   const candidates = [
+    mlBundle.models?.[pairCoin],
+    mlBundle.models?.[sym],
+    mlBundle.models?.[baseCoin],
+    mlBundle.models?.[`OKX:${sym}`],
     mlBundle.models?.[tf],
     mlBundle.models?.[`${sym}_${tf}`],
     mlBundle.byTimeframe?.[tf],
     mlBundle.streams?.[tf],
     mlBundle[tf],
-    mlBundle.btc?.[tf],
+    mlBundle[baseCoin],
   ].filter(Boolean);
 
   for (const entry of candidates) {
     if (entry && typeof entry === 'object') return entry;
-  }
-  // Alt models map
-  if (mlBundle.assets) {
-    for (const [key, val] of Object.entries(mlBundle.assets)) {
-      if (sym.includes(key.toUpperCase()) || key.toUpperCase().includes(sym.replace('.P', ''))) {
-        return val?.[tf] || val;
-      }
-    }
   }
   return null;
 }
@@ -265,14 +388,111 @@ function computeSizeMultFromProb(probWin, mlEntry, baseThreshold) {
     const t = Math.max(0, Math.min(1, (probWin - baseThreshold) / span));
     return Number((curve.minMult + t * (curve.maxMult - curve.minMult)).toFixed(3));
   }
-  // Smooth confidence scaling [0.85 .. 1.35] above threshold
   const span = Math.max(0.05, 1.0 - baseThreshold);
   const t = Math.max(0, Math.min(1, (probWin - baseThreshold) / span));
   return Number((0.85 + t * 0.5).toFixed(3));
 }
 
-function buildExecOptions({ timeframe, execProfile, config, runtimeSpecs, mlEntry }) {
+function generateEquityFallbackSignals(dataset) {
+  const rows = dataset.rows;
+  const n = rows.length;
+  const closes = rows.map(r => r.close);
+
+  // SMA200
+  const sma200 = new Float64Array(n).fill(NaN);
+  let sum200 = 0;
+  for (let i = 0; i < n; i++) {
+    sum200 += closes[i];
+    if (i >= 200) sum200 -= closes[i - 200];
+    if (i >= 199) sma200[i] = sum200 / 200;
+  }
+
+  // ATR14
+  const atr14 = new Float64Array(n).fill(NaN);
+  let atrSum = 0;
+  for (let i = 0; i < n; i++) {
+    const prevC = i === 0 ? closes[0] : closes[i - 1];
+    const tr = Math.max(rows[i].high - rows[i].low, Math.abs(rows[i].high - prevC), Math.abs(rows[i].low - prevC));
+    if (i < 13) atrSum += tr;
+    else if (i === 13) { atrSum += tr; atr14[i] = atrSum / 14; }
+    else atr14[i] = atr14[i - 1] + (tr - atr14[i - 1]) / 14;
+  }
+
+  // RSI(2)
+  const rsi2 = new Float64Array(n).fill(NaN);
+  let up = 0;
+  let dn = 0;
+  for (let i = 1; i < n; i++) {
+    const ch = closes[i] - closes[i - 1];
+    const u = Math.max(ch, 0);
+    const d = Math.max(-ch, 0);
+    if (i < 2) { up += u; dn += d; }
+    else if (i === 2) {
+      up = (up + u) / 2;
+      dn = (dn + d) / 2;
+      rsi2[i] = dn === 0 ? 100 : up === 0 ? 0 : 100 - 100 / (1 + up / dn);
+    } else {
+      up += (u - up) / 2;
+      dn += (d - dn) / 2;
+      rsi2[i] = dn === 0 ? 100 : up === 0 ? 0 : 100 - 100 / (1 + up / dn);
+    }
+  }
+
+  const signals = [];
+  for (let i = 200; i < n; i++) {
+    const r = rows[i];
+    const rng = r.high - r.low;
+    const atr = atr14[i];
+    if (!Number.isFinite(atr) || atr <= 0 || rng <= 0 || !Number.isFinite(rsi2[i]) || !Number.isFinite(sma200[i])) {
+      continue;
+    }
+    const ibs = (r.close - r.low) / rng;
+    if (r.close > sma200[i] && ibs <= 0.25 && rsi2[i] <= 20) {
+      signals.push({
+        barIndex: i,
+        side: 1,
+        atr,
+        entryMode: 'MARKET_NEXT_OPEN',
+        meta: { ibs: Number(ibs.toFixed(3)), rsi2: Number(rsi2[i].toFixed(1)), regime: 'BULL_PULLBACK' },
+      });
+    } else if (r.close < sma200[i] && ibs >= 0.80 && rsi2[i] >= 85) {
+      signals.push({
+        barIndex: i,
+        side: -1,
+        atr,
+        entryMode: 'MARKET_NEXT_OPEN',
+        meta: { ibs: Number(ibs.toFixed(3)), rsi2: Number(rsi2[i].toFixed(1)), regime: 'BEAR_RALLY' },
+      });
+    }
+  }
+  return signals;
+}
+
+function buildExecOptions({ symbol, timeframe, execProfile, config, runtimeSpecs, mlEntry }) {
   const maxLevCap = Number(config?.maxLeverageCap ?? 3.0);
+  const sym = normalizeAssetSymbol(symbol);
+  const structuralExec = mlEntry?.structuralSpec?.execOptions || mlEntry?.execOptions || {};
+  if (isEquitySymbol(sym)) {
+    return {
+      entryMode: 'MARKET_NEXT_OPEN',
+      warmup: 200,
+      cooldown: 2,
+      stopAtr: 2.2,
+      minStopPct: 1.0,
+      rewardRisk: 1.25,
+      maxHoldBars: timeframe === '1h' ? 48 : 12,
+      beTriggerR: 0.45,
+      beOffsetPct: 0.15,
+      costPct: 0.04,
+      slippagePct: 0.015,
+      fixedLev: 1.0,
+      fundingPctPer8h: 0,
+      allowTimeGaps: true,
+      execProfile: 'EQUITY_ETF',
+      ...structuralExec,
+    };
+  }
+
   if (timeframe === '1h') {
     const base = runtimeSpecs.lock1h?.lockedWinner?.execOptions || {
       entryMode: 'LIMIT_PULLBACK',
@@ -290,21 +510,19 @@ function buildExecOptions({ timeframe, execProfile, config, runtimeSpecs, mlEntr
       costPct: 0.1,
       slippagePct: 0.025,
     };
-    const v41Amp = runtimeSpecs.v41Summary?.selectedOnBtcCalVal?.topPartial?.opts ||
-      runtimeSpecs.v41Summary?.selectedOnBtcCalVal?.topVolNorm?.opts || {
-        volNormRiskPct: 4.5,
-        minLev: 1.5,
-        maxLev: 2.8,
-        tp1QtyPct: 50,
-        tp1TriggerR: 0.95,
-        rewardRisk: 2.0,
-        tp1LockOffsetR: 0.65,
-      };
-    const mlExec = mlEntry?.execOptions || {};
+    const v41Amp = runtimeSpecs.v41Summary?.selectedOnBtcCalVal?.topPartial?.opts || {
+      volNormRiskPct: 4.5,
+      minLev: 1.5,
+      maxLev: 2.8,
+      tp1QtyPct: 50,
+      tp1TriggerR: 0.95,
+      rewardRisk: 2.0,
+      tp1LockOffsetR: 0.65,
+    };
     const merged = {
       ...base,
-      ...v41Amp,
-      ...mlExec,
+      ...(Object.keys(structuralExec).length > 0 ? {} : v41Amp),
+      ...structuralExec,
       execProfile: execProfile || 'EXCHANGE_POST_ONLY',
       fundingPctPer8h: 0.01,
     };
@@ -313,7 +531,6 @@ function buildExecOptions({ timeframe, execProfile, config, runtimeSpecs, mlEntr
     return merged;
   }
 
-  // 15m
   const base15 = runtimeSpecs.lock15m?.winner?.execOptions || {
     entryMode: 'LIMIT_PULLBACK',
     limitExpiryBars: 16,
@@ -330,13 +547,12 @@ function buildExecOptions({ timeframe, execProfile, config, runtimeSpecs, mlEntr
     costPct: 0.1,
     slippagePct: 0.025,
   };
-  const mlExec15 = mlEntry?.execOptions || {};
   const merged15 = {
     ...base15,
     volNormRiskPct: 2.2,
     minLev: 0.75,
     maxLev: Math.min(maxLevCap, 1.5),
-    ...mlExec15,
+    ...structuralExec,
     execProfile: execProfile || 'EXCHANGE_POST_ONLY',
     fundingPctPer8h: 0.01,
   };
@@ -346,56 +562,253 @@ function buildExecOptions({ timeframe, execProfile, config, runtimeSpecs, mlEntr
 }
 
 /**
- * Evaluates causal signals, optional v5 ML probability filtering, and simulation on a dataset.
+ * Computes live/historical macro & orderflow regime telemetry for the Command Center UI.
+ */
+export function computeRegimeTelemetry({ repoRoot, dataset, fundingRates = [], macroData = null, symbol }) {
+  const sym = normalizeAssetSymbol(symbol);
+  const rows = dataset?.rows || [];
+  let takerBuyRatio = null;
+  let cvd24hPct = null;
+  if (rows.length > 0) {
+    const tail = rows.slice(-24);
+    let volSum = 0;
+    let buySum = 0;
+    for (const r of tail) {
+      if (Number.isFinite(r.takerBuyVol) && Number.isFinite(r.volume) && r.volume > 0) {
+        volSum += r.volume;
+        buySum += r.takerBuyVol;
+      }
+    }
+    if (volSum > 0) {
+      takerBuyRatio = Number((buySum / volSum).toFixed(4));
+      cvd24hPct = Number((((2 * buySum - volSum) / volSum) * 100).toFixed(2));
+    }
+  }
+
+  let fundingRateBps = null;
+  if (Array.isArray(fundingRates) && fundingRates.length > 0) {
+    const lastF = fundingRates[fundingRates.length - 1];
+    if (Number.isFinite(lastF?.fundingRate)) {
+      fundingRateBps = Number((lastF.fundingRate * 10000).toFixed(2));
+    }
+  }
+
+  let vix = null;
+  let tnx = null;
+  let macroTime = null;
+  const loadedMacro = macroData || readJsonIfExists(path.join(repoRoot, 'data', 'equities10y_macro_1d.json'));
+  if (loadedMacro) {
+    const vixRows = loadedMacro.vixRows || loadedMacro['^VIX'] || loadedMacro.vix || [];
+    const tnxRows = loadedMacro.tnxRows || loadedMacro['^TNX'] || loadedMacro.tnx || [];
+    if (Array.isArray(vixRows) && vixRows.length > 0) {
+      const last = vixRows[vixRows.length - 1];
+      vix = Number((last.close ?? last.value ?? loadedMacro.vix)?.toFixed?.(2) ?? last.close);
+      macroTime = last.time ?? macroTime;
+    } else if (Number.isFinite(loadedMacro.vix)) {
+      vix = Number(loadedMacro.vix.toFixed(2));
+    }
+    if (Array.isArray(tnxRows) && tnxRows.length > 0) {
+      const last = tnxRows[tnxRows.length - 1];
+      tnx = Number((last.close ?? last.value ?? loadedMacro.tnx)?.toFixed?.(2) ?? last.close);
+    } else if (Number.isFinite(loadedMacro.tnx)) {
+      tnx = Number(loadedMacro.tnx.toFixed(2));
+    }
+  }
+
+  let vixRegime = 'UNKNOWN';
+  if (Number.isFinite(vix)) {
+    vixRegime = vix < 15 ? 'CALM' : vix < 22 ? 'NORMAL' : vix < 30 ? 'ELEVATED' : 'STRESS';
+  }
+
+  return {
+    assetClass: isEquitySymbol(sym) ? 'EQUITY_ETF' : 'CRYPTO_PERP',
+    vix,
+    vixRegime,
+    tnx,
+    macroTime,
+    fundingRateBps,
+    takerBuyRatio,
+    cvd24hPct,
+  };
+}
+
+/**
+ * Evaluates causal signals, ML probability filtering, and simulation on any of the 7 v6.0 assets.
  */
 export function evaluateStrategy({
   dataset,
   fundingRates = [],
+  macroData = null,
   timeframe = '1h',
   symbol = 'BTCUSDT.P',
   exchange = 'OKX',
-  execProfile = 'EXCHANGE_POST_ONLY',
+  execProfile,
   mlEnabled = true,
   config,
   runtimeSpecs,
 }) {
+  const sym = normalizeAssetSymbol(symbol);
   const tf = String(timeframe).toLowerCase();
-  const isBtc = String(symbol).toUpperCase().startsWith('BTC');
+  const isEq = isEquitySymbol(sym);
+  const effectiveProfile = execProfile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY');
+  const regime = computeRegimeTelemetry({
+    repoRoot: config.repoRoot,
+    dataset,
+    fundingRates,
+    macroData,
+    symbol: sym,
+  });
 
-  let rawSignals = [];
-  if (tf === '1h') {
-    const spec1h = runtimeSpecs.lock1h?.lockedWinner?.signalSpec;
-    if (!spec1h) throw new Error('Missing locked 1h signalSpec in research/results_1h/selection-lock.json');
-    rawSignals = generateSignals1h(dataset, spec1h);
-  } else if (tf === '15m') {
-    const spec15 = runtimeSpecs.lock15m?.winner?.fullSpec;
-    if (!spec15) throw new Error('Missing locked 15m signalSpec in research/results_v4/lock_15m_r3.json');
-    rawSignals = generateSignals15mV4(dataset, spec15);
-  } else {
-    throw new Error(`Unsupported strategy timeframe: ${timeframe}`);
+  // Check if dedicated v6.0 suite module exposes a clean runtime runner for this asset
+  const v6SuiteRunner = isEq
+    ? runtimeSpecs.suiteV6StocksMod?.evaluateStockStrategyV6
+    : (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P')
+      ? runtimeSpecs.suiteV6BtcBnbMod?.evaluateCryptoV6
+      : runtimeSpecs.suiteV6EthSolMod?.evaluateCryptoV6;
+
+  if (typeof v6SuiteRunner === 'function') {
+    const suiteRes = v6SuiteRunner({
+      symbol: sym,
+      timeframe: tf,
+      dataset,
+      fundingRates,
+      macroData,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      maxLeverageCap: config.maxLeverageCap,
+    });
+    if (suiteRes && suiteRes.summary) {
+      return {
+        ...suiteRes,
+        regime: suiteRes.regime || regime,
+      };
+    }
   }
-
-  const mlBundle = isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt;
-  const mlEntry = mlEnabled ? resolveMlModelEntry(mlBundle, tf, symbol) : null;
-  const canScoreMl = Boolean(
-    mlEnabled &&
-      mlEntry &&
-      runtimeSpecs.featuresV5Mod?.extractCandidateFeaturesV5 &&
-      (runtimeSpecs.mlInfMod?.scoreCandidateV5 || runtimeSpecs.mlInfMod?.predictProbaV5),
-  );
 
   const alignFn = runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal || runtimeSpecs.simV5Mod?.alignFundingToBarsCausal;
   const alignedFunding = alignFn && fundingRates.length > 0
     ? alignFn(dataset.rows, fundingRates)
     : null;
 
-  const featureCtx = canScoreMl && runtimeSpecs.featuresV5Mod?.precomputeFeatureContextV5
+  const isBtc = sym === 'BTCUSDT.P';
+  const useV6BtcBnb = Boolean(
+    !isEq &&
+      tf === '1h' &&
+      (sym === 'BTCUSDT.P' || sym === 'BNBUSDT.P') &&
+      runtimeSpecs.suiteV6BtcBnbMod &&
+      runtimeSpecs.modelsBtcBnb5y,
+  );
+  const useV6EthSol = Boolean(
+    !isEq &&
+      tf === '1h' &&
+      (sym === 'ETHUSDT.P' || sym === 'SOLUSDT.P') &&
+      runtimeSpecs.suiteV6EthSolMod &&
+      runtimeSpecs.modelsEthSol5y,
+  );
+  const useV6Stocks = Boolean(
+    isEq &&
+      tf === '1d' &&
+      runtimeSpecs.suiteV6StocksMod &&
+      runtimeSpecs.modelsStocksV6,
+  );
+
+  const mlBundle = isEq
+    ? runtimeSpecs.modelsStocksV6
+    : (useV6BtcBnb
+        ? runtimeSpecs.modelsBtcBnb5y
+        : useV6EthSol
+          ? runtimeSpecs.modelsEthSol5y
+          : (isBtc ? runtimeSpecs.mlModelsBtc : runtimeSpecs.mlModelsAlt));
+
+  const mlEntry = resolveMlModelEntry(mlBundle, tf, sym);
+
+  let rawSignals = [];
+  let featureExtractor = null;
+  let stockAux = null;
+  let stockCtx = null;
+  let btcRefDs = null;
+  let ofCtx = null;
+  let ethCtx = null;
+
+  if (useV6Stocks && mlEntry?.signalSpec) {
+    const macroObj = macroData || readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json'));
+    const dowJson = readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_dow_1d.json'));
+    const qqqJson = readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_nasdaq_1d.json'));
+    stockAux = {
+      macro: macroObj,
+      diaRows: dowJson?.rows || [],
+      qqqRows: qqqJson?.rows || [],
+    };
+    stockCtx = runtimeSpecs.suiteV6StocksMod.precomputeStockContextV6(dataset, stockAux);
+    rawSignals = runtimeSpecs.suiteV6StocksMod.generateStockSignalsV6(dataset, mlEntry.signalSpec, stockAux, stockCtx);
+    featureExtractor = sig => runtimeSpecs.suiteV6StocksMod.extractStockFeaturesV6(dataset, sig, sig.barIndex, stockAux, stockCtx);
+  } else if (isEq) {
+    rawSignals = generateEquityFallbackSignals(dataset);
+  } else if (useV6BtcBnb && mlEntry?.structuralSpec?.sigSpec) {
+    const sigSpec = mlEntry.structuralSpec.sigSpec;
+    rawSignals = isBtc
+      ? runtimeSpecs.suiteV6BtcBnbMod.generateBtcSignalsV6(dataset, sigSpec)
+      : runtimeSpecs.suiteV6BtcBnbMod.generateBnbSignalsV6(dataset, sigSpec, alignedFunding);
+    ofCtx = runtimeSpecs.suiteV6BtcBnbMod.precomputeOrderflowContextV6(dataset, alignedFunding);
+    featureExtractor = sig => runtimeSpecs.suiteV6BtcBnbMod.extractCandidateFeaturesV6(dataset, sig, sig.barIndex, alignedFunding, ofCtx);
+  } else if (useV6EthSol && mlEntry?.structuralSpec?.sigSpec) {
+    const sigSpec = mlEntry.structuralSpec.sigSpec;
+    if (sym === 'ETHUSDT.P') {
+      btcRefDs = readJsonIfExists(path.join(config.repoRoot, 'data', 'crypto5y_btcusdt_1h.json')) || dataset;
+      rawSignals = runtimeSpecs.suiteV6EthSolMod.generateEthSignalsV6(dataset, btcRefDs, sigSpec);
+      ethCtx = runtimeSpecs.suiteV6EthSolMod.precomputeEthCrossContextV6(dataset, btcRefDs, alignedFunding);
+      featureExtractor = sig => runtimeSpecs.suiteV6EthSolMod.extractEthCandidateFeaturesV6(dataset, btcRefDs, sig, sig.barIndex, alignedFunding, ethCtx);
+    } else {
+      rawSignals = runtimeSpecs.suiteV6EthSolMod.generateSolSignalsV6(dataset, sigSpec);
+      ofCtx = runtimeSpecs.suiteV6BtcBnbMod?.precomputeOrderflowContextV6?.(dataset, alignedFunding) || null;
+      if (ofCtx && runtimeSpecs.suiteV6BtcBnbMod?.extractCandidateFeaturesV6) {
+        featureExtractor = sig => runtimeSpecs.suiteV6BtcBnbMod.extractCandidateFeaturesV6(dataset, sig, sig.barIndex, alignedFunding, ofCtx);
+      }
+    }
+  } else if (tf === '1h') {
+    const spec1h = runtimeSpecs.lock1h?.lockedWinner?.signalSpec;
+    if (!spec1h) throw new Error('Missing locked 1h signalSpec in research/results_1h/selection-lock.json');
+    if ((sym === 'ETHUSDT.P' || sym === 'SOLUSDT.P') && runtimeSpecs.altSignalsMod?.generateSignalsAltV5) {
+      const altSpec = runtimeSpecs.altSignalsMod.getAltAssetConfigV5?.(sym) || spec1h;
+      rawSignals = runtimeSpecs.altSignalsMod.generateSignalsAltV5(dataset, altSpec);
+    } else {
+      rawSignals = generateSignals1h(dataset, spec1h);
+    }
+  } else if (tf === '15m') {
+    const spec15 = runtimeSpecs.lock15m?.winner?.fullSpec;
+    if (!spec15) throw new Error('Missing locked 15m signalSpec in research/results_v4/lock_15m_r3.json');
+    rawSignals = generateSignals15mV4(dataset, spec15);
+  } else {
+    throw new Error(`Unsupported strategy timeframe "${timeframe}" for ${sym}`);
+  }
+
+  const featureCtxV5 = (!featureExtractor && !isEq && mlEntry && runtimeSpecs.featuresV5Mod?.precomputeFeatureContextV5 &&
+    mlEntry.featureNames?.every(fn => runtimeSpecs.featuresV5Mod?.FEATURE_NAMES_V5?.includes(fn)))
     ? runtimeSpecs.featuresV5Mod.precomputeFeatureContextV5(dataset, alignedFunding)
     : null;
 
+  if (!featureExtractor && featureCtxV5) {
+    featureExtractor = sig => runtimeSpecs.featuresV5Mod.extractCandidateFeaturesV5(
+      dataset,
+      sig,
+      sig.barIndex,
+      alignedFunding,
+      featureCtxV5,
+    );
+  }
+
+  const canScoreMl = Boolean(
+    mlEnabled &&
+      mlEntry &&
+      featureExtractor &&
+      (runtimeSpecs.mlInfMod?.scoreCandidateV5 || runtimeSpecs.mlInfMod?.predictProbaV5),
+  );
+
   const modelSpec = mlEntry ? (mlEntry.model || mlEntry) : null;
-  const tau = Number(modelSpec?.threshold ?? mlEntry?.threshold ?? mlEntry?.tau ?? mlEntry?.probThreshold ?? 0.55);
-  const modelVersion = canScoreMl ? (mlEntry.version || modelSpec?.modelType || mlBundle?.version || 'v5.0-ML') : 'v4.1-fallback';
+  const tau = Number(modelSpec?.threshold ?? mlEntry?.threshold ?? mlEntry?.tau ?? 0.55);
+  const modelVersion = canScoreMl
+    ? (mlEntry.version || (useV6BtcBnb || useV6EthSol || useV6Stocks ? `v6.0-${modelSpec?.modelType || 'ML'}` : modelSpec?.modelType) || 'v5.0-ML')
+    : (isEq ? 'v6.0-equity-fallback' : 'v4.1-fallback');
 
   const signalsAudit = [];
   const filteredSignals = [];
@@ -407,44 +820,29 @@ export function evaluateStrategy({
     let sizeMult = 1.0;
 
     if (canScoreMl) {
-      features = runtimeSpecs.featuresV5Mod.extractCandidateFeaturesV5(
-        dataset,
-        sig,
-        sig.barIndex,
-        alignedFunding,
-        featureCtx,
-      );
-      if (typeof runtimeSpecs.mlInfMod.scoreCandidateV5 === 'function') {
-        const res = runtimeSpecs.mlInfMod.scoreCandidateV5(features, modelSpec);
-        probWin = typeof res === 'number' ? res : Number(res?.probWin ?? res?.prob ?? res?.probability);
-        if (Number.isFinite(probWin)) {
-          const passed = res && typeof res.pass === 'boolean' && modelSpec?.threshold !== undefined
-            ? res.pass
-            : probWin >= tau;
-          if (!passed) {
-            decision = 'ML_FILTERED';
-          } else if (res && Number.isFinite(res.sizeMult) && res.sizeMult > 0) {
-            sizeMult = res.sizeMult;
-          } else {
-            sizeMult = computeSizeMultFromProb(probWin, mlEntry, tau);
-          }
-        }
-      } else {
-        probWin = Number(runtimeSpecs.mlInfMod.predictProbaV5(features, modelSpec));
-        if (Number.isFinite(probWin)) {
-          if (probWin < tau) {
-            decision = 'ML_FILTERED';
-          } else {
-            sizeMult = computeSizeMultFromProb(probWin, mlEntry, tau);
-          }
+      features = featureExtractor(sig);
+      const res = typeof runtimeSpecs.mlInfMod.scoreCandidateV5 === 'function'
+        ? runtimeSpecs.mlInfMod.scoreCandidateV5(features, modelSpec)
+        : runtimeSpecs.mlInfMod.predictProbaV5(features, modelSpec);
+      probWin = typeof res === 'number' ? res : Number(res?.probWin ?? res?.prob);
+      if (Number.isFinite(probWin)) {
+        const passed = res && typeof res.pass === 'boolean' && modelSpec?.threshold !== undefined
+          ? res.pass
+          : probWin >= tau;
+        if (!passed) {
+          decision = 'ML_FILTERED';
+        } else {
+          sizeMult = res && Number.isFinite(res.sizeMult) && res.sizeMult > 0
+            ? res.sizeMult
+            : computeSizeMultFromProb(probWin, mlEntry, tau);
         }
       }
     }
 
     const bar = dataset.rows[sig.barIndex];
     signalsAudit.push({
-      exchange,
-      symbol,
+      exchange: isEq ? 'YAHOO' : exchange,
+      symbol: sym,
       timeframe: tf,
       barTime: bar.time,
       barIndex: sig.barIndex,
@@ -468,18 +866,30 @@ export function evaluateStrategy({
     }
   }
 
-  const execOptions = buildExecOptions({ timeframe: tf, execProfile, config, runtimeSpecs, mlEntry });
+  const execOptions = buildExecOptions({
+    symbol: sym,
+    timeframe: tf,
+    execProfile: effectiveProfile,
+    config,
+    runtimeSpecs,
+    mlEntry,
+  });
   const simOpts = {
     ...execOptions,
     start: 0,
     end: dataset.rows.length,
     intervalSeconds: dataset.intervalSeconds,
-    fundingRows: fundingRates.length > 0 ? fundingRates : undefined,
+    fundingRows: !isEq && fundingRates.length > 0 ? fundingRates : undefined,
   };
 
-  const simResult = runtimeSpecs.simV5Mod?.simulateTradesV5
-    ? runtimeSpecs.simV5Mod.simulateTradesV5(dataset.rows, filteredSignals, simOpts)
-    : simulateTrades(dataset.rows, filteredSignals, simOpts);
+  let simResult;
+  if (runtimeSpecs.simV6Mod?.simulateTradesV6) {
+    simResult = runtimeSpecs.simV6Mod.simulateTradesV6(dataset.rows, filteredSignals, simOpts);
+  } else if (!isEq && runtimeSpecs.simV5Mod?.simulateTradesV5) {
+    simResult = runtimeSpecs.simV5Mod.simulateTradesV5(dataset.rows, filteredSignals, simOpts);
+  } else {
+    simResult = simulateTradesNonContiguousSafe(dataset.rows, filteredSignals, simOpts);
+  }
 
   let equity = 1.0;
   let peakEq = 1.0;
@@ -509,10 +919,10 @@ export function evaluateStrategy({
 
   const activeOverlay = buildActiveOverlay(simResult, dataset.rows, signalsAudit);
   const summary = {
-    exchange,
-    symbol,
+    exchange: isEq ? 'YAHOO' : exchange,
+    symbol: sym,
     timeframe: tf,
-    execProfile: runtimeSpecs.simV5Mod?.simulateTradesV5 ? execProfile : 'STRICT_TAKER_V41',
+    execProfile: effectiveProfile,
     modelVersion,
     mlThreshold: canScoreMl ? tau : null,
     bars: dataset.rows.length,
@@ -534,6 +944,7 @@ export function evaluateStrategy({
 
   return {
     summary,
+    regime,
     execOptions,
     signalsAudit,
     trades: enrichedTrades,
@@ -542,6 +953,21 @@ export function evaluateStrategy({
     openPosition: simResult.openPosition || null,
     pending: simResult.pending || null,
   };
+}
+
+/**
+ * Fallback wrapper when sim_engine_v6.mjs is absent and dataset has non-contiguous daily equity timestamps.
+ */
+function simulateTradesNonContiguousSafe(rows, signals, simOpts) {
+  if (!simOpts.allowTimeGaps) {
+    return simulateTrades(rows, signals, simOpts);
+  }
+  const origTimes = rows.map(r => r.time);
+  const baseT = rows[0].time;
+  const syntheticRows = rows.map((r, idx) => ({ ...r, time: baseT + idx * simOpts.intervalSeconds }));
+  const res = simulateTrades(syntheticRows, signals, simOpts);
+  for (let i = 0; i < rows.length; i++) rows[i].time = origTimes[i];
+  return res;
 }
 
 function buildActiveOverlay(simResult, rows, signalsAudit) {
@@ -568,10 +994,10 @@ function buildActiveOverlay(simResult, rows, signalsAudit) {
   }
   if (pending) {
     const sigBar = rows[pending.signalIndex];
-    const sigPrice = sigBar?.close ?? pending.limitPrice;
+    const sigPrice = sigBar?.close ?? pending.limitPrice ?? sigBar?.close;
     const estStopDist = Math.max((pending.atr ?? 0) * (pending.stopAtr ?? 3.2), sigPrice * 0.014);
-    const estStop = pending.limitPrice - pending.side * estStopDist;
-    const estTarget = pending.limitPrice + pending.side * estStopDist * (pending.rewardRisk ?? 1.15);
+    const estStop = (pending.limitPrice ?? sigPrice) - pending.side * estStopDist;
+    const estTarget = (pending.limitPrice ?? sigPrice) + pending.side * estStopDist * (pending.rewardRisk ?? 1.15);
     return {
       status: 'PENDING_LIMIT',
       side: pending.side,
@@ -599,75 +1025,103 @@ function buildActiveOverlay(simResult, rows, signalsAudit) {
 }
 
 /**
- * Loads candles & funding either from SQLite store (if >= minBars) or from local data/*.json.
+ * Loads candles, funding, and macro data from SQLite (if sufficient bars) or local data/*.json.
  */
-export function loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars = 320 }) {
-  const exchange = config.exchange || 'OKX';
-  const dbCandles = store ? store.getCandles({ exchange, symbol, timeframe, limit: 5000 }) : [];
-  const dbFunding = store ? store.getFundingRates({ exchange, symbol, limit: 3000 }) : [];
+export function loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars = 220, prefer5y = true }) {
+  const sym = normalizeAssetSymbol(symbol);
+  const isEq = isEquitySymbol(sym);
+  const exchange = isEq ? 'YAHOO' : (config.exchange || 'OKX');
+  const dbCandles = store ? store.getCandles({ exchange, symbol: sym, timeframe, limit: 5000 }) : [];
+  const dbFunding = (!isEq && store) ? store.getFundingRates({ exchange, symbol: sym, limit: 3000 }) : [];
 
   if (dbCandles.length >= minBars) {
     return {
       source: 'sqlite',
-      dataset: buildDatasetFromCandles({ symbol, timeframe, rows: dbCandles }),
+      dataset: buildDatasetFromCandles({ symbol: sym, timeframe, rows: dbCandles }),
       fundingRates: dbFunding,
+      macroData: readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json')),
     };
   }
 
-  const localPath = resolveLocalDatasetPath(config.repoRoot, { exchange, symbol, timeframe });
+  const localPath = resolveLocalDatasetPath(config.repoRoot, { symbol: sym, timeframe, prefer5y });
   if (localPath) {
     const dataset = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-    const fundingFile = path.join(
-      config.repoRoot,
-      'data',
-      `okx_${symbol.toLowerCase().replace('usdt.p', 'usdt').replace('usdt', 'usdt')}_swap_funding_3y.json`,
-    );
-    const fundingJson = readJsonIfExists(fundingFile);
+    let fundingRates = dataset.fundingRows || dbFunding;
+    if ((!fundingRates || fundingRates.length === 0) && !isEq) {
+      const coin = sym.toLowerCase().replace(/usdt\.p$|usdt$/, '');
+      const fundingFile = path.join(config.repoRoot, 'data', `okx_${coin}usdt_swap_funding_3y.json`);
+      const fundingJson = readJsonIfExists(fundingFile);
+      fundingRates = fundingJson?.rows || [];
+    }
+    const macroData = readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json'));
     return {
       source: path.relative(config.repoRoot, localPath),
       dataset,
-      fundingRates: fundingJson?.rows || dbFunding,
+      fundingRates,
+      macroData,
     };
   }
 
   if (dbCandles.length > 0) {
     return {
       source: 'sqlite-partial',
-      dataset: buildDatasetFromCandles({ symbol, timeframe, rows: dbCandles }),
+      dataset: buildDatasetFromCandles({ symbol: sym, timeframe, rows: dbCandles }),
       fundingRates: dbFunding,
+      macroData: readJsonIfExists(path.join(config.repoRoot, 'data', 'equities10y_macro_1d.json')),
     };
   }
 
-  throw new Error(`No candles found in SQLite or data/ for ${exchange} ${symbol} ${timeframe}`);
+  throw new Error(`No candles found in SQLite or data/ for ${exchange} ${sym} ${timeframe}`);
 }
 
-/**
- * Live runtime daemon: syncs closed candles + funding, evaluates ML signals, persists state.
- */
 export class StandaloneTradingDaemon {
   constructor({ config, store, runtimeSpecs, exchangeClient } = {}) {
     this.config = config;
     this.store = store;
     this.runtimeSpecs = runtimeSpecs;
-    this.client = exchangeClient || createExchangeClient(config);
+    this.cryptoClient = exchangeClient || createExchangeClient(config);
+    this.equitiesClient = new YahooEquitiesClient();
     this._timer = null;
     this._running = false;
     this.lastSyncAt = null;
     this.lastEvalAt = null;
     this.lastError = null;
+    this.latestMacro = null;
     this.latestSnapshots = new Map();
   }
 
   async syncMarketData({ symbol, timeframe, bars = 1000 } = {}) {
-    const tf = timeframe || this.config.timeframes[0] || '1h';
-    const sym = symbol || this.config.symbols[0] || 'BTCUSDT.P';
-    const exchange = this.config.exchange;
+    const sym = normalizeAssetSymbol(symbol || this.config.symbols[0] || 'BTCUSDT.P');
+    const isEq = isEquitySymbol(sym);
+    const tf = timeframe || (isEq ? '1d' : (this.config.timeframes[0] || '1h'));
 
+    if (isEq) {
+      const candleRows = await this.equitiesClient.getClosedCandles({ symbol: sym, timeframe: tf });
+      const savedCandles = this.store.upsertCandles({ exchange: 'YAHOO', symbol: sym, timeframe: tf, rows: candleRows });
+      try {
+        this.latestMacro = await this.equitiesClient.getMacroSnapshot();
+      } catch {
+        // non-fatal macro warning
+      }
+      this.lastSyncAt = new Date().toISOString();
+      return {
+        exchange: 'YAHOO',
+        symbol: sym,
+        timeframe: tf,
+        candlesFetched: candleRows.length,
+        candlesSaved: savedCandles,
+        fundingFetched: 0,
+        fundingSaved: 0,
+        latestTime: candleRows.length ? candleRows[candleRows.length - 1].time : null,
+      };
+    }
+
+    const exchange = this.config.exchange;
     const allCandles = new Map();
     let cursor = undefined;
     const batches = Math.ceil(bars / 300);
     for (let b = 0; b < batches; b++) {
-      const chunk = await this.client.getClosedCandles({
+      const chunk = await this.cryptoClient.getClosedCandles({
         symbol: sym,
         timeframe: tf,
         limit: Math.min(300, bars - allCandles.size),
@@ -684,7 +1138,7 @@ export class StandaloneTradingDaemon {
     const candleRows = Array.from(allCandles.values()).sort((a, b) => a.time - b.time);
     const savedCandles = this.store.upsertCandles({ exchange, symbol: sym, timeframe: tf, rows: candleRows });
 
-    const fundingRows = await this.client.getFundingRates({ symbol: sym, limit: 100 });
+    const fundingRows = await this.cryptoClient.getFundingRates({ symbol: sym, limit: 100 });
     const savedFunding = this.store.upsertFundingRates({ exchange, symbol: sym, rows: fundingRows });
 
     this.lastSyncAt = new Date().toISOString();
@@ -700,12 +1154,13 @@ export class StandaloneTradingDaemon {
     };
   }
 
-  evaluateAndPersist({ symbol, timeframe, execProfile = 'EXCHANGE_POST_ONLY', mlEnabled = true } = {}) {
-    const tf = timeframe || this.config.timeframes[0] || '1h';
-    const sym = symbol || this.config.symbols[0] || 'BTCUSDT.P';
-    const exchange = this.config.exchange;
+  evaluateAndPersist({ symbol, timeframe, execProfile, mlEnabled = true } = {}) {
+    const sym = normalizeAssetSymbol(symbol || this.config.symbols[0] || 'BTCUSDT.P');
+    const isEq = isEquitySymbol(sym);
+    const tf = timeframe || (isEq ? '1d' : (this.config.timeframes[0] || '1h'));
+    const exchange = isEq ? 'YAHOO' : this.config.exchange;
 
-    const { source, dataset, fundingRates } = loadOfflineOrDbDataset({
+    const { source, dataset, fundingRates, macroData } = loadOfflineOrDbDataset({
       store: this.store,
       config: this.config,
       symbol: sym,
@@ -715,6 +1170,7 @@ export class StandaloneTradingDaemon {
     const evalRes = evaluateStrategy({
       dataset,
       fundingRates,
+      macroData: this.latestMacro || macroData,
       timeframe: tf,
       symbol: sym,
       exchange,
@@ -742,6 +1198,7 @@ export class StandaloneTradingDaemon {
     });
     this.store.savePaperState(`${exchange}:${sym}:${tf}`, {
       summary: evalRes.summary,
+      regime: evalRes.regime,
       activeOverlay: evalRes.activeOverlay,
       openPosition: evalRes.openPosition,
       pending: evalRes.pending,
@@ -757,8 +1214,10 @@ export class StandaloneTradingDaemon {
   }
 
   async runCycle() {
-    for (const sym of this.config.symbols) {
-      for (const tf of this.config.timeframes) {
+    for (const rawSym of this.config.symbols) {
+      const sym = normalizeAssetSymbol(rawSym);
+      const tfs = isEquitySymbol(sym) ? ['1d'] : (sym === 'BTCUSDT.P' ? ['1h', '15m'] : ['1h']);
+      for (const tf of tfs) {
         try {
           await this.syncMarketData({ symbol: sym, timeframe: tf, bars: 600 });
         } catch (err) {

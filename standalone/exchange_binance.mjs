@@ -4,6 +4,12 @@ import { assertLiveOrderSafety } from './config.mjs';
 
 export const BINANCE_FAPI_URL = 'https://fapi.binance.com';
 export const BINANCE_TESTNET_URL = 'https://testnet.binancefuture.com';
+export const SUPPORTED_BINANCE_PERPS = Object.freeze([
+  'BTCUSDT',
+  'ETHUSDT',
+  'SOLUSDT',
+  'BNBUSDT',
+]);
 
 const INTERVAL_MAP = Object.freeze({
   '1m': { interval: '1m', intervalSeconds: 60 },
@@ -16,6 +22,10 @@ const INTERVAL_MAP = Object.freeze({
 
 export function toBinanceSymbol(symbol) {
   const s = String(symbol || 'BTCUSDT.P').trim().toUpperCase();
+  if (s === 'BTC') return 'BTCUSDT';
+  if (s === 'ETH') return 'ETHUSDT';
+  if (s === 'SOL') return 'SOLUSDT';
+  if (s === 'BNB') return 'BNBUSDT';
   if (s.endsWith('.P')) return s.slice(0, -2);
   if (s.endsWith('-SWAP')) return s.slice(0, -5).replace(/-/g, '');
   return s.replace(/-/g, '');
@@ -41,6 +51,8 @@ export function parseBinanceKline(entry) {
   assert.ok(Number.isSafeInteger(closeTimeMs) && closeTimeMs > openTimeMs, 'Invalid Binance closeTimeMs');
   assert.ok([open, high, low, close].every(v => Number.isFinite(v) && v > 0), 'Invalid Binance OHLC');
   assert.ok(Number.isFinite(volume) && volume >= 0, 'Invalid Binance volume');
+  const trades = entry.length > 8 && Number.isFinite(Number(entry[8])) ? Number(entry[8]) : undefined;
+  const takerBuyVol = entry.length > 9 && Number.isFinite(Number(entry[9])) ? Number(entry[9]) : undefined;
   return {
     time: Math.floor(openTimeMs / 1000),
     open,
@@ -48,6 +60,8 @@ export function parseBinanceKline(entry) {
     low,
     close,
     volume,
+    ...(takerBuyVol !== undefined ? { takerBuyVol } : {}),
+    ...(trades !== undefined ? { trades } : {}),
     openTimeMs,
     closeTimeMs,
   };
@@ -217,6 +231,8 @@ export class BinanceFuturesClient {
         low: k.low,
         close: k.close,
         volume: k.volume,
+        ...(k.takerBuyVol !== undefined ? { takerBuyVol: k.takerBuyVol } : {}),
+        ...(k.trades !== undefined ? { trades: k.trades } : {}),
       });
     }
     rows.sort((a, b) => a.time - b.time);

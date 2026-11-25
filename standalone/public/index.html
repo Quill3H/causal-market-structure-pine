@@ -4,26 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
-  <title>TRADING-TOOL v5.0 Standalone Command Center</title>
+  <title>TRADING-TOOL v6.0 Standalone Command Center</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand-group">
-      <div class="brand-mark" aria-hidden="true">TT5</div>
+      <div class="brand-mark" aria-hidden="true">TT6</div>
       <div>
-        <h1 class="brand-title">TRADING-TOOL Standalone</h1>
-        <p class="brand-sub" id="model-subtitle">Off-TradingView ML &amp; Execution Engine</p>
+        <h1 class="brand-title">TRADING-TOOL v6.0 Standalone</h1>
+        <p class="brand-sub" id="model-subtitle">5Y Crypto Perps &amp; 10Y US Equity Indices • Off-TradingView</p>
       </div>
     </div>
 
     <div class="controls-group">
       <label class="control-field">
-        <span class="control-label">Symbol</span>
-        <select id="symbol-select" aria-label="Trading Symbol">
-          <option value="BTCUSDT.P">BTCUSDT.P</option>
-          <option value="ETHUSDT.P">ETHUSDT.P</option>
-          <option value="SOLUSDT.P">SOLUSDT.P</option>
+        <span class="control-label">Engine</span>
+        <select id="symbol-select" aria-label="Trading Engine Asset">
+          <option value="BTCUSDT.P">BTC (BTCUSDT.P)</option>
+          <option value="ETHUSDT.P">ETH (ETHUSDT.P)</option>
+          <option value="SOLUSDT.P">SOL (SOLUSDT.P)</option>
+          <option value="BNBUSDT.P">BNB (BNBUSDT.P)</option>
+          <option value="SPY">S&amp;P 500 (SPY / ^GSPC)</option>
+          <option value="DIA">Dow Jones (DIA / ^DJI)</option>
+          <option value="QQQ">Nasdaq 100 (QQQ / ^NDX)</option>
         </select>
       </label>
 
@@ -32,6 +36,7 @@
         <select id="timeframe-select" aria-label="Timeframe">
           <option value="1h">1h</option>
           <option value="15m">15m</option>
+          <option value="1d">1d</option>
         </select>
       </label>
 
@@ -40,6 +45,7 @@
         <select id="profile-select" aria-label="Execution Profile">
           <option value="EXCHANGE_POST_ONLY">EXCHANGE_POST_ONLY</option>
           <option value="STRICT_TAKER">STRICT_TAKER</option>
+          <option value="EQUITY_ETF">EQUITY_ETF</option>
         </select>
       </label>
 
@@ -65,14 +71,19 @@
         <span class="kpi-meta" id="kpi-trades">Trades: --</span>
       </article>
       <article class="kpi-card">
-        <span class="kpi-label">Total Net (Add)</span>
-        <strong class="kpi-value" id="kpi-total-net">--</strong>
-        <span class="kpi-meta" id="kpi-comp-net">Compounded: --</span>
+        <span class="kpi-label">Compounded Return</span>
+        <strong class="kpi-value" id="kpi-comp-net-main">--</strong>
+        <span class="kpi-meta" id="kpi-total-net-sub">Additive: --</span>
       </article>
       <article class="kpi-card">
         <span class="kpi-label">Max Drawdown</span>
         <strong class="kpi-value" id="kpi-dd">--</strong>
         <span class="kpi-meta" id="kpi-funding">Funding Drag: --</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Macro &amp; Orderflow Regime</span>
+        <strong class="kpi-value regime-val" id="kpi-regime">--</strong>
+        <span class="kpi-meta" id="kpi-regime-sub">VIX / TNX / CVD / Funding</span>
       </article>
       <article class="kpi-card">
         <span class="kpi-label">Engine &amp; Model</span>

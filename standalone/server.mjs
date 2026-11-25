@@ -3,16 +3,20 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  ALL_V6_ASSETS,
   assertLoopbackHost,
   hasExchangeCredentials,
   redactConfig,
   timingSafeTokenEqual,
 } from './config.mjs';
 import {
+  computeRegimeTelemetry,
   createExchangeClient,
   evaluateStrategy,
   loadOfflineOrDbDataset,
+  normalizeAssetSymbol,
 } from './engine_runtime.mjs';
+import { isEquitySymbol } from './market_equities.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(HERE, 'public');
@@ -134,24 +138,35 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
     try {
       const parsed = new URL(req.url || '/', `http://${host}:${port}`);
       const pathname = parsed.pathname;
-      const symbol = (parsed.searchParams.get('symbol') || config.symbols[0] || 'BTCUSDT.P').toUpperCase();
-      const timeframe = (parsed.searchParams.get('timeframe') || config.timeframes[0] || '1h').toLowerCase();
+      const symbol = normalizeAssetSymbol(parsed.searchParams.get('symbol') || config.symbols[0] || 'BTCUSDT.P');
+      const isEq = isEquitySymbol(symbol);
+      const exchange = isEq ? 'YAHOO' : config.exchange;
+      const defaultTf = isEq ? '1d' : (config.timeframes[0] || '1h');
+      const timeframe = (parsed.searchParams.get('timeframe') || defaultTf).toLowerCase();
       const limit = Math.min(2000, Math.max(10, Number(parsed.searchParams.get('limit') || 240)));
 
       if (req.method === 'GET' && pathname === '/api/status') {
         const accountHealth = await refreshAccountHealthIfNeeded();
-        const paperRecord = store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`);
+        const paperRecord = store.loadPaperState(`${exchange}:${symbol}:${timeframe}`);
         const snap = daemon?.latestSnapshots?.get(`${symbol}:${timeframe}`);
         const summary = snap?.summary || paperRecord?.state?.summary || null;
         const activeOverlay = snap?.activeOverlay || paperRecord?.state?.activeOverlay || null;
+        const regime = snap?.regime || paperRecord?.state?.regime || computeRegimeTelemetry({
+          repoRoot: config.repoRoot,
+          symbol,
+        });
         sendJson(res, 200, {
           ok: true,
           timestamp: new Date().toISOString(),
           config: redactConfig(config),
+          assets: ALL_V6_ASSETS,
           accountHealth,
           models: {
             v5EngineReady: Boolean(runtimeSpecs?.hasV5Engine),
             v5MlReady: Boolean(runtimeSpecs?.hasV5Ml),
+            v6EngineReady: Boolean(runtimeSpecs?.hasV6Engine),
+            v6CryptoModelsReady: Boolean(runtimeSpecs?.hasV6CryptoModels),
+            v6StockModelsReady: Boolean(runtimeSpecs?.hasV6StockModels),
             activeModelVersion: summary?.modelVersion || (runtimeSpecs?.hasV5Ml ? 'v5.0-ML' : 'v4.1-fallback'),
           },
           daemon: {
@@ -159,6 +174,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
             lastEvalAt: daemon?.lastEvalAt || null,
             lastError: daemon?.lastError || null,
           },
+          regime,
           summary,
           activeOverlay,
         });
@@ -166,9 +182,12 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
       }
 
       if (req.method === 'GET' && pathname === '/api/candles') {
-        let candles = store.getCandles({ exchange: config.exchange, symbol, timeframe, limit });
+        let candles = store.getCandles({ exchange, symbol, timeframe, limit });
         let overlay = daemon?.latestSnapshots?.get(`${symbol}:${timeframe}`)?.activeOverlay ||
-          store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`)?.state?.activeOverlay ||
+          store.loadPaperState(`${exchange}:${symbol}:${timeframe}`)?.state?.activeOverlay ||
+          null;
+        let regime = daemon?.latestSnapshots?.get(`${symbol}:${timeframe}`)?.regime ||
+          store.loadPaperState(`${exchange}:${symbol}:${timeframe}`)?.state?.regime ||
           null;
         let source = 'sqlite';
 
@@ -176,34 +195,37 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
           candles = loaded.dataset.rows.slice(-limit);
           source = loaded.source;
-          if (!overlay) {
+          if (!overlay || !regime) {
             const evalRes = evaluateStrategy({
               dataset: loaded.dataset,
               fundingRates: loaded.fundingRates,
+              macroData: loaded.macroData,
               timeframe,
               symbol,
-              exchange: config.exchange,
+              exchange,
               config,
               runtimeSpecs,
             });
-            overlay = evalRes.activeOverlay;
+            overlay = overlay || evalRes.activeOverlay;
+            regime = regime || evalRes.regime;
           }
         }
-        sendJson(res, 200, { ok: true, symbol, timeframe, source, count: candles.length, candles, overlay });
+        sendJson(res, 200, { ok: true, symbol, timeframe, source, count: candles.length, candles, overlay, regime });
         return;
       }
 
       if (req.method === 'GET' && pathname === '/api/trades') {
-        let trades = store.getTradesHistory({ exchange: config.exchange, symbol, timeframe, limit });
-        let summary = store.loadPaperState(`${config.exchange}:${symbol}:${timeframe}`)?.state?.summary || null;
+        let trades = store.getTradesHistory({ exchange, symbol, timeframe, limit });
+        let summary = store.loadPaperState(`${exchange}:${symbol}:${timeframe}`)?.state?.summary || null;
         if (trades.length === 0) {
           const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
           const evalRes = evaluateStrategy({
             dataset: loaded.dataset,
             fundingRates: loaded.fundingRates,
+            macroData: loaded.macroData,
             timeframe,
             symbol,
-            exchange: config.exchange,
+            exchange,
             config,
             runtimeSpecs,
           });
@@ -215,15 +237,16 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
       }
 
       if (req.method === 'GET' && pathname === '/api/signals') {
-        let signals = store.getSignalsAudit({ exchange: config.exchange, symbol, timeframe, limit });
+        let signals = store.getSignalsAudit({ exchange, symbol, timeframe, limit });
         if (signals.length === 0) {
           const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 50 });
           const evalRes = evaluateStrategy({
             dataset: loaded.dataset,
             fundingRates: loaded.fundingRates,
+            macroData: loaded.macroData,
             timeframe,
             symbol,
-            exchange: config.exchange,
+            exchange,
             config,
             runtimeSpecs,
           });
@@ -234,15 +257,17 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
       }
 
       if (req.method === 'GET' && pathname === '/api/backtest') {
-        const profile = (parsed.searchParams.get('profile') || 'EXCHANGE_POST_ONLY').toUpperCase();
+        const defaultProf = isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY';
+        const profile = (parsed.searchParams.get('profile') || defaultProf).toUpperCase();
         const mlEnabled = parsed.searchParams.get('ml') !== '0';
-        const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 300 });
+        const loaded = loadOfflineOrDbDataset({ store, config, symbol, timeframe, minBars: 220 });
         const evalRes = evaluateStrategy({
           dataset: loaded.dataset,
           fundingRates: loaded.fundingRates,
+          macroData: loaded.macroData,
           timeframe,
           symbol,
-          exchange: config.exchange,
+          exchange,
           execProfile: profile,
           mlEnabled,
           config,
@@ -252,6 +277,7 @@ export function createStandaloneServer({ config, store, runtimeSpecs, daemon, ch
           ok: true,
           source: loaded.source,
           summary: evalRes.summary,
+          regime: evalRes.regime,
           execOptions: evalRes.execOptions,
           equityCurve: evalRes.equityCurve.slice(-300),
           recentTrades: evalRes.trades.slice(-40).reverse(),

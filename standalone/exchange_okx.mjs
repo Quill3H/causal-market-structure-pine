@@ -3,6 +3,12 @@ import crypto from 'node:crypto';
 import { assertLiveOrderSafety } from './config.mjs';
 
 export const OKX_BASE_URL = 'https://www.okx.com';
+export const SUPPORTED_OKX_PERPS = Object.freeze([
+  'BTC-USDT-SWAP',
+  'ETH-USDT-SWAP',
+  'SOL-USDT-SWAP',
+  'BNB-USDT-SWAP',
+]);
 
 const BAR_MAP = Object.freeze({
   '1m': { okxBar: '1m', intervalSeconds: 60 },
@@ -16,6 +22,10 @@ const BAR_MAP = Object.freeze({
 export function toOkxInstId(symbol) {
   const s = String(symbol || 'BTCUSDT.P').trim().toUpperCase();
   if (s.includes('-')) return s;
+  if (s === 'BTC') return 'BTC-USDT-SWAP';
+  if (s === 'ETH') return 'ETH-USDT-SWAP';
+  if (s === 'SOL') return 'SOL-USDT-SWAP';
+  if (s === 'BNB') return 'BNB-USDT-SWAP';
   if (s.endsWith('.P')) {
     const base = s.slice(0, -2);
     if (base.endsWith('USDT')) return `${base.slice(0, -4)}-USDT-SWAP`;
