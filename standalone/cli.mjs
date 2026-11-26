@@ -8,6 +8,7 @@ import {
   hasExchangeCredentials,
   loadConfig,
   normalizeRiskTier,
+  normalizeStratVersion,
   redactConfig,
   scrubSecrets,
 } from './config.mjs';
@@ -137,6 +138,9 @@ export async function runDoctor({ config } = {}) {
       v9Engine: runtimeSpecs.hasV9Engine,
       v9ModelsReady: runtimeSpecs.hasV9Models,
       v9FrontierReady: runtimeSpecs.hasV9Frontier,
+      v14Engine: runtimeSpecs.hasV14Engine,
+      v14ModelsReady: runtimeSpecs.hasV14Models,
+      v14FrontierReady: runtimeSpecs.hasV14Frontier,
       allVersionsMatrixReady: runtimeSpecs.hasAllVersionsMatrix,
       v10CommercialReady: true,
       v11AutopilotReady: true,
@@ -155,6 +159,9 @@ export async function runDoctor({ config } = {}) {
       v9EnsembleFile: fs.existsSync(path.join(cfg.repoRoot, 'research/ensemble_v9_walkforward.mjs')),
       v9ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/models_v9_crypto.json')),
       v9FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/ensemble_v9_crypto_5y.json')),
+      v14ExpandingFile: fs.existsSync(path.join(cfg.repoRoot, 'research/expanding_wf_v14.mjs')),
+      v14ModelsFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v14/models_v14_expanding_wf.json')),
+      v14FrontierFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v14/expanding_wf_v14_crypto_5y.json')),
       allVersionsMatrixFile: fs.existsSync(path.join(cfg.repoRoot, 'research/results_v9/all_versions_comparison_matrix.json')),
       v10VaultFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/crypto_vault.mjs')),
       v10SpecsFile: fs.existsSync(path.join(cfg.repoRoot, 'standalone/instrument_specs.mjs')),
@@ -205,7 +212,7 @@ export async function runBacktest(flags, cfg) {
     const timeframe = String(flags.timeframe || (isEq ? '1d' : '1h')).toLowerCase();
     const profile = String(flags.profile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY')).toUpperCase();
     const mlEnabled = !flags['no-ml'];
-    const version = String(flags.version || 'auto').toLowerCase();
+    const version = normalizeStratVersion(flags.version || cfg.stratVersion || 'auto');
     const riskTier = normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR');
 
     const loaded = loadOfflineOrDbDataset({ store, config: cfg, symbol, timeframe, minBars: 220 });
@@ -222,6 +229,7 @@ export async function runBacktest(flags, cfg) {
       riskTier,
       config: cfg,
       runtimeSpecs,
+      store,
     });
     return {
       source: loaded.source,
@@ -240,7 +248,7 @@ export async function runPortfolio(flags, cfg) {
   const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
   const riskTier = normalizeRiskTier(flags.tier || cfg.riskTier || 'SAFE_75WR');
   const profile = String(flags.profile || 'EXCHANGE_POST_ONLY').toUpperCase();
-  const version = String(flags.version || 'auto').toLowerCase();
+  const version = normalizeStratVersion(flags.version || cfg.stratVersion || 'auto');
   return runFrontierPortfolio({
     version,
     runtimeSpecs,
@@ -291,9 +299,24 @@ export async function runRegime(flags, cfg) {
   }
 }
 
-export async function runVersions(_flags, cfg) {
+export async function runVersions(flags = {}, cfg) {
   const runtimeSpecs = await loadRuntimeSpecs(cfg.repoRoot);
-  return getAllVersionsMatrixPreview({ repoRoot: cfg.repoRoot, runtimeSpecs });
+  const preview = await getAllVersionsMatrixPreview({ repoRoot: cfg.repoRoot, runtimeSpecs });
+  if (flags?.version) {
+    const reqVer = normalizeStratVersion(flags.version);
+    const key = reqVer === 'v14' ? 'v14.0' : reqVer === 'v9' ? 'v9.0' : reqVer === 'v8' ? 'v8.0' : reqVer === 'v7' ? 'v7.0' : reqVer === 'v6' ? 'v6.0' : reqVer === 'v5' ? 'v5.0' : reqVer;
+    const match = preview.versionsById?.[key] || (preview.versions || []).find(v => String(v.version).toLowerCase() === key) || null;
+    if (!match) {
+      throw new Error(`Requested version "${flags.version}" not found in versions matrix`);
+    }
+    return {
+      ...preview,
+      requestedVersion: key,
+      selectedVersion: match,
+      versions: [match],
+    };
+  }
+  return preview;
 }
 
 export async function runLicense(flags, cfg) {

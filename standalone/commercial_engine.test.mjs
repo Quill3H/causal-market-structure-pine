@@ -6,6 +6,8 @@ import { describe, it, after } from 'node:test';
 import { StandaloneStore } from './store_sqlite.mjs';
 import { COMMERCIAL_PLANS, issueLicenseKey } from './license_issuer.mjs';
 import { CommercialStore } from './commercial_store.mjs';
+import { OkxClient } from './exchange_okx.mjs';
+import { BinanceFuturesClient } from './exchange_binance.mjs';
 import {
   CommercialPlatformEngine,
   classifyCapitalBracket,
@@ -398,5 +400,253 @@ describe('CommercialPlatformEngine & CommercialStore v10.0', () => {
       }),
       /COMMERCIAL_MASTER_KEY/,
     );
+  });
+
+  it('v14 OKX OkxClient sends single atomic attachAlgoOrds request (SL_TP_ATTACHED_TO_ENTRY) and cancels child on stale cancel', async () => {
+    const { dir, config } = makeTempConfig();
+    tmpDirs.push(dir);
+    const store = new StandaloneStore({ dbPath: path.join(dir, 'v14_okx.sqlite'), allowedBaseDir: dir });
+    const engine = new CommercialPlatformEngine({ store, config });
+    const { licenseKey } = issueLicenseKey({
+      planId: 'PRO_AUTO_TRADER',
+      subscriberRef: 'v14okx@example.com',
+      signingSecret: TEST_LICENSE_SECRET,
+    });
+
+    const tradeCalls = [];
+    const okxClient = new OkxClient({
+      apiKey: 'okx_v14_pub_1122',
+      apiSecret: 'okx_v14_sec_3344',
+      passphrase: 'okx_v14_pass',
+      simulated: true,
+      dryRun: false,
+      executionMode: 'LIVE_ARMED',
+      liveConfirmToken: 'confirm-live-test-token',
+      maxOrderUsdt: 25000,
+      fetchImpl: async (url, init = {}) => {
+        const u = String(url);
+        const body = init.body ? JSON.parse(init.body) : null;
+        if (u.includes('/api/v5/account/config')) {
+          return { ok: true, status: 200, json: async () => ({ code: '0', data: [{ perm: 'read_only,trade' }] }) };
+        }
+        if (u.includes('/api/v5/account/balance')) {
+          return { ok: true, status: 200, json: async () => ({ code: '0', data: [{ totalEq: '2500', details: [{ ccy: 'USDT', availEq: '2400' }] }] }) };
+        }
+        if (u.includes('/api/v5/account/positions')) {
+          return { ok: true, status: 200, json: async () => ({ code: '0', data: [] }) };
+        }
+        tradeCalls.push({ url: u, body });
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ code: '0', data: [{ ordId: `okxV14_${tradeCalls.length}`, sCode: '0' }] }),
+        };
+      },
+    });
+    assert.equal(okxClient.supportsAttachAlgoOrds, true);
+
+    const ob = await engine.onboardSubscriber({
+      name: 'OKX Atomic Trader',
+      email: 'v14okx@example.com',
+      licenseKey,
+      exchange: 'OKX',
+      simulated: true,
+      apiKey: 'okx_v14_pub_1122',
+      apiSecret: 'okx_v14_sec_3344',
+      passphrase: 'okx_v14_pass',
+      armingPin: '2468',
+      executionMode: 'DEMO_AUTO_TRADE',
+      clientOverride: okxClient,
+      overlayOverrides: { 'BTCUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 90000 } },
+    });
+    const subId = ob.subscriber.subscriberId;
+
+    const activeOverlays = {
+      'BTCUSDT.P': makeFakeOverlay(1, 90000),
+      'ETHUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 3000 },
+      'SOLUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 150 },
+      'BNBUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 600 },
+    };
+
+    const run1 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '2468',
+      clientOverride: okxClient,
+      overlayOverrides: activeOverlays,
+    });
+    assert.equal(run1.executed, true);
+    assert.equal(tradeCalls.length, 1, 'OKX attachAlgoOrds must execute in 1 single order POST');
+    assert.equal(tradeCalls[0].url.endsWith('/api/v5/trade/order'), true);
+    assert.ok(Array.isArray(tradeCalls[0].body.attachAlgoOrds) && tradeCalls[0].body.attachAlgoOrds.length === 1);
+    const attachedAct = run1.actions.find(a => a.action === 'SL_TP_ATTACHED_TO_ENTRY');
+    assert.ok(attachedAct);
+    assert.equal(attachedAct.clientOrderId, tradeCalls[0].body.attachAlgoOrds[0].attachAlgoClOrdId);
+    const attachedRow = engine.cStore.findSubscriberOrder(attachedAct.clientOrderId, subId);
+    assert.equal(attachedRow.order_type, 'oco_attached');
+    assert.equal(attachedRow.status, 'ATTACHED_TO_ENTRY');
+
+    // Expire signal -> cancels parent AND attached child log
+    const run2 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '2468',
+      clientOverride: okxClient,
+      overlayOverrides: {
+        'BTCUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 90000 },
+        'ETHUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 3000 },
+        'SOLUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 150 },
+        'BNBUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 600 },
+      },
+    });
+    assert.equal(run2.actions.some(a => a.action === 'CANCELLED_STALE'), true);
+    assert.equal(run2.actions.some(a => a.action === 'SL_TP_ATTACHED_CANCELLED' && a.clientOrderId === attachedAct.clientOrderId), true);
+    assert.equal(engine.cStore.findSubscriberOrder(attachedAct.clientOrderId, subId).status, 'CANCELLED');
+  });
+
+  it('v14 Binance BinanceFuturesClient defers reduceOnly SL/TP until fill (PENDING_FILL_WATCH -> PROTECTIVE_SL_TP_SYNCED) and cancels watch if unfilled', async () => {
+    const { dir, config } = makeTempConfig({ exchange: 'BINANCE' });
+    tmpDirs.push(dir);
+    const store = new StandaloneStore({ dbPath: path.join(dir, 'v14_bin.sqlite'), allowedBaseDir: dir });
+    const engine = new CommercialPlatformEngine({ store, config });
+    const { licenseKey } = issueLicenseKey({
+      planId: 'PRO_AUTO_TRADER',
+      subscriberRef: 'v14bin@example.com',
+      signingSecret: TEST_LICENSE_SECRET,
+    });
+
+    let openPositionsPayload = [];
+    let openOrdersPayload = [];
+    const postBodies = [];
+    const deleteCalls = [];
+
+    const binClient = new BinanceFuturesClient({
+      apiKey: 'bin_v14_pub_1122',
+      apiSecret: 'bin_v14_sec_3344',
+      testnet: true,
+      dryRun: false,
+      executionMode: 'LIVE_ARMED',
+      liveConfirmToken: 'confirm-live-test-token',
+      maxOrderUsdt: 25000,
+      fetchImpl: async (url, init = {}) => {
+        const u = String(url);
+        const method = String(init.method || 'GET').toUpperCase();
+        if (u.includes('/fapi/v2/account')) {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              enableReading: true,
+              enableFutures: true,
+              enableWithdrawals: false,
+              totalWalletBalance: '2500',
+              availableBalance: '2400',
+              positions: openPositionsPayload,
+            }),
+          };
+        }
+        if (u.includes('/fapi/v1/openOrders')) {
+          return { ok: true, status: 200, text: async () => JSON.stringify(openOrdersPayload) };
+        }
+        if (u.includes('/fapi/v1/order') && method === 'POST') {
+          const qs = new URLSearchParams(u.split('?')[1] || '');
+          const rec = Object.fromEntries(qs.entries());
+          postBodies.push(rec);
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ orderId: 7000 + postBodies.length, clientOrderId: rec.newClientOrderId }),
+          };
+        }
+        if (u.includes('/fapi/v1/order') && method === 'DELETE') {
+          const qs = new URLSearchParams(u.split('?')[1] || '');
+          const rec = Object.fromEntries(qs.entries());
+          deleteCalls.push(rec);
+          return { ok: true, status: 200, text: async () => JSON.stringify({ status: 'CANCELED', ...rec }) };
+        }
+        return { ok: true, status: 200, text: async () => '{}' };
+      },
+    });
+
+    const ob = await engine.onboardSubscriber({
+      name: 'Binance FillSync Trader',
+      email: 'v14bin@example.com',
+      licenseKey,
+      exchange: 'BINANCE',
+      simulated: true,
+      apiKey: 'bin_v14_pub_1122',
+      apiSecret: 'bin_v14_sec_3344',
+      armingPin: '1357',
+      executionMode: 'DEMO_AUTO_TRADE',
+      clientOverride: binClient,
+      overlayOverrides: { 'BTCUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 90000 } },
+    });
+    const subId = ob.subscriber.subscriberId;
+
+    const btcOverlay = {
+      'BTCUSDT.P': makeFakeOverlay(1, 90000),
+      'ETHUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 3000 },
+      'SOLUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 150 },
+      'BNBUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 600 },
+    };
+
+    // Cycle 1: position = 0 -> places LIMIT_GTX only and defers SL/TP as PENDING_FILL_WATCH
+    const c1 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '1357',
+      clientOverride: binClient,
+      overlayOverrides: btcOverlay,
+    });
+    assert.equal(c1.executed, true);
+    assert.equal(postBodies.length, 1);
+    assert.equal(postBodies[0].type, 'LIMIT');
+    assert.equal(postBodies[0].timeInForce, 'GTX');
+    const deferAct = c1.actions.find(a => a.action === 'SL_TP_DEFERRED_UNTIL_FILL');
+    assert.ok(deferAct);
+    assert.equal(engine.cStore.findSubscriberOrder(deferAct.clientOrderId, subId).status, 'PENDING_FILL_WATCH');
+
+    // Cycle 2: partial fill reported in openPositions -> dispatches STOP_MARKET + TAKE_PROFIT_MARKET sized to filled qty
+    openPositionsPayload = [{ symbol: 'BTCUSDT', positionAmt: '0.008', entryPrice: '90000', unrealizedProfit: '0', leverage: '2' }];
+    const c2 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '1357',
+      clientOverride: binClient,
+      overlayOverrides: btcOverlay,
+    });
+    assert.equal(c2.executed, true);
+    const syncAct = c2.actions.find(a => a.action === 'PROTECTIVE_SL_TP_SYNCED');
+    assert.ok(syncAct);
+    assert.equal(syncAct.qty, '0.008');
+    assert.equal(postBodies.length, 3);
+    assert.equal(postBodies[1].type, 'STOP_MARKET');
+    assert.equal(postBodies[1].quantity, '0.008');
+    assert.equal(postBodies[1].reduceOnly, 'true');
+    assert.equal(postBodies[2].type, 'TAKE_PROFIT_MARKET');
+    assert.equal(postBodies[2].quantity, '0.008');
+    assert.equal(engine.cStore.findSubscriberOrder(deferAct.clientOrderId, subId).status, 'SUBMITTED');
+
+    // Also test SOLUSDT watch cancellation when entry expires unfilled while openPositions has no SOL
+    openPositionsPayload = [];
+    const solOverlay = {
+      'BTCUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 90000 },
+      'ETHUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 3000 },
+      'SOLUSDT.P': makeFakeOverlay(1, 180),
+      'BNBUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 600 },
+    };
+    const c3 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '1357',
+      clientOverride: binClient,
+      overlayOverrides: solOverlay,
+    });
+    const solWatch = c3.actions.find(a => a.action === 'SL_TP_DEFERRED_UNTIL_FILL' && a.symbol === 'SOLUSDT.P');
+    assert.ok(solWatch);
+
+    const c4 = await engine.runSubscriberAutoTradeCycle(subId, {
+      armingPin: '1357',
+      clientOverride: binClient,
+      overlayOverrides: {
+        'BTCUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 90000 },
+        'ETHUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 3000 },
+        'SOLUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 180 },
+        'BNBUSDT.P': { summary: { modelVersion: 'v9' }, activeOverlay: { status: 'FLAT' }, lastClose: 600 },
+      },
+    });
+    assert.equal(c4.actions.some(a => a.action === 'SL_TP_WATCH_CANCELLED' && a.clientOrderId === solWatch.clientOrderId), true);
+    assert.equal(engine.cStore.findSubscriberOrder(solWatch.clientOrderId, subId).status, 'CANCELLED');
+    assert.ok(deleteCalls.length >= 1);
   });
 });

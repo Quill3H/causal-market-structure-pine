@@ -163,6 +163,31 @@ export function buildBinanceReduceOnlySlTpOrders({
   return orders;
 }
 
+export function hasBinanceProtectiveSlTp({ openOrders = [], symbol, entrySide } = {}) {
+  const sym = toBinanceSymbol(symbol);
+  const closeSide = entrySide === 1 || String(entrySide).toUpperCase() === 'BUY' ? 'SELL' : 'BUY';
+  let hasSl = false;
+  let hasTp = false;
+
+  for (const ord of Array.isArray(openOrders) ? openOrders : []) {
+    if (!ord || typeof ord !== 'object') continue;
+    if (String(ord.symbol || '').toUpperCase() !== sym) continue;
+    if (String(ord.side || '').toUpperCase() !== closeSide) continue;
+    const isReduce = ord.reduceOnly === true || String(ord.reduceOnly).toLowerCase() === 'true';
+    const isClosePos = ord.closePosition === true || String(ord.closePosition).toLowerCase() === 'true';
+    if (!isReduce && !isClosePos) continue;
+    const ordType = String(ord.type || '').toUpperCase();
+    if (ordType === 'STOP_MARKET' || ordType === 'STOP') hasSl = true;
+    if (ordType === 'TAKE_PROFIT_MARKET' || ordType === 'TAKE_PROFIT') hasTp = true;
+  }
+
+  return {
+    hasSl,
+    hasTp,
+    fullyProtected: hasSl && hasTp,
+  };
+}
+
 export class BinanceFuturesClient {
   constructor(options = {}) {
     this.testnet = Boolean(options.testnet ?? true);
@@ -337,6 +362,20 @@ export class BinanceFuturesClient {
       enableFutures: Boolean(acct?.enableFutures ?? acct?.canTrade ?? true),
       enableWithdrawals: Boolean(acct?.enableWithdrawals ?? acct?.canWithdraw ?? false),
     };
+  }
+
+  async getOrder({ symbol, orderId, origClientOrderId } = {}) {
+    const params = { symbol: toBinanceSymbol(symbol) };
+    if (orderId !== undefined) params.orderId = orderId;
+    if (origClientOrderId !== undefined) params.origClientOrderId = origClientOrderId;
+    return this._requestPrivate('GET', '/fapi/v1/order', params);
+  }
+
+  async getOpenOrders({ symbol } = {}) {
+    const params = {};
+    if (symbol) params.symbol = toBinanceSymbol(symbol);
+    const data = await this._requestPrivate('GET', '/fapi/v1/openOrders', params);
+    return Array.isArray(data) ? data : [];
   }
 
   _safetyConfigSnapshot() {

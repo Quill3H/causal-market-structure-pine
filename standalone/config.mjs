@@ -9,6 +9,7 @@ export const REPO_ROOT = path.resolve(HERE, '..');
 export const VALID_EXCHANGES = Object.freeze(['OKX', 'BINANCE', 'YAHOO']);
 export const VALID_EXECUTION_MODES = Object.freeze(['PAPER', 'LIVE_ARMED']);
 export const VALID_RISK_TIERS = Object.freeze(['SAFE_75WR', 'BALANCED_75WR', 'TARGET_30MO_75WR']);
+export const VALID_STRAT_VERSIONS = Object.freeze(['auto', 'v4', 'v4.1', 'v5', 'v5.0', 'v6', 'v6.0', 'v7', 'v7.0', 'v8', 'v8.0', 'v9', 'v9.0', 'v14', 'v14.0']);
 export const LOOPBACK_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '::1']);
 
 export const RISK_TIER_SPECS = Object.freeze({
@@ -37,12 +38,27 @@ export const RISK_TIER_SPECS = Object.freeze({
 
 export function normalizeRiskTier(tier) {
   const raw = String(tier || 'SAFE_75WR').trim().toUpperCase();
-  if (raw === 'TIER_1_SAFE_75WR' || raw === 'SAFE') return 'SAFE_75WR';
-  if (raw === 'TIER_2_BALANCED_75WR' || raw === 'BALANCED') return 'BALANCED_75WR';
-  if (raw === 'TIER_3_TARGET_30MO_75WR' || raw === '30MO' || raw === 'TARGET_30MO') return 'TARGET_30MO_75WR';
+  if (raw === 'TIER_1_SAFE_75WR' || raw === 'SAFE' || raw === 'SAFE_V9' || raw === 'TIER_1_SAFE_V9' || raw === 'SAFE_V14' || raw === 'TIER_1_SAFE_V14') return 'SAFE_75WR';
+  if (raw === 'TIER_2_BALANCED_75WR' || raw === 'BALANCED' || raw === 'BALANCED_V9' || raw === 'TIER_2_BALANCED_V9' || raw === 'BALANCED_V14' || raw === 'TIER_2_BALANCED_V14') return 'BALANCED_75WR';
+  if (raw === 'TIER_3_TARGET_30MO_75WR' || raw === '30MO' || raw === 'TARGET_30MO' || raw === 'MAXIMIZED_V9' || raw === 'TIER_3_MAXIMIZED_V9' || raw === 'MAXIMIZED_V14' || raw === 'TIER_3_MAXIMIZED_V14') return 'TARGET_30MO_75WR';
   if (!VALID_RISK_TIERS.includes(raw)) {
     throw new Error(`Invalid RISK_TIER "${tier}". Allowed: ${VALID_RISK_TIERS.join(', ')}`);
   }
+  return raw;
+}
+
+export function normalizeStratVersion(version) {
+  const raw = String(version || 'auto').trim().toLowerCase();
+  if (!VALID_STRAT_VERSIONS.includes(raw)) {
+    throw new Error(`Invalid STRAT_VERSION "${version}". Allowed: ${VALID_STRAT_VERSIONS.join(', ')}`);
+  }
+  if (raw === 'v14.0') return 'v14';
+  if (raw === 'v9.0') return 'v9';
+  if (raw === 'v8.0') return 'v8';
+  if (raw === 'v7.0') return 'v7';
+  if (raw === 'v6.0') return 'v6';
+  if (raw === 'v5.0') return 'v5';
+  if (raw === 'v4') return 'v4.1';
   return raw;
 }
 
@@ -195,6 +211,7 @@ export function loadConfig({
   }
 
   const riskTier = normalizeRiskTier(merged.RISK_TIER || 'SAFE_75WR');
+  const stratVersion = normalizeStratVersion(merged.STRAT_VERSION || 'auto');
 
   const host = assertLoopbackHost(merged.HOST || '127.0.0.1');
   const port = Math.trunc(parseNum(merged.PORT, 4180, { min: 0, max: 65535 }));
@@ -243,6 +260,7 @@ export function loadConfig({
     symbols,
     timeframes,
     riskTier,
+    stratVersion,
     executionMode: rawMode,
     dryRun,
     maxLeverageCap,
@@ -322,6 +340,7 @@ export function redactConfig(config) {
     symbols: [...config.symbols],
     timeframes: [...config.timeframes],
     riskTier: config.riskTier || 'SAFE_75WR',
+    stratVersion: config.stratVersion || 'auto',
     executionMode: config.executionMode,
     dryRun: config.dryRun,
     maxLeverageCap: config.maxLeverageCap,

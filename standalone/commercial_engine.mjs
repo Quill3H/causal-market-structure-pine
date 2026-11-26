@@ -9,7 +9,9 @@ import {
 } from './crypto_vault.mjs';
 import {
   computeExchangeOrderSizing,
+  getInstrumentSpec,
   inspectApiKeyPermissions,
+  roundToStep,
 } from './instrument_specs.mjs';
 import {
   COMMERCIAL_PLANS,
@@ -25,6 +27,7 @@ import {
   BinanceFuturesClient,
   buildBinancePostOnlyEntryOrder,
   buildBinanceReduceOnlySlTpOrders,
+  hasBinanceProtectiveSlTp,
 } from './exchange_binance.mjs';
 import {
   computeV8MacroRegimeRadar,
@@ -1704,6 +1707,21 @@ export class CommercialPlatformEngine {
       };
     }
 
+    const actions = [];
+    const confirmTok = this.config.liveConfirmToken || `tenant_${subscriberId}`;
+
+    // Reconcile protective SL/TP legs on any newly filled or unprotected open crypto positions
+    await this._reconcileOpenPositionProtection({
+      subscriberId,
+      sub,
+      mode,
+      client,
+      scan,
+      latestTickets,
+      confirmTok,
+      actions,
+    });
+
     // Guardrail 7: Cancel expired pending maker entries, then execute feasible active tickets with idempotent clOrdId
     const maxSlots = Math.min(lic.plan.maxConcurrentPositions, bracket.maxConcurrentPositions);
     const openPosSymbols = new Set(
@@ -1729,9 +1747,6 @@ export class CommercialPlatformEngine {
         }),
       ),
     );
-
-    const actions = [];
-    const confirmTok = this.config.liveConfirmToken || `tenant_${subscriberId}`;
 
     // Cancel stale SUBMITTED post-only entries if signal expired/flipped and no live position holds that symbol
     const priorSubmittedEntries = this.cStore
@@ -1790,6 +1805,38 @@ export class CommercialPlatformEngine {
           status: 'CANCELLED',
         });
         actions.push({ action: 'CANCELLED_STALE', clientOrderId: oldOrd.client_order_id, symbol: oldOrd.symbol });
+
+        const childOrders = this.cStore
+          .getSubscriberOrdersLog({ subscriberId, limit: 100 })
+          .filter(o =>
+            o.reduceOnly
+            && ['PENDING_FILL_WATCH', 'ATTACHED_TO_ENTRY'].includes(o.status)
+            && (o.payload?.parentEntryClOrdId === oldOrd.client_order_id
+              || (normalizePosSymbol(o.symbol) === normalizePosSymbol(oldOrd.symbol)
+                && !openPosSymbols.has(normalizePosSymbol(o.symbol))))
+          );
+        for (const child of childOrders) {
+          const prevStatus = child.status;
+          this.cStore.upsertSubscriberOrderLog({
+            clientOrderId: child.client_order_id,
+            subscriberId,
+            exchange: sub.exchange,
+            symbol: child.symbol,
+            mode,
+            orderType: child.order_type,
+            side: child.side,
+            price: child.price,
+            qty: child.qty,
+            reduceOnly: true,
+            status: 'CANCELLED',
+          });
+          actions.push({
+            action: prevStatus === 'PENDING_FILL_WATCH' ? 'SL_TP_WATCH_CANCELLED' : 'SL_TP_ATTACHED_CANCELLED',
+            clientOrderId: child.client_order_id,
+            parentClientOrderId: oldOrd.client_order_id,
+            symbol: child.symbol,
+          });
+        }
       } catch (err) {
         const safeErr = scrubSecrets(err.message, this.config);
         this.cStore.upsertSubscriberOrderLog({
@@ -1825,9 +1872,30 @@ export class CommercialPlatformEngine {
         continue;
       }
 
+      const slClOrdId = makeTenantClientOrderId({
+        subscriberId,
+        exchange: sub.exchange,
+        symbol: tk.symbol,
+        timeframe: tk.timeframe,
+        barTime: tk.bar_time,
+        side: tk.side,
+        leg: 'O',
+      });
+      const useOkxAtomicAttach = sub.exchange === 'OKX' && Boolean(client.supportsAttachAlgoOrds);
+      const useBinanceDefer = sub.exchange === 'BINANCE'
+        && Boolean(client.deferSlTpUntilFill ?? (client instanceof BinanceFuturesClient))
+        && !openPosSymbols.has(normalizePosSymbol(tk.symbol));
+
       const sideStr = tk.side === 1 ? 'buy' : 'sell';
       const entryPayload = sub.exchange === 'OKX'
-        ? buildPostOnlyEntryOrder({ symbol: tk.symbol, side: tk.side, sz: tk.sz_or_qty, px: String(tk.entry_px), clOrdId })
+        ? buildPostOnlyEntryOrder({
+            symbol: tk.symbol,
+            side: tk.side,
+            sz: tk.sz_or_qty,
+            px: String(tk.entry_px),
+            clOrdId,
+            ...(useOkxAtomicAttach ? { slTriggerPx: tk.sl_px, tpTriggerPx: tk.tp_px, attachAlgoClOrdId: slClOrdId } : {}),
+          })
         : buildBinancePostOnlyEntryOrder({ symbol: tk.symbol, side: tk.side, quantity: tk.sz_or_qty, price: String(tk.entry_px), newClientOrderId: clOrdId });
 
       this.cStore.upsertSubscriberOrderLog({
@@ -1846,10 +1914,18 @@ export class CommercialPlatformEngine {
       });
 
       let entrySucceeded = false;
+      let entryRes = null;
       try {
-        const entryRes = sub.exchange === 'OKX'
+        entryRes = sub.exchange === 'OKX'
           ? await client.placePostOnlyEntry(
-              { symbol: tk.symbol, side: tk.side, sz: tk.sz_or_qty, px: String(tk.entry_px), clOrdId },
+              {
+                symbol: tk.symbol,
+                side: tk.side,
+                sz: tk.sz_or_qty,
+                px: String(tk.entry_px),
+                clOrdId,
+                ...(useOkxAtomicAttach ? { slTriggerPx: tk.sl_px, tpTriggerPx: tk.tp_px, attachAlgoClOrdId: slClOrdId } : {}),
+              },
               { confirmToken: confirmTok, notionalUsdt: tk.notional_usdt },
             )
           : await client.placePostOnlyEntry(
@@ -1898,16 +1974,68 @@ export class CommercialPlatformEngine {
 
       if (!entrySucceeded) continue;
 
+      if (useOkxAtomicAttach) {
+        this.cStore.upsertSubscriberOrderLog({
+          clientOrderId: slClOrdId,
+          subscriberId,
+          exchange: sub.exchange,
+          symbol: tk.symbol,
+          mode,
+          orderType: 'oco_attached',
+          side: tk.side === 1 ? 'sell' : 'buy',
+          price: tk.sl_px,
+          qty: tk.sz_or_qty,
+          reduceOnly: true,
+          status: 'ATTACHED_TO_ENTRY',
+          exchangeOrderId: entryRes?.data?.[0]?.attachAlgoId ?? null,
+          payload: {
+            attachAlgoClOrdId: slClOrdId,
+            slTriggerPx: tk.sl_px,
+            tpTriggerPx: tk.tp_px,
+            parentEntryClOrdId: clOrdId,
+          },
+          response: entryRes,
+        });
+        actions.push({
+          action: 'SL_TP_ATTACHED_TO_ENTRY',
+          clientOrderId: slClOrdId,
+          parentClientOrderId: clOrdId,
+          symbol: tk.symbol,
+        });
+        continue;
+      }
+
+      if (useBinanceDefer) {
+        this.cStore.upsertSubscriberOrderLog({
+          clientOrderId: slClOrdId,
+          subscriberId,
+          exchange: sub.exchange,
+          symbol: tk.symbol,
+          mode,
+          orderType: 'SL_TP_REDUCE_ONLY',
+          side: tk.side === 1 ? 'sell' : 'buy',
+          price: tk.sl_px,
+          qty: tk.sz_or_qty,
+          reduceOnly: true,
+          status: 'PENDING_FILL_WATCH',
+          payload: {
+            slPx: tk.sl_px,
+            tpPx: tk.tp_px,
+            entrySide: tk.side,
+            qty: tk.sz_or_qty,
+            parentEntryClOrdId: clOrdId,
+          },
+        });
+        actions.push({
+          action: 'SL_TP_DEFERRED_UNTIL_FILL',
+          clientOrderId: slClOrdId,
+          parentClientOrderId: clOrdId,
+          symbol: tk.symbol,
+        });
+        continue;
+      }
+
       // Place reduceOnly SL/TP protection leg in isolated try/catch so SL/TP failure never overwrites entry SUBMITTED status
-      const slClOrdId = makeTenantClientOrderId({
-        subscriberId,
-        exchange: sub.exchange,
-        symbol: tk.symbol,
-        timeframe: tk.timeframe,
-        barTime: tk.bar_time,
-        side: tk.side,
-        leg: 'O',
-      });
       const slPayload = sub.exchange === 'OKX'
         ? buildReduceOnlySlTpOrders({ symbol: tk.symbol, entrySide: tk.side, sz: tk.sz_or_qty, slTriggerPx: tk.sl_px, tpTriggerPx: tk.tp_px, algoClOrdId: slClOrdId })
         : buildBinanceReduceOnlySlTpOrders({ symbol: tk.symbol, entrySide: tk.side, quantity: tk.sz_or_qty, stopPrice: tk.sl_px, takeProfitPrice: tk.tp_px, slClientOrderId: slClOrdId });
@@ -1981,6 +2109,217 @@ export class CommercialPlatformEngine {
       actions,
       orders: this.cStore.getSubscriberOrdersLog({ subscriberId, limit: 20 }),
     };
+  }
+
+  async _reconcileOpenPositionProtection({
+    subscriberId,
+    sub,
+    mode,
+    client,
+    scan,
+    latestTickets = [],
+    confirmTok,
+    actions = [],
+  } = {}) {
+    const positions = Array.isArray(scan?.openPositions) ? scan.openPositions : [];
+    if (positions.length === 0) return;
+
+    const allOrders = this.cStore.getSubscriberOrdersLog({ subscriberId, limit: 100 });
+    for (const pos of positions) {
+      const rawSym = pos?.instId || pos?.symbol;
+      const normSym = normalizePosSymbol(rawSym);
+      if (!normSym || isEquitySymbol(normSym)) continue;
+
+      const rawQty = Number(pos.positionAmt ?? pos.posAmt ?? pos.pos ?? pos.sz ?? 0);
+      if (!Number.isFinite(rawQty) || rawQty === 0) continue;
+      const posQty = Math.abs(rawQty);
+      const posSide = pos.posSide === 'short'
+        ? -1
+        : (pos.posSide === 'long' ? 1 : (rawQty > 0 ? 1 : -1));
+
+      const symOrders = allOrders.filter(o => normalizePosSymbol(o.symbol) === normSym);
+      const watchOrd = symOrders.find(o => o.reduceOnly && o.status === 'PENDING_FILL_WATCH');
+      const activeProt = symOrders.find(o => o.reduceOnly && ['SUBMITTED', 'ATTACHED_TO_ENTRY'].includes(o.status));
+
+      if (!watchOrd && activeProt) continue;
+
+      const matchingTicket = (latestTickets || []).find(
+        t => !isEquitySymbol(t.symbol) && normalizePosSymbol(t.symbol) === normSym
+          && (Number.isFinite(Number(t.sl_px)) || Number.isFinite(Number(t.tp_px))),
+      );
+
+      const entrySide = watchOrd?.payload?.entrySide ?? matchingTicket?.side ?? posSide;
+      const slPx = watchOrd?.payload?.slPx ?? watchOrd?.price ?? matchingTicket?.sl_px ?? null;
+      const tpPx = watchOrd?.payload?.tpPx ?? matchingTicket?.tp_px ?? null;
+      const hasValidSl = slPx !== null && slPx !== undefined && Number.isFinite(Number(slPx)) && Number(slPx) > 0;
+      const hasValidTp = tpPx !== null && tpPx !== undefined && Number.isFinite(Number(tpPx)) && Number(tpPx) > 0;
+      if (!hasValidSl && !hasValidTp) continue;
+
+      if (sub.exchange === 'BINANCE' && typeof client.getOpenOrders === 'function') {
+        try {
+          const openOrders = await client.getOpenOrders({ symbol: normSym });
+          const prot = hasBinanceProtectiveSlTp({ openOrders, symbol: normSym, entrySide });
+          if (prot.fullyProtected) {
+            if (watchOrd) {
+              this.cStore.upsertSubscriberOrderLog({
+                clientOrderId: watchOrd.client_order_id,
+                subscriberId,
+                exchange: sub.exchange,
+                symbol: normSym,
+                mode,
+                orderType: watchOrd.order_type || 'SL_TP_REDUCE_ONLY',
+                side: entrySide === 1 ? 'sell' : 'buy',
+                price: slPx,
+                qty: watchOrd.qty,
+                reduceOnly: true,
+                status: 'SUBMITTED',
+                payload: watchOrd.payload,
+                response: { alreadyProtectedOnExchange: true, openOrdersCount: openOrders.length },
+              });
+            }
+            continue;
+          }
+        } catch {
+          // Proceed to place protection if openOrders lookup fails transiently
+        }
+      } else if (sub.exchange === 'OKX' && !watchOrd && typeof client.getPendingAlgoOrders === 'function') {
+        try {
+          const pendingAlgo = await client.getPendingAlgoOrders({ symbol: normSym });
+          if (Array.isArray(pendingAlgo) && pendingAlgo.some(a => a && (a.reduceOnly === true || String(a.reduceOnly) === 'true'))) {
+            continue;
+          }
+        } catch {
+          // Proceed to place protection
+        }
+      }
+
+      const watchQtyNum = Number(watchOrd?.payload?.qty ?? watchOrd?.qty);
+      const rawTargetQty = (watchOrd && Number.isFinite(watchQtyNum) && watchQtyNum > 0)
+        ? Math.min(posQty, watchQtyNum)
+        : posQty;
+
+      let syncQtyStr = String(rawTargetQty);
+      try {
+        const spec = getInstrumentSpec(sub.exchange, normSym);
+        const step = sub.exchange === 'OKX' ? spec.lotSz : spec.stepSize;
+        const dec = String(step).includes('.') ? String(step).split('.')[1].length : 0;
+        const rounded = roundToStep(rawTargetQty, step, 'floor');
+        if (rounded > 0) syncQtyStr = rounded.toFixed(dec);
+      } catch {
+        syncQtyStr = String(rawTargetQty);
+      }
+
+      const syncClOrdId = watchOrd
+        ? watchOrd.client_order_id
+        : makeTenantClientOrderId({
+            subscriberId,
+            exchange: sub.exchange,
+            symbol: normSym,
+            timeframe: matchingTicket?.timeframe || '1h',
+            barTime: matchingTicket?.bar_time ?? Math.floor(Date.now() / 3600000) * 3600,
+            side: entrySide,
+            leg: 'F',
+          });
+
+      const slPayload = sub.exchange === 'OKX'
+        ? buildReduceOnlySlTpOrders({
+            symbol: normSym,
+            entrySide,
+            sz: syncQtyStr,
+            slTriggerPx: hasValidSl ? slPx : undefined,
+            tpTriggerPx: hasValidTp ? tpPx : undefined,
+            algoClOrdId: syncClOrdId,
+          })
+        : buildBinanceReduceOnlySlTpOrders({
+            symbol: normSym,
+            entrySide,
+            quantity: syncQtyStr,
+            stopPrice: hasValidSl ? slPx : undefined,
+            takeProfitPrice: hasValidTp ? tpPx : undefined,
+            slClientOrderId: syncClOrdId,
+          });
+
+      if (typeof client.placeReduceOnlySlTp !== 'function') continue;
+
+      try {
+        const slRes = sub.exchange === 'OKX'
+          ? await client.placeReduceOnlySlTp(
+              {
+                symbol: normSym,
+                entrySide,
+                sz: syncQtyStr,
+                slTriggerPx: hasValidSl ? slPx : undefined,
+                tpTriggerPx: hasValidTp ? tpPx : undefined,
+                algoClOrdId: syncClOrdId,
+              },
+              { confirmToken: confirmTok },
+            )
+          : await client.placeReduceOnlySlTp(
+              {
+                symbol: normSym,
+                entrySide,
+                quantity: syncQtyStr,
+                stopPrice: hasValidSl ? slPx : undefined,
+                takeProfitPrice: hasValidTp ? tpPx : undefined,
+                slClientOrderId: syncClOrdId,
+              },
+              { confirmToken: confirmTok },
+            );
+
+        const slRow0 = Array.isArray(slRes?.data)
+          ? slRes.data[0]
+          : (slRes?.data && typeof slRes.data === 'object' ? slRes.data : null);
+        const exSlId = slRow0?.algoId
+          ?? (slRow0?.orderId !== undefined && slRow0?.orderId !== null ? String(slRow0.orderId) : null);
+
+        this.cStore.upsertSubscriberOrderLog({
+          clientOrderId: syncClOrdId,
+          subscriberId,
+          exchange: sub.exchange,
+          symbol: normSym,
+          mode,
+          orderType: sub.exchange === 'OKX' ? 'oco_reduce_only' : 'SL_TP_REDUCE_ONLY',
+          side: entrySide === 1 ? 'sell' : 'buy',
+          price: hasValidSl ? Number(slPx) : Number(tpPx),
+          qty: syncQtyStr,
+          reduceOnly: true,
+          status: 'SUBMITTED',
+          exchangeOrderId: exSlId,
+          payload: slPayload,
+          response: slRes,
+        });
+        actions.push({
+          action: 'PROTECTIVE_SL_TP_SYNCED',
+          clientOrderId: syncClOrdId,
+          symbol: normSym,
+          qty: syncQtyStr,
+          exchangeOrderId: exSlId,
+        });
+      } catch (slErr) {
+        const safeSlErr = scrubSecrets(slErr.message, this.config);
+        this.cStore.upsertSubscriberOrderLog({
+          clientOrderId: syncClOrdId,
+          subscriberId,
+          exchange: sub.exchange,
+          symbol: normSym,
+          mode,
+          orderType: sub.exchange === 'OKX' ? 'oco_reduce_only' : 'SL_TP_REDUCE_ONLY',
+          side: entrySide === 1 ? 'sell' : 'buy',
+          price: hasValidSl ? Number(slPx) : Number(tpPx),
+          qty: syncQtyStr,
+          reduceOnly: true,
+          status: 'SL_TP_REJECTED',
+          payload: slPayload,
+          response: { error: safeSlErr },
+        });
+        actions.push({
+          action: 'SL_TP_REJECTED',
+          clientOrderId: syncClOrdId,
+          symbol: normSym,
+          error: safeSlErr,
+        });
+      }
+    }
   }
 
   getSubscriberDashboard(subscriberId) {

@@ -385,14 +385,14 @@ describe('3. Zero Liquidation Across All v9 Tiers & Cross-Version Matrix Integri
     const rawStr = fs.readFileSync(path.join(RESULTS_V9, 'all_versions_comparison_matrix.json'), 'utf8');
     assert.equal(/\bNaN\b/.test(rawStr), false, 'Found NaN in all_versions_comparison_matrix.json');
     assert.equal(/\bInfinity\b/.test(rawStr), false, 'Found Infinity in all_versions_comparison_matrix.json');
-    assert.equal(mat.versions.length, 10);
+    assert.equal(mat.versions.length, 11);
     for (const v of mat.versions) {
       assert.equal(v.verifiedFromArtifact, true, `${v.version} not verifiedFromArtifact`);
     }
 
     // Re-run async builder in-memory and ensure key locked figures match disk artifacts
     const built = await buildAllVersionsMatrix(REPO_ROOT);
-    assert.equal(built.versions.length, 10);
+    assert.equal(built.versions.length, 11);
 
     const v6 = readJsonCached(path.join(RESULTS_V6, 'crypto_eth_sol_5y.json'));
     const v7 = readJsonCached(path.join(RESULTS_V7, 'frontier_75wr_30mo_summary.json'));
@@ -620,7 +620,7 @@ describe('5. Zero-XSS, Loopback, .env Gitignore & Live HTTP Endpoints (/api/vers
       const vers = await (await fetch(`${base}/api/versions`)).json();
       assert.equal(vers.ok, true);
       assert.equal(vers.ready, true);
-      assert.equal(vers.versions.length, 10);
+      assert.equal(vers.versions.length, 11);
 
       const ords = await (await fetch(`${base}/api/orders`)).json();
       assert.equal(ords.ok, true);

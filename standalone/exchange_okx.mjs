@@ -110,6 +110,10 @@ export function buildPostOnlyEntryOrder({
   tdMode = 'isolated',
   posSide,
   clOrdId,
+  attachAlgoOrds,
+  slTriggerPx,
+  tpTriggerPx,
+  attachAlgoClOrdId,
 }) {
   const instId = toOkxInstId(symbol);
   const sideStr = side === 1 || String(side).toLowerCase() === 'buy' ? 'buy' : 'sell';
@@ -123,6 +127,30 @@ export function buildPostOnlyEntryOrder({
   };
   if (posSide) payload.posSide = posSide;
   if (clOrdId) payload.clOrdId = clOrdId;
+
+  if (Array.isArray(attachAlgoOrds) && attachAlgoOrds.length > 0) {
+    payload.attachAlgoOrds = attachAlgoOrds;
+  } else {
+    const hasSl = slTriggerPx !== undefined && slTriggerPx !== null && Number.isFinite(Number(slTriggerPx)) && Number(slTriggerPx) > 0;
+    const hasTp = tpTriggerPx !== undefined && tpTriggerPx !== null && Number.isFinite(Number(tpTriggerPx)) && Number(tpTriggerPx) > 0;
+    if (hasSl || hasTp) {
+      const algoObj = {};
+      if (typeof attachAlgoClOrdId === 'string' && attachAlgoClOrdId.length > 0) {
+        algoObj.attachAlgoClOrdId = attachAlgoClOrdId;
+      }
+      if (hasSl) {
+        algoObj.slTriggerPx = String(slTriggerPx);
+        algoObj.slTriggerPxType = 'mark';
+        algoObj.slOrdPx = '-1';
+      }
+      if (hasTp) {
+        algoObj.tpTriggerPx = String(tpTriggerPx);
+        algoObj.tpTriggerPxType = 'last';
+        algoObj.tpOrdPx = '-1';
+      }
+      payload.attachAlgoOrds = [algoObj];
+    }
+  }
   return payload;
 }
 
@@ -179,6 +207,7 @@ export class OkxClient {
     this.liveConfirmToken = options.liveConfirmToken || '';
     this.maxLeverageCap = Number(options.maxLeverageCap ?? 3.0);
     this.maxOrderUsdt = Number(options.maxOrderUsdt ?? 500);
+    this.supportsAttachAlgoOrds = true;
   }
 
   hasCredentials() {
@@ -368,6 +397,16 @@ export class OkxClient {
       acctLv: row.acctLv ?? null,
       label: row.label ?? null,
     };
+  }
+
+  async getPendingAlgoOrders({ instType = 'SWAP', ordType = 'oco,conditional', symbol } = {}) {
+    const params = new URLSearchParams({
+      instType: String(instType || 'SWAP'),
+      ordType: String(ordType || 'oco,conditional'),
+    });
+    if (symbol) params.set('instId', toOkxInstId(symbol));
+    const data = await this._requestPrivate('GET', `/api/v5/trade/orders-algo-pending?${params.toString()}`);
+    return Array.isArray(data) ? data : [];
   }
 
   _safetyConfigSnapshot() {

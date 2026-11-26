@@ -342,22 +342,22 @@ describe('v11.0 E2E Autopilot Independent Verification', () => {
         'Background AutopilotScheduler timer should automatically execute Tick A',
       );
 
-      // Verify exactly 2 OKX signed trade requests (post_only entry + oco reduceOnly SL/TP)
-      assert.equal(okxHttpCalls.length - callsBeforeDet, 2);
+      // Verify single atomic OKX signed trade request (post_only entry with attachAlgoOrds SL/TP)
+      assert.equal(okxHttpCalls.length - callsBeforeDet, 1);
       const entryCall = okxHttpCalls[callsBeforeDet];
-      const ocoCall = okxHttpCalls[callsBeforeDet + 1];
       assert.equal(entryCall.url.endsWith('/api/v5/trade/order'), true);
       assert.equal(entryCall.headers['x-simulated-trading'], '1');
       assert.ok(entryCall.headers['OK-ACCESS-SIGN']);
       assert.equal(entryCall.body.ordType, 'post_only');
       assert.equal(entryCall.body.side, 'buy');
       assert.match(entryCall.body.clOrdId, ALPHANUM_CLORDID_RE);
-
-      assert.equal(ocoCall.url.endsWith('/api/v5/trade/order-algo'), true);
-      assert.equal(ocoCall.headers['x-simulated-trading'], '1');
-      assert.equal(ocoCall.body.ordType, 'oco');
-      assert.equal(ocoCall.body.side, 'sell');
-      assert.equal(ocoCall.body.reduceOnly, true);
+      assert.ok(Array.isArray(entryCall.body.attachAlgoOrds) && entryCall.body.attachAlgoOrds.length === 1);
+      const attachAlgo = entryCall.body.attachAlgoOrds[0];
+      assert.match(attachAlgo.attachAlgoClOrdId, ALPHANUM_CLORDID_RE);
+      assert.ok(Number(attachAlgo.slTriggerPx) > 0);
+      assert.ok(Number(attachAlgo.tpTriggerPx) > 0);
+      assert.equal(attachAlgo.slOrdPx, '-1');
+      assert.equal(attachAlgo.tpOrdPx, '-1');
 
       // Make session due again -> Background timer executes Tick B on same bar -> IDEMPOTENT_SKIP (0 extra orders)
       srv1.autopilotScheduler.cStore.upsertAutopilotSession({
@@ -373,7 +373,7 @@ describe('v11.0 E2E Autopilot Independent Verification', () => {
         cycleBeforeAuto + 2,
         'Background AutopilotScheduler timer should automatically execute Tick B',
       );
-      assert.equal(okxHttpCalls.length - callsBeforeDet, 2, 'Repeat bar tick must be IDEMPOTENT_SKIP with zero duplicate orders');
+      assert.equal(okxHttpCalls.length - callsBeforeDet, 1, 'Repeat bar tick must be IDEMPOTENT_SKIP with zero duplicate orders');
 
       const statusAfterTicks = await (await fetch(`${base}/api/autopilot/status`, {
         headers: { 'x-subscriber-token': tok1 },
@@ -381,9 +381,9 @@ describe('v11.0 E2E Autopilot Independent Verification', () => {
       assert.equal(statusAfterTicks.ok, true);
       assert.equal(statusAfterTicks.armed, true);
       assert.ok(statusAfterTicks.orders.some(o => o.client_order_id === entryCall.body.clOrdId && o.order_type === 'post_only' && o.status === 'SUBMITTED'));
-      assert.ok(statusAfterTicks.orders.some(o => o.order_type === 'oco_reduce_only' && o.reduceOnly === true && o.status === 'SUBMITTED'));
+      assert.ok(statusAfterTicks.orders.some(o => o.client_order_id === attachAlgo.attachAlgoClOrdId && o.order_type === 'oco_attached' && o.reduceOnly === true && o.status === 'ATTACHED_TO_ENTRY'));
 
-      // 5) POST /api/autopilot/stop (cancelPendingEntries: true) cancels entry while preserving reduceOnly SL/TP
+      // 5) POST /api/autopilot/stop (cancelPendingEntries: true) cancels unfilled entry and attached child log while openPositions is empty
       const stopRes = await fetch(`${base}/api/autopilot/stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-subscriber-token': tok1 },
@@ -397,7 +397,7 @@ describe('v11.0 E2E Autopilot Independent Verification', () => {
       assert.equal(stopJson.status.session.state, 'DISARMED');
       assert.ok(cancelledClOrdIds.includes(entryCall.body.clOrdId));
       assert.ok(stopJson.status.orders.some(o => o.client_order_id === entryCall.body.clOrdId && o.status === 'CANCELLED'));
-      assert.ok(stopJson.status.orders.some(o => o.order_type === 'oco_reduce_only' && o.reduceOnly === true && o.status === 'SUBMITTED'));
+      assert.ok(stopJson.status.orders.some(o => o.client_order_id === attachAlgo.attachAlgoClOrdId && o.order_type === 'oco_attached' && o.reduceOnly === true && o.status === 'CANCELLED'));
 
       // Re-arm before simulated server crash/restart so ARMED_RUNNING -> REARM_REQUIRED recovery is tested
       const rearmBeforeStop = await fetch(`${base}/api/autopilot/start`, {

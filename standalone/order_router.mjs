@@ -8,6 +8,7 @@ import {
 import {
   buildBinancePostOnlyEntryOrder,
   buildBinanceReduceOnlySlTpOrders,
+  hasBinanceProtectiveSlTp,
   toBinanceSymbol,
 } from './exchange_binance.mjs';
 import {
@@ -215,6 +216,69 @@ function formatOrderSizeAndPrices({ exchange, symbol, notionalUsdt, entryPx, slP
   };
 }
 
+export function buildOkxAttachedEntryPayload({
+  symbol = 'BTCUSDT.P',
+  side,
+  notionalUsdt,
+  entryPx,
+  stop = null,
+  target = null,
+  timeframe = '1h',
+  barTime = 0,
+  clOrdId = null,
+  attachAlgoClOrdId = null,
+  tdMode = 'isolated',
+} = {}) {
+  const formatted = formatOrderSizeAndPrices({
+    exchange: 'OKX',
+    symbol,
+    notionalUsdt,
+    entryPx,
+    slPx: stop,
+    tpPx: target,
+  });
+  const effClOrdId = clOrdId || makeClientOrderId({
+    exchange: 'OKX',
+    symbol,
+    timeframe,
+    barTime,
+    side,
+    leg: 'E',
+  });
+  const hasSlTp = Boolean(formatted.slPxStr || formatted.tpPxStr);
+  const effAlgoClId = hasSlTp
+    ? (attachAlgoClOrdId || makeClientOrderId({
+      exchange: 'OKX',
+      symbol,
+      timeframe,
+      barTime,
+      side,
+      leg: 'A',
+    }))
+    : null;
+  const payload = buildPostOnlyEntryOrder({
+    symbol,
+    side,
+    sz: formatted.qtyStr,
+    px: formatted.entryPxStr,
+    tdMode,
+    clOrdId: effClOrdId,
+    slTriggerPx: formatted.slPxStr,
+    tpTriggerPx: formatted.tpPxStr,
+    attachAlgoClOrdId: effAlgoClId,
+  });
+  return {
+    payload,
+    clOrdId: effClOrdId,
+    attachAlgoClOrdId: effAlgoClId,
+    qtyStr: formatted.qtyStr,
+    qtyNum: formatted.qtyNum,
+    pxStr: formatted.entryPxStr,
+    slPxStr: formatted.slPxStr,
+    tpPxStr: formatted.tpPxStr,
+  };
+}
+
 export class StandaloneOrderRouter {
   constructor({
     config,
@@ -392,6 +456,7 @@ export class StandaloneOrderRouter {
     previousOverlay = null,
     confirmToken,
     notionalUsdt,
+    attachSlTpOnEntry = false,
   } = {}) {
     if (isEquitySymbol(symbol)) {
       return { action: 'SKIPPED_EQUITY', mode: ROUTER_MODES.PAPER_ZERO_KEY, actions: [] };
@@ -466,21 +531,52 @@ export class StandaloneOrderRouter {
     // 2) Active PENDING_LIMIT -> place Post-Only maker entry
     if (activeOverlay.status === 'PENDING_LIMIT' && Number.isFinite(Number(activeOverlay.limitPrice))) {
       const px = Number(activeOverlay.limitPrice);
-      const formatted = formatOrderSizeAndPrices({ exchange, symbol, notionalUsdt: effNotional, entryPx: px });
-      const qtyStr = formatted.qtyStr;
-      const pxStr = formatted.entryPxStr;
       const barTime = activeOverlay.signalTime || 0;
-      const clOrdId = makeClientOrderId({
-        exchange,
-        symbol,
-        timeframe,
-        barTime,
-        side: activeOverlay.side,
-        leg: 'E',
-      });
-      const payload = exchange === 'OKX'
-        ? buildPostOnlyEntryOrder({ symbol, side: activeOverlay.side, sz: qtyStr, px: pxStr, clOrdId })
-        : buildBinancePostOnlyEntryOrder({ symbol, side: activeOverlay.side, quantity: qtyStr, price: pxStr, newClientOrderId: clOrdId });
+      const shouldAttach = Boolean(attachSlTpOnEntry && exchange === 'OKX' && (
+        (Number.isFinite(Number(activeOverlay.stop)) && Number(activeOverlay.stop) > 0) ||
+        (Number.isFinite(Number(activeOverlay.target)) && Number(activeOverlay.target) > 0)
+      ));
+
+      let qtyStr;
+      let qtyNum;
+      let pxStr;
+      let clOrdId;
+      let payload;
+      let attached = null;
+
+      if (shouldAttach) {
+        attached = buildOkxAttachedEntryPayload({
+          symbol,
+          side: activeOverlay.side,
+          notionalUsdt: effNotional,
+          entryPx: px,
+          stop: activeOverlay.stop,
+          target: activeOverlay.target,
+          timeframe,
+          barTime,
+        });
+        qtyStr = attached.qtyStr;
+        qtyNum = attached.qtyNum;
+        pxStr = attached.pxStr;
+        clOrdId = attached.clOrdId;
+        payload = attached.payload;
+      } else {
+        const formatted = formatOrderSizeAndPrices({ exchange, symbol, notionalUsdt: effNotional, entryPx: px });
+        qtyStr = formatted.qtyStr;
+        qtyNum = formatted.qtyNum;
+        pxStr = formatted.entryPxStr;
+        clOrdId = makeClientOrderId({
+          exchange,
+          symbol,
+          timeframe,
+          barTime,
+          side: activeOverlay.side,
+          leg: 'E',
+        });
+        payload = exchange === 'OKX'
+          ? buildPostOnlyEntryOrder({ symbol, side: activeOverlay.side, sz: qtyStr, px: pxStr, clOrdId })
+          : buildBinancePostOnlyEntryOrder({ symbol, side: activeOverlay.side, quantity: qtyStr, price: pxStr, newClientOrderId: clOrdId });
+      }
 
       const entryRes = await this._dispatchOrder({
         clientOrderId: clOrdId,
@@ -490,7 +586,7 @@ export class StandaloneOrderRouter {
         orderType: exchange === 'OKX' ? 'post_only' : 'LIMIT_GTX',
         side: activeOverlay.side === 1 ? 'buy' : 'sell',
         price: Number(pxStr),
-        qty: formatted.qtyNum,
+        qty: qtyNum,
         reduceOnly: false,
         payload,
         notionalUsdt: effNotional,
@@ -499,7 +595,18 @@ export class StandaloneOrderRouter {
         executeLiveFn: () => (
           exchange === 'OKX'
             ? this.exchangeClient.placePostOnlyEntry(
-                { symbol, side: activeOverlay.side, sz: qtyStr, px: pxStr, clOrdId },
+                {
+                  symbol,
+                  side: activeOverlay.side,
+                  sz: qtyStr,
+                  px: pxStr,
+                  clOrdId,
+                  ...(attached ? {
+                    slTriggerPx: attached.slPxStr,
+                    tpTriggerPx: attached.tpPxStr,
+                    attachAlgoClOrdId: attached.attachAlgoClOrdId,
+                  } : {}),
+                },
                 { confirmToken: effToken, notionalUsdt: effNotional },
               )
             : this.exchangeClient.placePostOnlyEntry(
@@ -572,5 +679,156 @@ export class StandaloneOrderRouter {
       mode: modeInfo.mode,
       actions,
     };
+  }
+
+  /**
+   * Reconciles a filled open position against exchange open protective orders and
+   * dispatches idempotent reduceOnly SL/TP sized to the actual filled position quantity.
+   */
+  async syncFilledPositionProtection({
+    symbol = 'BTCUSDT.P',
+    timeframe = '1h',
+    openPositions = [],
+    openOrders = [],
+    plannedStop = null,
+    plannedTarget = null,
+    barTime = 0,
+    confirmToken,
+  } = {}) {
+    if (isEquitySymbol(symbol)) {
+      return { action: 'SKIPPED_EQUITY', symbol };
+    }
+
+    const modeInfo = resolveRouterMode(this.config);
+    const exchange = modeInfo.exchange;
+    const targetInstId = exchange === 'OKX' ? toOkxInstId(symbol) : toBinanceSymbol(symbol);
+
+    let matchedPos = null;
+    let signedQty = 0;
+    for (const p of Array.isArray(openPositions) ? openPositions : []) {
+      if (!p || typeof p !== 'object') continue;
+      const pSym = String(p.instId || p.symbol || '').toUpperCase();
+      if (pSym !== targetInstId && pSym !== String(symbol).toUpperCase()) continue;
+      let q = Number(p.positionAmt ?? p.pos ?? p.sz ?? 0);
+      if (!Number.isFinite(q) || q === 0) continue;
+      if (String(p.posSide || '').toLowerCase() === 'short') q = -Math.abs(q);
+      else if (String(p.posSide || '').toLowerCase() === 'long') q = Math.abs(q);
+      matchedPos = p;
+      signedQty = q;
+      break;
+    }
+
+    if (!matchedPos || signedQty === 0) {
+      return { action: 'NO_OPEN_POSITION', symbol, mode: modeInfo.mode };
+    }
+
+    const entrySide = signedQty > 0 ? 1 : -1;
+    const absQty = Math.abs(signedQty);
+    const needSl = Number.isFinite(Number(plannedStop)) && Number(plannedStop) > 0;
+    const needTp = Number.isFinite(Number(plannedTarget)) && Number(plannedTarget) > 0;
+    if (!needSl && !needTp) {
+      return { action: 'NO_PLANNED_PROTECTION', symbol, mode: modeInfo.mode };
+    }
+
+    if (exchange === 'BINANCE') {
+      const prot = hasBinanceProtectiveSlTp({ openOrders, symbol, entrySide });
+      if ((!needSl || prot.hasSl) && (!needTp || prot.hasTp)) {
+        return { action: 'ALREADY_PROTECTED', symbol, mode: modeInfo.mode, protection: prot };
+      }
+    } else {
+      const closeSide = entrySide === 1 ? 'sell' : 'buy';
+      let hasSl = false;
+      let hasTp = false;
+      for (const ord of Array.isArray(openOrders) ? openOrders : []) {
+        if (!ord || typeof ord !== 'object') continue;
+        if (String(ord.instId || '').toUpperCase() !== targetInstId) continue;
+        if (ord.side && String(ord.side).toLowerCase() !== closeSide) continue;
+        if (Number(ord.slTriggerPx) > 0) hasSl = true;
+        if (Number(ord.tpTriggerPx) > 0) hasTp = true;
+      }
+      if ((!needSl || hasSl) && (!needTp || hasTp)) {
+        return { action: 'ALREADY_PROTECTED', symbol, mode: modeInfo.mode, protection: { hasSl, hasTp } };
+      }
+    }
+
+    let spec = null;
+    try {
+      spec = getInstrumentSpec(exchange, symbol);
+    } catch {
+      spec = null;
+    }
+    const tickStep = spec ? (spec.tickSz ?? spec.tickSize ?? 0.01) : 0.01;
+    const tickDec = countStepDecimals(tickStep);
+    const slPxStr = needSl ? roundToStep(Number(plannedStop), tickStep, 'round').toFixed(tickDec) : null;
+    const tpPxStr = needTp ? roundToStep(Number(plannedTarget), tickStep, 'round').toFixed(tickDec) : null;
+
+    let qtyStr;
+    let qtyNum;
+    if (spec && exchange === 'OKX') {
+      const stepped = Math.max(spec.minSz, roundToStep(absQty, spec.lotSz, 'floor'));
+      qtyStr = stepped.toFixed(countStepDecimals(spec.lotSz));
+      qtyNum = Number(qtyStr);
+    } else if (spec && exchange === 'BINANCE') {
+      const stepped = Math.max(spec.minQty, roundToStep(absQty, spec.stepSize, 'floor'));
+      qtyStr = stepped.toFixed(countStepDecimals(spec.stepSize));
+      qtyNum = Number(qtyStr);
+    } else {
+      qtyStr = absQty.toFixed(4);
+      qtyNum = Number(qtyStr);
+    }
+
+    const slTpClOrdId = makeClientOrderId({
+      exchange,
+      symbol,
+      timeframe,
+      barTime,
+      side: entrySide,
+      leg: 'F',
+    });
+    const effToken = confirmToken ?? this.confirmToken ?? '';
+    const refPx = Number(matchedPos.markPx ?? matchedPos.avgPx ?? matchedPos.entryPrice ?? plannedStop ?? plannedTarget ?? 0);
+    const estNotional = refPx > 0 ? qtyNum * (spec?.ctVal ?? 1) * refPx : this.defaultNotionalUsdt;
+
+    const payload = exchange === 'OKX'
+      ? buildReduceOnlySlTpOrders({ symbol, entrySide, sz: qtyStr, slTriggerPx: slPxStr, tpTriggerPx: tpPxStr, algoClOrdId: slTpClOrdId })
+      : buildBinanceReduceOnlySlTpOrders({ symbol, entrySide, quantity: qtyStr, stopPrice: slPxStr, takeProfitPrice: tpPxStr, slClientOrderId: slTpClOrdId });
+
+    const res = await this._dispatchOrder({
+      clientOrderId: slTpClOrdId,
+      symbol,
+      exchange,
+      mode: modeInfo.mode,
+      orderType: exchange === 'OKX' ? 'oco_reduceOnly' : 'SLTP_REDUCE_ONLY',
+      side: entrySide === 1 ? 'sell' : 'buy',
+      price: Number(slPxStr ?? tpPxStr ?? refPx),
+      qty: qtyNum,
+      reduceOnly: true,
+      payload,
+      notionalUsdt: estNotional,
+      requestedLeverage: Number(matchedPos.lever ?? matchedPos.leverage ?? 1.5),
+      confirmToken: effToken,
+      executeLiveFn: () => (
+        exchange === 'OKX'
+          ? this.exchangeClient.placeReduceOnlySlTp(
+              { symbol, entrySide, sz: qtyStr, slTriggerPx: slPxStr, tpTriggerPx: tpPxStr, algoClOrdId: slTpClOrdId },
+              { confirmToken: effToken },
+            )
+          : this.exchangeClient.placeReduceOnlySlTp(
+              { symbol, entrySide, quantity: qtyStr, stopPrice: slPxStr, takeProfitPrice: tpPxStr, slClientOrderId: slTpClOrdId },
+              { confirmToken: effToken },
+            )
+      ),
+    });
+
+    if (res.action === 'SUBMITTED' || res.action === 'PAPER_SIMULATED') {
+      return {
+        ...res,
+        action: 'PROTECTIVE_SL_TP_SYNCED',
+        dispatchAction: res.action,
+        symbol,
+        qty: qtyStr,
+      };
+    }
+    return { ...res, symbol, qty: qtyStr };
   }
 }

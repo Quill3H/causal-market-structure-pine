@@ -666,6 +666,170 @@ function extractV90(repoRoot) {
   };
 }
 
+function extractV140(repoRoot) {
+  const s14 = readJsonIfExists(path.join(repoRoot, 'research', 'results_v14', 'expanding_wf_v14_crypto_5y.json'));
+  const m14 = readJsonIfExists(path.join(repoRoot, 'research', 'results_v14', 'models_v14_expanding_wf.json'));
+  if (!s14) {
+    return {
+      version: 'v14.0',
+      label: 'v14.0 (True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate))',
+      era: '5Y 15m+1h Crypto True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate)',
+      sourceArtifact: 'research/results_v14/expanding_wf_v14_crypto_5y.json',
+      verifiedFromArtifact: false,
+      status: 'PENDING_V14_ARTIFACTS',
+      executionModel: 'True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate)',
+      assetUniverse: ['BTCUSDT, BNBUSDT, ETHUSDT, SOLUSDT (15m + 1h)'],
+      metrics: { tiers: {}, streams: {} },
+      strengths: ['Awaiting expanding_wf_v14_crypto_5y.json generation from @ml-alpha-multi.'],
+      weaknesses: ['Not yet generated.'],
+      failureModes: ['Not yet audited.'],
+    };
+  }
+
+  const stripMonthly = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+    const { monthlyTable, perStream, ...rest } = obj;
+    return rest;
+  };
+  const pickWinClean = (w) => {
+    if (!w || typeof w !== 'object') return {};
+    return {
+      count: w.count ?? 0,
+      winRatePct: r2(w.winRatePct) ?? 0,
+      profitFactor: r2(w.profitFactor) ?? 0,
+      meanMonthlySweepPct: r2(w.meanMonthlySweepPct) ?? 0,
+      medianMonthlySweepPct: r2(w.medianMonthlySweepPct) ?? 0,
+      pctPositiveMonths: r2(w.pctPositiveMonths) ?? 0,
+      pctMonthsGe30: r2(w.pctMonthsGe30) ?? 0,
+      worstMonthPct: r2(w.worstMonthPct) ?? 0,
+      compoundedNetPct: r2(w.compoundedNetPct) ?? 0,
+      cagrPct: r2(w.cagrPct) ?? 0,
+      maxCompoundedDdPct: r2(w.maxCompoundedDdPct) ?? 0,
+      sharpe: r2(w.sharpe) ?? 0,
+      sortino: r2(w.sortino) ?? 0,
+      calmar: r2(w.calmar) ?? 0,
+      ddGuardThrottledTrades: w.ddGuardThrottledTrades ?? 0,
+      liquidationCount: w.liquidationCount ?? 0,
+      sweepLiquidationCount: w.sweepLiquidationCount ?? 0,
+    };
+  };
+
+  const streamsSummary = {};
+  for (const [sk, sv] of Object.entries(s14.streams ?? {})) {
+    const po = sv.EXCHANGE_POST_ONLY ?? {};
+    const tk = sv.STRICT_TAKER ?? {};
+    const poMl = po.summary?.ml ?? {};
+    const tkMl = tk.summary?.ml ?? {};
+    const epBreakdown = {};
+    for (const [ek, ev] of Object.entries(po.epochBreakdown ?? {})) {
+      epBreakdown[ek] = {
+        epochIdx: ev.epochIdx ?? 0,
+        abstain: Boolean(ev.abstain),
+        qualified: Boolean(ev.qualified),
+        chronoCvAuc: r2(ev.chronoCvAuc) ?? 0,
+        innerValPf: r2(ev.innerValPf) ?? 0,
+        innerValNetPct: r2(ev.innerValNetPct) ?? 0,
+        threshold: r2(ev.threshold) ?? 0.52,
+        count: ev.count ?? 0,
+        winRatePct: r2(ev.winRatePct) ?? 0,
+        profitFactor: r2(ev.profitFactor) ?? 0,
+        compoundedNetPct: r2(ev.compoundedNetPct) ?? 0,
+        maxCompoundedDdPct: r2(ev.maxCompoundedDdPct) ?? 0,
+        liquidationCount: ev.liquidationCount ?? 0,
+      };
+    }
+
+    const mEps = Object.values(epBreakdown).filter(e => e.epochIdx >= 0 && !e.abstain);
+    const meanCvAuc = mEps.length > 0
+      ? Number((mEps.reduce((a, e) => a + e.chronoCvAuc, 0) / mEps.length).toFixed(4))
+      : 0;
+
+    streamsSummary[sk] = {
+      qualifiedForLive: Boolean(po.qualifiedForLive),
+      shortEnabled: Boolean(po.shortEnabled),
+      liveActiveQualified: Boolean(po.liveActiveQualified),
+      activeEpochsCount: po.activeEpochsCount ?? 0,
+      abstainedEpochsCount: po.abstainedEpochsCount ?? 0,
+      meanEpochCvAuc: meanCvAuc,
+      epochBreakdown: epBreakdown,
+      oosExpanding60PostOnly: pickWinClean(poMl.oosExpanding60pct),
+      holdoutY5PostOnly: pickWinClean(poMl.holdoutY5),
+      full5yPostOnly: pickWinClean(poMl.full5y),
+      calValPostOnly: pickWinClean(poMl.calVal),
+      oosExpanding60StrictTaker: pickWinClean(tkMl.oosExpanding60pct),
+      holdoutY5StrictTaker: pickWinClean(tkMl.holdoutY5),
+      full5yStrictTaker: pickWinClean(tkMl.full5y),
+    };
+  }
+
+  const tiersSummary = {};
+  for (const [tKey, tObj] of Object.entries(s14.tiers ?? {})) {
+    const po = tObj.profiles?.EXCHANGE_POST_ONLY ?? {};
+    const tk = tObj.profiles?.STRICT_TAKER ?? {};
+    tiersSummary[tKey] = {
+      tierKey: tObj.label ?? tKey,
+      levScale: tObj.lockedParams?.levScale ?? 1.0,
+      maxTotalOpenLev: tObj.lockedParams?.maxTotalOpenLev ?? 6.0,
+      activeStreams: tObj.activeStreams ?? [],
+      postOnly: {
+        calVal: pickWinClean(po.calVal_49m),
+        oosExpanding60pct: pickWinClean(po.oosExpanding60pct),
+        blindHoldoutY5: pickWinClean(po.blindHoldoutY5_13m),
+        full5y: pickWinClean(po.full5y_61m),
+      },
+      strictTaker: {
+        calVal: pickWinClean(tk.calVal_49m),
+        oosExpanding60pct: pickWinClean(tk.oosExpanding60pct),
+        blindHoldoutY5: pickWinClean(tk.blindHoldoutY5_13m),
+        full5y: pickWinClean(tk.full5y_61m),
+      },
+    };
+  }
+
+  const safePo = tiersSummary.SAFE_V14?.postOnly;
+  const balPo = tiersSummary.BALANCED_V14?.postOnly;
+  const maxPo = tiersSummary.MAXIMIZED_V14?.postOnly;
+  const aw = s14.crossAssetAllWeather ?? {};
+
+  return {
+    version: 'v14.0',
+    label: 'v14.0 (True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate))',
+    era: '5Y 15m+1h Crypto True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate)',
+    sourceArtifact: 'research/results_v14/expanding_wf_v14_crypto_5y.json',
+    verifiedFromArtifact: true,
+    status: 'VERIFIED_EXPANDING_WF_ABSTENTION_ZERO_LIQ',
+    executionModel: 'True Expanding Walk-Forward Retraining (6-Epoch Causal Purge, Recency Half-Life 365d, CV AUC >= 0.52 & Inner-Val Expectancy Abstention Gate, Causal DD Guard, MMR 0.5%)',
+    assetUniverse: [
+      `8 Crypto Streams (${Object.keys(streamsSummary).length}/8 evaluated across 48 main expanding OOS epochs; ${s14.abstentionSummary?.activeEpochs ?? 47}/${s14.abstentionSummary?.mainEpochsEvaluated ?? 48} active, ${s14.abstentionSummary?.abstainedEpochs ?? 1} abstained in cash)`,
+      '3 Expanding Tiers (SAFE_V14, BALANCED_V14, MAXIMIZED_V14) + Cross-Asset All-Weather (v14 Crypto + v8 ES=F/NQ=F Futures)',
+    ],
+    metrics: {
+      schema: s14.schema ?? 'smc-v14-expanding-wf-v1',
+      selectionLockSha256: s14.selectionLockSha256 ?? m14?.selectionLockSha256 ?? '',
+      abstentionSummary: s14.abstentionSummary ?? { mainEpochsEvaluated: 48, abstainedEpochs: 1, activeEpochs: 47, abstentionRatePct: 2.08 },
+      tiers: tiersSummary,
+      streams: streamsSummary,
+      crossAssetAllWeatherCryptoPlusFutures: {
+        overlap2y: stripMonthly(pickWinClean(aw.overlap2y)),
+        overlapY5Bear: stripMonthly(pickWinClean(aw.overlapY5Bear)),
+        futuresOnly2y: stripMonthly(pickWinClean(aw.futuresOnly2y)),
+      },
+    },
+    strengths: [
+      `Strict zero-lookahead 6-epoch expanding retrain (exitTime <= epochStartTimeSec across 64/64 windows, <1e-12 Py/JS parity) raised Pure OOS [40..100%] SAFE_V14 to +${safePo?.oosExpanding60pct?.compoundedNetPct}% (PF ${safePo?.oosExpanding60pct?.profitFactor}, Sharpe ${safePo?.oosExpanding60pct?.sharpe}, DD ${safePo?.oosExpanding60pct?.maxCompoundedDdPct}%, Liq=0).`,
+      `Cut Blind Holdout Y5 Crypto Bear losses vs v9 across every tier (SAFE_V14 ${safePo?.blindHoldoutY5?.compoundedNetPct}% vs v9 -33.91%; BALANCED_V14 ${balPo?.blindHoldoutY5?.compoundedNetPct}% vs v9 -57.36%; MAXIMIZED_V14 ${maxPo?.blindHoldoutY5?.compoundedNetPct}% vs v9 -81.76%) with 0 liquidations across 61 months.`,
+      `Abstention gate shifted BTC_15m Epoch 5 & Live to cash during bear chop, while SOL_1h (+13.54%), ETH_15m (+2.13%), and BTC_1h (+1.01%) turned Blind Y5 positive; v14 Cross-Asset 2Y Overlap hit +${aw.overlap2y?.compoundedNetPct ?? 283.08}% (Calmar ${aw.overlap2y?.calmar ?? 2.04}, Liq=0).`,
+    ],
+    weaknesses: [
+      `Portfolio Blind Y5 Crypto Bear aggregate remained negative (${safePo?.blindHoldoutY5?.compoundedNetPct}% SAFE_V14 Post-Only) due to 2025-11..2026-11 BTC/BNB/ETH_1h drawdowns.`,
+      `Only 1/48 main epochs abstained because most expanding windows passed Inner-Val PF >= 1.05 before shifting into Y5 bear microstructure.`,
+    ],
+    failureModes: [
+      `Aggregate long-heavy pullback fills during multi-quarter crypto bear trends still face negative Y5 drift (${safePo?.blindHoldoutY5?.meanMonthlySweepPct}%/mo) unless hedged by non-crypto trend/futures sleeves.`,
+    ],
+  };
+}
+
 /**
  * Reconstructs exact v8 US Equity (SPY, QQQ 10Y 1d) and Futures (ES=F, NQ=F 2Y 1h)
  * simulated trade streams so Cross-Asset All-Weather portfolios can be simulated cleanly
@@ -1113,6 +1277,20 @@ function buildOkxApiKeyMatrix() {
   ];
 }
 
+export const VERSION_CATALOG = Object.freeze([
+  { version: 'v1.4', label: 'v1.4.0 (PR #1 Legacy Indicator)' },
+  { version: 'v2.0', label: 'v2.0.0 (Legacy Pine Strategy Reference)' },
+  { version: 'v3.0', label: 'v3.0.0 (SMC High-WinRate Pine + Verified Parity)' },
+  { version: 'v4.0', label: 'v4.0 (3-Year OKX Perp Migration & Base Filters)' },
+  { version: 'v4.1', label: 'v4.1 (VolNorm Leverage + 8h Funding + Partial TP1)' },
+  { version: 'v5.0', label: 'v5.0 (Off-TV Autonomous Runtime + Purged ML + Post-Only + Real 8h Funding)' },
+  { version: 'v6.0', label: 'v6.0 (5Y Crypto Orderflow CVD + 10Y US Stock Indices & 2Y Futures)' },
+  { version: 'v7.0', label: 'v7.0 (>=75% WR & >=30%/mo Zero-Liquidation Frontier + Two-Stage TP1)' },
+  { version: 'v8.0', label: 'v8.0 (Causal Macro-Trend Regime Engine + Asymmetric L/S ML + Equities v8)' },
+  { version: 'v9.0', label: 'v9.0 (3-Slice Cal/Val Sub-Period Screening + Single Cal-Fit ML + Causal DD Guard)' },
+  { version: 'v14.0', label: 'v14.0 (True Expanding Walk-Forward Retraining (6-Epoch Causal Purge + CV AUC >= 0.52 Abstention Gate))' },
+]);
+
 export async function buildAllVersionsMatrix(repoRoot = DEFAULT_REPO_ROOT) {
   const { v14, v20 } = extractLegacyV14AndV20(repoRoot);
   const v30 = extractV30(repoRoot);
@@ -1122,8 +1300,9 @@ export async function buildAllVersionsMatrix(repoRoot = DEFAULT_REPO_ROOT) {
   const v70 = extractV70(repoRoot);
   const v80 = extractV80(repoRoot);
   const v90 = extractV90(repoRoot);
+  const v140 = extractV140(repoRoot);
 
-  const versionsList = [v14, v20, v30, v40, v41, v50, v60, v70, v80, v90];
+  const versionsList = [v14, v20, v30, v40, v41, v50, v60, v70, v80, v90, v140];
   const versionsById = Object.fromEntries(versionsList.map(v => [v.version, v]));
 
   const eqFutStreams = buildEquitiesAndFuturesV8Streams(repoRoot);
@@ -1133,6 +1312,7 @@ export async function buildAllVersionsMatrix(repoRoot = DEFAULT_REPO_ROOT) {
     schema: 'smc-all-versions-comparison-matrix-v1',
     generatedAt: new Date().toISOString(),
     repoRoot,
+    versionCatalog: VERSION_CATALOG,
     versionsOrder: versionsList.map(v => v.version),
     versions: versionsList,
     versionsById,

@@ -5,7 +5,7 @@ import { alignHtfIndices, validateContiguousRows } from '../research/fetch_binan
 import { generateSignals15mV4 } from '../research/signals_15m_v4.mjs';
 import { generateSignals1h } from '../research/signals_1h.mjs';
 import { simulateTrades, wilsonLowerBound } from '../research/sim_engine.mjs';
-import { normalizeRiskTier, RISK_TIER_SPECS } from './config.mjs';
+import { normalizeRiskTier, normalizeStratVersion, RISK_TIER_SPECS } from './config.mjs';
 import { BinanceFuturesClient } from './exchange_binance.mjs';
 import { OkxClient } from './exchange_okx.mjs';
 import {
@@ -113,6 +113,8 @@ export async function loadRuntimeSpecs(repoRoot) {
 
   const modelsV9Crypto = readJsonIfExists(path.join(researchDir, 'results_v9', 'models_v9_crypto.json'));
   const ensembleV9Summary = readJsonIfExists(path.join(researchDir, 'results_v9', 'ensemble_v9_crypto_5y.json'));
+  const modelsV14ExpandingWf = readJsonIfExists(path.join(researchDir, 'results_v14', 'models_v14_expanding_wf.json'));
+  const expandingWfV14Summary = readJsonIfExists(path.join(researchDir, 'results_v14', 'expanding_wf_v14_crypto_5y.json'));
   const allVersionsMatrix = readJsonIfExists(path.join(researchDir, 'results_v9', 'all_versions_comparison_matrix.json'));
 
   const [
@@ -134,6 +136,7 @@ export async function loadRuntimeSpecs(repoRoot) {
     regimeV8EthSolMod,
     portfolioV8Mod,
     ensembleV9Mod,
+    expandingWfV14Mod,
     versionMatrixMod,
   ] = await Promise.all([
     tryImportOptional(path.join(researchDir, 'sim_engine_v5.mjs')),
@@ -154,6 +157,7 @@ export async function loadRuntimeSpecs(repoRoot) {
     tryImportOptional(path.join(researchDir, 'regime_v8_eth_sol.mjs')),
     tryImportOptional(path.join(researchDir, 'portfolio_v8_regime_maximizer.mjs')),
     tryImportOptional(path.join(researchDir, 'ensemble_v9_walkforward.mjs')),
+    tryImportOptional(path.join(researchDir, 'expanding_wf_v14.mjs')),
     tryImportOptional(path.join(researchDir, 'version_matrix_preview.mjs')),
   ]);
 
@@ -181,6 +185,8 @@ export async function loadRuntimeSpecs(repoRoot) {
     maximizedV8Summary,
     modelsV9Crypto,
     ensembleV9Summary,
+    modelsV14ExpandingWf,
+    expandingWfV14Summary,
     allVersionsMatrix,
     simV5Mod,
     simV6Mod,
@@ -200,6 +206,7 @@ export async function loadRuntimeSpecs(repoRoot) {
     regimeV8EthSolMod,
     portfolioV8Mod,
     ensembleV9Mod,
+    expandingWfV14Mod,
     versionMatrixMod,
     hasV5Engine: Boolean(simV5Mod?.simulateTradesV5),
     hasV5Ml: Boolean(featuresV5Mod && mlInfMod && mlModelsBtc),
@@ -215,6 +222,9 @@ export async function loadRuntimeSpecs(repoRoot) {
     hasV9Engine: Boolean(ensembleV9Mod),
     hasV9Models: Boolean(modelsV9Crypto),
     hasV9Frontier: Boolean(ensembleV9Summary),
+    hasV14Engine: Boolean(expandingWfV14Mod?.applyV14ExpandingModelToSignals),
+    hasV14Models: Boolean(modelsV14ExpandingWf?.models),
+    hasV14Frontier: Boolean(expandingWfV14Summary?.tiers),
     hasAllVersionsMatrix: Boolean(allVersionsMatrix || versionMatrixMod?.buildAllVersionsMatrix),
   };
 }
@@ -1151,11 +1161,11 @@ function findFrontierTierNode(tiersMap, tierId, tierSpec) {
   if (!tiersMap || typeof tiersMap !== 'object') return null;
   const candidates = [tierSpec.frontierKey, tierId];
   if (tierId === 'TARGET_30MO_75WR') {
-    candidates.push('TIER_3_MAXIMIZED_30MO_75WR', 'MAXIMIZED_30MO_75WR', 'MAXIMIZED_V9', 'TIER_3_MAXIMIZED_V9');
+    candidates.push('TIER_3_MAXIMIZED_30MO_75WR', 'MAXIMIZED_30MO_75WR', 'MAXIMIZED_V9', 'TIER_3_MAXIMIZED_V9', 'MAXIMIZED_V14', 'TIER_3_MAXIMIZED_V14');
   } else if (tierId === 'BALANCED_75WR') {
-    candidates.push('TIER_2_BALANCED_75WR', 'BALANCED_75WR', 'BALANCED_V9', 'TIER_2_BALANCED_V9');
+    candidates.push('TIER_2_BALANCED_75WR', 'BALANCED_75WR', 'BALANCED_V9', 'TIER_2_BALANCED_V9', 'BALANCED_V14', 'TIER_2_BALANCED_V14');
   } else if (tierId === 'SAFE_75WR') {
-    candidates.push('TIER_1_SAFE_75WR', 'SAFE_75WR', 'SAFE_V9', 'TIER_1_SAFE_V9');
+    candidates.push('TIER_1_SAFE_75WR', 'SAFE_75WR', 'SAFE_V9', 'TIER_1_SAFE_V9', 'SAFE_V14', 'TIER_1_SAFE_V14');
   }
   for (const key of candidates) {
     if (key && tiersMap[key]) return tiersMap[key];
@@ -1265,12 +1275,83 @@ export function runV9FrontierPortfolio({ runtimeSpecs, config, riskTier, execPro
   };
 }
 
+export function runV14FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
+  const tierId = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
+  const tierSpec = RISK_TIER_SPECS[tierId];
+  const prof = String(execProfile || 'EXCHANGE_POST_ONLY').toUpperCase();
+  const v14Sum = runtimeSpecs?.expandingWfV14Summary;
+
+  if (v14Sum && typeof v14Sum === 'object') {
+    const tiersMap = v14Sum.tiers || {};
+    const rawSelected = findFrontierTierNode(tiersMap, tierId, tierSpec);
+    const allTiers = {};
+    for (const [k, spec] of Object.entries(RISK_TIER_SPECS)) {
+      const node = findFrontierTierNode(tiersMap, k, spec);
+      if (node) allTiers[k] = normalizeFrontierTierNode(node, prof);
+    }
+    if (rawSelected) {
+      const selected = normalizeFrontierTierNode(rawSelected, prof);
+      const profData = rawSelected.profiles?.[prof] || null;
+      const fullRaw = profData?.full5y_61m || profData?.full5y_60m || profData?.full5y || null;
+      return {
+        ready: true,
+        version: 'v14',
+        source: 'research/results_v14/expanding_wf_v14_crypto_5y.json',
+        execProfile: prof,
+        riskTier: tierId,
+        tierSpec,
+        selectedTier: {
+          ...selected,
+          oosExpanding60pct: profData?.oosExpanding60pct || null,
+        },
+        tiers: allTiers,
+        abstentionSummary: v14Sum.abstentionSummary || null,
+        selectionLockSha256: v14Sum.selectionLockSha256 || null,
+        crossAssetAllWeather: v14Sum.crossAssetAllWeather || null,
+        streams: v14Sum.streams || null,
+        monthlyTable: fullRaw?.monthlyTable || rawSelected.monthlyTable || null,
+      };
+    }
+  }
+
+  return {
+    ready: false,
+    version: 'v14',
+    source: 'pending-v14-frontier',
+    execProfile: prof,
+    riskTier: tierId,
+    tierSpec,
+    selectedTier: null,
+    tiers: {},
+    streams: null,
+    monthlyTable: null,
+  };
+}
+
+export function getAvailableVersions(runtimeSpecs = null) {
+  if (!runtimeSpecs) {
+    return ['v4.1', 'v5', 'v6', 'v7', 'v8', 'v9', 'v14'];
+  }
+  const list = ['v4.1'];
+  if (runtimeSpecs.hasV5Engine) list.push('v5');
+  if (runtimeSpecs.hasV6Engine || runtimeSpecs.hasV6CryptoModels || runtimeSpecs.hasV6StockModels) list.push('v6');
+  if (runtimeSpecs.hasV7Engine || runtimeSpecs.hasV7Models || runtimeSpecs.hasV7Frontier) list.push('v7');
+  if (runtimeSpecs.hasV8RegimeEngine || runtimeSpecs.hasV8Models || runtimeSpecs.hasV8Frontier) list.push('v8');
+  if (runtimeSpecs.hasV9Engine || runtimeSpecs.hasV9Models || runtimeSpecs.hasV9Frontier) list.push('v9');
+  if (runtimeSpecs.hasV14Engine || runtimeSpecs.hasV14Models || runtimeSpecs.hasV14Frontier) list.push('v14');
+  return list;
+}
+
 export function runFrontierPortfolio({ version = 'auto', runtimeSpecs, config, riskTier, execProfile = 'EXCHANGE_POST_ONLY' } = {}) {
-  const ver = String(version || 'auto').toLowerCase();
+  const ver = normalizeStratVersion(version || config?.stratVersion || 'auto');
   const rawTierStr = String(riskTier || config?.riskTier || '').toUpperCase();
+  const explicitV14Tier = rawTierStr.includes('_V14');
   const explicitV9Tier = rawTierStr.includes('_V9');
   const explicit75WrTier = /_75WR|30MO/.test(rawTierStr);
 
+  if (ver === 'v14' || (ver === 'auto' && explicitV14Tier)) {
+    return runV14FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
+  }
   if (ver === 'v9' || (ver === 'auto' && explicitV9Tier)) {
     return runV9FrontierPortfolio({ runtimeSpecs, config, riskTier, execProfile });
   }
@@ -1497,6 +1578,73 @@ function finalizeCryptoSimResult({
   };
 }
 
+function evaluateCryptoV14ForStandalone({
+  dataset,
+  fundingRates,
+  alignedFunding,
+  timeframe,
+  symbol,
+  exchange,
+  execProfile,
+  mlEnabled,
+  riskTier,
+  regime,
+  config,
+  runtimeSpecs,
+  store = null,
+}) {
+  const coinPrefix = symbol.replace('USDT.P', '').replace('USDT', '');
+  const streamKey = `${coinPrefix}_${timeframe}`;
+  const streamModelV14 = runtimeSpecs.modelsV14ExpandingWf?.models?.[streamKey];
+  const regimeMod = runtimeSpecs.regimeEngineV8Mod;
+  const v9Mod = runtimeSpecs.ensembleV9Mod;
+  const v14Mod = runtimeSpecs.expandingWfV14Mod;
+  if (
+    !streamModelV14?.structuralSpec?.sigSpec ||
+    !regimeMod ||
+    !v9Mod?.generateStreamSignalsV9 ||
+    !v14Mod?.applyV14ExpandingModelToSignals ||
+    !runtimeSpecs.simV7Mod?.simulateTradesV7
+  ) {
+    return null;
+  }
+
+  const dsReady = ensureDatasetHtfForRegimeV8(dataset, fundingRates);
+  const breadthCtx = loadCryptoBreadthContextV8(config.repoRoot, regimeMod, store, exchange)?.breadth || null;
+  const regimeCtx = regimeMod.precomputeAssetRegimeV8(dsReady, breadthCtx);
+  const effectiveFunding = alignedFunding || (runtimeSpecs.fetchDerivsMod?.alignFundingToBarsCausal
+    ? runtimeSpecs.fetchDerivsMod.alignFundingToBarsCausal(dsReady.rows, fundingRates || [])
+    : new Float64Array(dsReady.rows.length));
+  const btcRefDs = symbol === 'ETHUSDT.P'
+    ? loadBtcReferenceDataset({ repoRoot: config.repoRoot, timeframe, store, exchange, fallbackDataset: dsReady })
+    : null;
+  const rawSignals = v9Mod.generateStreamSignalsV9(streamKey, dsReady, streamModelV14.structuralSpec.sigSpec, effectiveFunding, regimeCtx, btcRefDs);
+  const filteredSignals = mlEnabled
+    ? v14Mod.applyV14ExpandingModelToSignals(streamKey, dsReady, rawSignals, effectiveFunding, regimeCtx, streamModelV14, dsReady.rows[dsReady.rows.length - 1].time)
+    : rawSignals;
+
+  return finalizeCryptoSimResult({
+    dsReady,
+    rawSignals,
+    filteredSignals,
+    regimeCtx,
+    modelSpec: {
+      structuralSpec: streamModelV14.structuralSpec,
+      mlModel: streamModelV14.liveActiveModel?.modelSpec || { modelType: 'v14-expanding-wf' },
+    },
+    modelVersion: mlEnabled ? 'v14.0-ExpandingWF' : 'v14.0-RulesOnly',
+    exchange,
+    symbol,
+    timeframe,
+    execProfile,
+    riskTier,
+    fundingRates,
+    regime,
+    config,
+    runtimeSpecs,
+  });
+}
+
 function evaluateCryptoV9ForStandalone({
   dataset,
   fundingRates,
@@ -1652,7 +1800,7 @@ export function evaluateStrategy({
   const explicitV9Tier = rawTierStr.includes('_V9');
   const explicit75WrTier = /_75WR|30MO/.test(rawTierStr);
   const effTier = normalizeRiskTier(riskTier || config?.riskTier || 'SAFE_75WR');
-  const ver = String(version || 'auto').toLowerCase();
+  const ver = normalizeStratVersion(version || config?.stratVersion || 'auto');
   const regime = computeRegimeTelemetry({
     repoRoot: config.repoRoot,
     runtimeSpecs,
@@ -1669,6 +1817,25 @@ export function evaluateStrategy({
   const alignedFunding = alignFn && fundingRates.length > 0
     ? alignFn(dataset.rows, fundingRates)
     : null;
+
+  if (!isEq && ver === 'v14') {
+    const v14Res = evaluateCryptoV14ForStandalone({
+      dataset,
+      fundingRates,
+      alignedFunding,
+      timeframe: tf,
+      symbol: sym,
+      exchange,
+      execProfile: effectiveProfile,
+      mlEnabled,
+      riskTier: effTier,
+      regime,
+      config,
+      runtimeSpecs,
+      store,
+    });
+    if (v14Res) return v14Res;
+  }
 
   if (!isEq && (ver === 'v9' || (ver === 'auto' && (!explicit75WrTier || explicitV9Tier)))) {
     const v9Res = evaluateCryptoV9ForStandalone({
@@ -2147,6 +2314,52 @@ export function evaluateStrategy({
     activeOverlay,
     openPosition: simResult.openPosition || null,
     pending: simResult.pending || null,
+  };
+}
+
+export function runBacktest({
+  store = null,
+  config,
+  runtimeSpecs,
+  symbol = 'BTCUSDT.P',
+  timeframe,
+  exchange,
+  profile,
+  execProfile,
+  mlEnabled = true,
+  version = 'auto',
+  tier,
+  riskTier,
+  minBars = 220,
+} = {}) {
+  const sym = normalizeAssetSymbol(symbol || config?.symbols?.[0] || 'BTCUSDT.P');
+  const isEq = isEquitySymbol(sym);
+  const tf = String(timeframe || (isEq ? '1d' : '1h')).toLowerCase();
+  const ex = exchange || (isEq ? 'YAHOO' : (config?.exchange || 'OKX'));
+  const prof = String(execProfile || profile || (isEq ? 'EQUITY_ETF' : 'EXCHANGE_POST_ONLY')).toUpperCase();
+  const effTier = normalizeRiskTier(riskTier || tier || config?.riskTier || 'SAFE_75WR');
+  const ver = normalizeStratVersion(version || config?.stratVersion || 'auto');
+
+  const loaded = loadOfflineOrDbDataset({ store, config, symbol: sym, timeframe: tf, minBars });
+  const evalRes = evaluateStrategy({
+    dataset: loaded.dataset,
+    fundingRates: loaded.fundingRates,
+    macroData: loaded.macroData,
+    timeframe: tf,
+    symbol: sym,
+    exchange: ex,
+    execProfile: prof,
+    mlEnabled,
+    version: ver,
+    riskTier: effTier,
+    config,
+    runtimeSpecs,
+    store,
+  });
+
+  return {
+    source: loaded.source,
+    ...evalRes,
   };
 }
 

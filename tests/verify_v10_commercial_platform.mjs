@@ -786,27 +786,28 @@ describe('4. Full HTTP Loopback E2E Workflow, Real OkxClient Demo Routing & Zero
       });
       assert.equal(firstRun.executed, true);
       assert.equal(firstRun.actions.filter(a => a.action === 'SUBMITTED').length, 1);
-      assert.equal(firstRun.actions.filter(a => a.action === 'SL_TP_SUBMITTED').length, 1);
-      assert.equal(httpCalls.length - callsBeforeDeterministic, 2);
+      assert.equal(firstRun.actions.filter(a => a.action === 'SL_TP_ATTACHED_TO_ENTRY').length, 1);
+      assert.equal(httpCalls.length - callsBeforeDeterministic, 1);
 
       const entryCall = httpCalls[callsBeforeDeterministic];
-      const ocoCall = httpCalls[callsBeforeDeterministic + 1];
       assert.equal(entryCall.url.endsWith('/api/v5/trade/order'), true);
       assert.equal(entryCall.headers['x-simulated-trading'], '1');
       assert.ok(entryCall.headers['OK-ACCESS-SIGN']);
       assert.equal(entryCall.body.ordType, 'post_only');
       assert.equal(entryCall.body.side, 'buy');
       assert.match(entryCall.body.clOrdId, ALPHANUM_CLORDID_RE);
+      assert.ok(Array.isArray(entryCall.body.attachAlgoOrds) && entryCall.body.attachAlgoOrds.length === 1);
+      const attachAlgo = entryCall.body.attachAlgoOrds[0];
+      assert.match(attachAlgo.attachAlgoClOrdId, ALPHANUM_CLORDID_RE);
+      assert.ok(Number(attachAlgo.slTriggerPx) > 0);
+      assert.ok(Number(attachAlgo.tpTriggerPx) > 0);
+      assert.equal(attachAlgo.slOrdPx, '-1');
+      assert.equal(attachAlgo.tpOrdPx, '-1');
 
-      const slTpAction = firstRun.actions.find(a => a.action === 'SL_TP_SUBMITTED');
+      const slTpAction = firstRun.actions.find(a => a.action === 'SL_TP_ATTACHED_TO_ENTRY');
       assert.ok(slTpAction);
       assert.match(slTpAction.clientOrderId, ALPHANUM_CLORDID_RE);
-
-      assert.equal(ocoCall.url.endsWith('/api/v5/trade/order-algo'), true);
-      assert.equal(ocoCall.headers['x-simulated-trading'], '1');
-      assert.equal(ocoCall.body.ordType, 'oco');
-      assert.equal(ocoCall.body.side, 'sell', 'Protective OCO SL/TP for LONG entry must be closeSide=sell');
-      assert.equal(ocoCall.body.reduceOnly, true);
+      assert.equal(slTpAction.clientOrderId, attachAlgo.attachAlgoClOrdId);
 
       // Repeat exact cycle -> IDEMPOTENT_SKIP with zero extra exchange calls
       const repeatRun = await detEngine.runSubscriberAutoTradeCycle(subId, {
@@ -816,7 +817,7 @@ describe('4. Full HTTP Loopback E2E Workflow, Real OkxClient Demo Routing & Zero
       });
       assert.equal(repeatRun.executed, true);
       assert.equal(repeatRun.actions.some(a => a.action === 'IDEMPOTENT_SKIP'), true);
-      assert.equal(httpCalls.length - callsBeforeDeterministic, 2);
+      assert.equal(httpCalls.length - callsBeforeDeterministic, 1);
 
       // 6) Verify dashboard over HTTP shows persisted orders without secret leakage
       const dashJson = await (await fetch(`${base}/api/commercial/subscribers/dashboard`, {
@@ -824,7 +825,7 @@ describe('4. Full HTTP Loopback E2E Workflow, Real OkxClient Demo Routing & Zero
       })).json();
       assert.equal(dashJson.ok, true);
       assert.ok(dashJson.orders.some(o => o.client_order_id === entryCall.body.clOrdId && o.status === 'SUBMITTED'));
-      assert.ok(dashJson.orders.some(o => o.client_order_id === slTpAction.clientOrderId && o.reduceOnly === true));
+      assert.ok(dashJson.orders.some(o => o.client_order_id === slTpAction.clientOrderId && o.order_type === 'oco_attached' && o.status === 'ATTACHED_TO_ENTRY' && o.reduceOnly === true));
       assert.equal(JSON.stringify(dashJson).includes('okx-e2e-demo-secret-key'), false);
       assert.equal(JSON.stringify(dashJson).includes('okx-e2e-passphrase'), false);
     } finally {

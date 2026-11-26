@@ -224,6 +224,28 @@ export class AutopilotScheduler {
             reduceOnly: false,
             status: 'CANCELLED',
           });
+          const childOrders = this.cStore
+            .getSubscriberOrdersLog({ subscriberId, limit: 100 })
+            .filter(o =>
+              o.reduceOnly
+              && ['PENDING_FILL_WATCH', 'ATTACHED_TO_ENTRY'].includes(o.status)
+              && o.payload?.parentEntryClOrdId === ord.client_order_id
+            );
+          for (const child of childOrders) {
+            this.cStore.upsertSubscriberOrderLog({
+              clientOrderId: child.client_order_id,
+              subscriberId,
+              exchange: sub.exchange,
+              symbol: child.symbol,
+              mode: sub.execution_mode,
+              orderType: child.order_type,
+              side: child.side,
+              price: child.price,
+              qty: child.qty,
+              reduceOnly: true,
+              status: 'CANCELLED',
+            });
+          }
           cancelledOrders.push({ clientOrderId: ord.client_order_id, symbol: ord.symbol });
         } catch (err) {
           const safeErr = scrubSecrets(err.message, this.config);
