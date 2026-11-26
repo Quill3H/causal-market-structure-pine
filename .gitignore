@@ -2,3 +2,12 @@ __pycache__/
 *.pyc
 data/*
 !data/manifest.json
+
+.env
+.env.*
+!.env.example
+.local-vault.secret
+.local-vault.secret.*
+*.sqlite
+*.sqlite-*
+*.db

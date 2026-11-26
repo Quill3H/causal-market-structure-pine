@@ -1,0 +1,1740 @@
+{
+  "schema": "smc-v4.1-profit-amp-v1",
+  "generatedAt": "2026-11-23T03:33:34.635Z",
+  "methodology": {
+    "selectionScope": "Cal+Val (Years 1-2: [0..17520] bars on OKX:BTCUSDT.P 1h) strict selection before unsealing Year 3 Holdout and ETH/SOL Perp.",
+    "executionAssumptions": "costPct=0.10% round-trip + slippagePct=0.025% per fill + OKX Perp fundingPctPer8h=0.01% per 8h UTC boundary (weighted by remFrac); SL/BE beats TP1/TP2; VolNorm lev = clamp(riskPct/stopDistPct, minLev, maxLev)."
+  },
+  "selectedOnBtcCalVal": {
+    "topVolNorm": {
+      "id": "VolNorm_5_L1.6-3",
+      "opts": {
+        "volNormRiskPct": 5,
+        "minLev": 1.6,
+        "maxLev": 3,
+        "fundingPctPer8h": 0.01
+      },
+      "calVal": {
+        "range": [
+          0,
+          17520
+        ],
+        "count": 165,
+        "wins": 125,
+        "losses": 40,
+        "ties": 0,
+        "winRatePct": 75.76,
+        "wilsonLower95Pct": 68.68,
+        "profitFactor": 1.56,
+        "totalNetPct": 121.05,
+        "compoundedNetPct": 190.34,
+        "maxDrawdownPct": 31.73,
+        "compoundedMaxDrawdownPct": 30.15,
+        "retToDd": 3.82,
+        "compRetToDd": 6.31,
+        "avgLev": 2.36,
+        "worstTradePct": -12.08,
+        "fundingDragPct": 10.81
+      },
+      "eligible": true,
+      "score": 1442.74
+    },
+    "topPartial": {
+      "id": "VolNorm_4.5_L1.5-2.8_TP1_0.95_RR2_Lck0.65",
+      "opts": {
+        "volNormRiskPct": 4.5,
+        "minLev": 1.5,
+        "maxLev": 2.8,
+        "tp1QtyPct": 50,
+        "tp1TriggerR": 0.95,
+        "rewardRisk": 2,
+        "tp1LockOffsetR": 0.65,
+        "fundingPctPer8h": 0.01
+      },
+      "calVal": {
+        "range": [
+          0,
+          17520
+        ],
+        "count": 166,
+        "wins": 126,
+        "losses": 40,
+        "ties": 0,
+        "winRatePct": 75.9,
+        "wilsonLower95Pct": 68.86,
+        "profitFactor": 1.56,
+        "totalNetPct": 109.18,
+        "compoundedNetPct": 165.47,
+        "maxDrawdownPct": 26.17,
+        "compoundedMaxDrawdownPct": 25.86,
+        "retToDd": 4.17,
+        "compRetToDd": 6.4,
+        "avgLev": 2.16,
+        "worstTradePct": -11.32,
+        "fundingDragPct": 9.92
+      },
+      "eligible": true,
+      "score": 1421.47
+    },
+    "top5VolNormCalVal": [
+      {
+        "id": "VolNorm_5_L1.6-3",
+        "opts": {
+          "volNormRiskPct": 5,
+          "minLev": 1.6,
+          "maxLev": 3,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 121.05,
+          "compoundedNetPct": 190.34,
+          "maxDrawdownPct": 31.73,
+          "compoundedMaxDrawdownPct": 30.15,
+          "retToDd": 3.82,
+          "compRetToDd": 6.31,
+          "avgLev": 2.36,
+          "worstTradePct": -12.08,
+          "fundingDragPct": 10.81
+        },
+        "eligible": true,
+        "score": 1442.74
+      },
+      {
+        "id": "VolNorm_5_L1.5-2.8",
+        "opts": {
+          "volNormRiskPct": 5,
+          "minLev": 1.5,
+          "maxLev": 2.8,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 117.63,
+          "compoundedNetPct": 182.77,
+          "maxDrawdownPct": 31.59,
+          "compoundedMaxDrawdownPct": 30.05,
+          "retToDd": 3.72,
+          "compRetToDd": 6.08,
+          "avgLev": 2.29,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 10.52
+        },
+        "eligible": true,
+        "score": 1425.97
+      },
+      {
+        "id": "VolNorm_5_L1.4-2.8",
+        "opts": {
+          "volNormRiskPct": 5,
+          "minLev": 1.4,
+          "maxLev": 2.8,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 116.36,
+          "compoundedNetPct": 179.99,
+          "maxDrawdownPct": 31.6,
+          "compoundedMaxDrawdownPct": 29.48,
+          "retToDd": 3.68,
+          "compRetToDd": 6.11,
+          "avgLev": 2.28,
+          "worstTradePct": -10.57,
+          "fundingDragPct": 10.45
+        },
+        "eligible": true,
+        "score": 1424.39
+      },
+      {
+        "id": "VolNorm_4.5_L1.6-3",
+        "opts": {
+          "volNormRiskPct": 4.5,
+          "minLev": 1.6,
+          "maxLev": 3,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 113.77,
+          "compoundedNetPct": 174.41,
+          "maxDrawdownPct": 29.73,
+          "compoundedMaxDrawdownPct": 28.51,
+          "retToDd": 3.83,
+          "compRetToDd": 6.12,
+          "avgLev": 2.21,
+          "worstTradePct": -12.08,
+          "fundingDragPct": 10.18
+        },
+        "eligible": true,
+        "score": 1419.21
+      },
+      {
+        "id": "VolNorm_4.5_L1.4-2.8",
+        "opts": {
+          "volNormRiskPct": 4.5,
+          "minLev": 1.4,
+          "maxLev": 2.8,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 109.7,
+          "compoundedNetPct": 166.21,
+          "maxDrawdownPct": 27.88,
+          "compoundedMaxDrawdownPct": 26.76,
+          "retToDd": 3.93,
+          "compRetToDd": 6.21,
+          "avgLev": 2.14,
+          "worstTradePct": -10.57,
+          "fundingDragPct": 9.79
+        },
+        "eligible": true,
+        "score": 1414.61
+      }
+    ],
+    "top5PartialCalVal": [
+      {
+        "id": "VolNorm_4.5_L1.5-2.8_TP1_0.95_RR2_Lck0.65",
+        "opts": {
+          "volNormRiskPct": 4.5,
+          "minLev": 1.5,
+          "maxLev": 2.8,
+          "tp1QtyPct": 50,
+          "tp1TriggerR": 0.95,
+          "rewardRisk": 2,
+          "tp1LockOffsetR": 0.65,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 166,
+          "wins": 126,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.9,
+          "wilsonLower95Pct": 68.86,
+          "profitFactor": 1.56,
+          "totalNetPct": 109.18,
+          "compoundedNetPct": 165.47,
+          "maxDrawdownPct": 26.17,
+          "compoundedMaxDrawdownPct": 25.86,
+          "retToDd": 4.17,
+          "compRetToDd": 6.4,
+          "avgLev": 2.16,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 9.92
+        },
+        "eligible": true,
+        "score": 1421.47
+      },
+      {
+        "id": "VolNorm_4.2_L1.4-2.8_TP1_0.95_RR2_Lck0.65",
+        "opts": {
+          "volNormRiskPct": 4.2,
+          "minLev": 1.4,
+          "maxLev": 2.8,
+          "tp1QtyPct": 50,
+          "tp1TriggerR": 0.95,
+          "rewardRisk": 2,
+          "tp1LockOffsetR": 0.65,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 166,
+          "wins": 126,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.9,
+          "wilsonLower95Pct": 68.86,
+          "profitFactor": 1.56,
+          "totalNetPct": 103.83,
+          "compoundedNetPct": 154.68,
+          "maxDrawdownPct": 23.59,
+          "compoundedMaxDrawdownPct": 23.61,
+          "retToDd": 4.4,
+          "compRetToDd": 6.55,
+          "avgLev": 2.06,
+          "worstTradePct": -10.57,
+          "fundingDragPct": 9.42
+        },
+        "eligible": true,
+        "score": 1416.68
+      },
+      {
+        "id": "VolNorm_4.5_L1.5-2.8_TP1_1.1_RR1.65_Lck0.65",
+        "opts": {
+          "volNormRiskPct": 4.5,
+          "minLev": 1.5,
+          "maxLev": 2.8,
+          "tp1QtyPct": 50,
+          "tp1TriggerR": 1.1,
+          "rewardRisk": 1.65,
+          "tp1LockOffsetR": 0.65,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 164,
+          "wins": 124,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.61,
+          "wilsonLower95Pct": 68.5,
+          "profitFactor": 1.55,
+          "totalNetPct": 108.92,
+          "compoundedNetPct": 163.54,
+          "maxDrawdownPct": 27.72,
+          "compoundedMaxDrawdownPct": 25.9,
+          "retToDd": 3.93,
+          "compRetToDd": 6.31,
+          "avgLev": 2.16,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 10.11
+        },
+        "eligible": true,
+        "score": 1415.94
+      },
+      {
+        "id": "VolNorm_4.5_L1.5-2.8_TP1_1.1_RR2_Lck0.65",
+        "opts": {
+          "volNormRiskPct": 4.5,
+          "minLev": 1.5,
+          "maxLev": 2.8,
+          "tp1QtyPct": 50,
+          "tp1TriggerR": 1.1,
+          "rewardRisk": 2,
+          "tp1LockOffsetR": 0.65,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 164,
+          "wins": 124,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.61,
+          "wilsonLower95Pct": 68.5,
+          "profitFactor": 1.55,
+          "totalNetPct": 107.08,
+          "compoundedNetPct": 158.5,
+          "maxDrawdownPct": 24.9,
+          "compoundedMaxDrawdownPct": 25.01,
+          "retToDd": 4.3,
+          "compRetToDd": 6.34,
+          "avgLev": 2.16,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 10.39
+        },
+        "eligible": true,
+        "score": 1412.1
+      },
+      {
+        "id": "VolNorm_4.2_L1.4-2.8_TP1_1.1_RR2_Lck0.65",
+        "opts": {
+          "volNormRiskPct": 4.2,
+          "minLev": 1.4,
+          "maxLev": 2.8,
+          "tp1QtyPct": 50,
+          "tp1TriggerR": 1.1,
+          "rewardRisk": 2,
+          "tp1LockOffsetR": 0.65,
+          "fundingPctPer8h": 0.01
+        },
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 164,
+          "wins": 124,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.61,
+          "wilsonLower95Pct": 68.5,
+          "profitFactor": 1.55,
+          "totalNetPct": 102.14,
+          "compoundedNetPct": 149.1,
+          "maxDrawdownPct": 22.35,
+          "compoundedMaxDrawdownPct": 22.74,
+          "retToDd": 4.57,
+          "compRetToDd": 6.56,
+          "avgLev": 2.05,
+          "worstTradePct": -10.57,
+          "fundingDragPct": 9.86
+        },
+        "eligible": true,
+        "score": 1411.5
+      }
+    ]
+  },
+  "crossAsset1hPerp": {
+    "OKX:BTCUSDT.P": {
+      "Baseline_1x_NoFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.63,
+          "totalNetPct": 60.79,
+          "compoundedNetPct": 77.54,
+          "maxDrawdownPct": 19.67,
+          "compoundedMaxDrawdownPct": 18.74,
+          "retToDd": 3.09,
+          "compRetToDd": 4.14,
+          "avgLev": 1,
+          "worstTradePct": -7.47,
+          "fundingDragPct": 0
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 87,
+          "wins": 62,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.26,
+          "wilsonLower95Pct": 61.02,
+          "profitFactor": 1.33,
+          "totalNetPct": 17.65,
+          "compoundedNetPct": 17.65,
+          "maxDrawdownPct": 7.79,
+          "compoundedMaxDrawdownPct": 7.67,
+          "retToDd": 2.27,
+          "compRetToDd": 2.3,
+          "avgLev": 1,
+          "worstTradePct": -3.3,
+          "fundingDragPct": 0
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 252,
+          "wins": 187,
+          "losses": 65,
+          "ties": 0,
+          "winRatePct": 74.21,
+          "wilsonLower95Pct": 68.47,
+          "profitFactor": 1.53,
+          "totalNetPct": 78.44,
+          "compoundedNetPct": 108.87,
+          "maxDrawdownPct": 19.67,
+          "compoundedMaxDrawdownPct": 18.74,
+          "retToDd": 3.99,
+          "compRetToDd": 5.81,
+          "avgLev": 1,
+          "worstTradePct": -7.47,
+          "fundingDragPct": 0
+        }
+      },
+      "Baseline_1x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.58,
+          "totalNetPct": 55.9,
+          "compoundedNetPct": 69.09,
+          "maxDrawdownPct": 20.61,
+          "compoundedMaxDrawdownPct": 19.51,
+          "retToDd": 2.71,
+          "compRetToDd": 3.54,
+          "avgLev": 1,
+          "worstTradePct": -7.55,
+          "fundingDragPct": 4.89
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 87,
+          "wins": 62,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.26,
+          "wilsonLower95Pct": 61.02,
+          "profitFactor": 1.28,
+          "totalNetPct": 14.99,
+          "compoundedNetPct": 14.57,
+          "maxDrawdownPct": 8.09,
+          "compoundedMaxDrawdownPct": 7.95,
+          "retToDd": 1.85,
+          "compRetToDd": 1.83,
+          "avgLev": 1,
+          "worstTradePct": -3.31,
+          "fundingDragPct": 2.66
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 252,
+          "wins": 187,
+          "losses": 65,
+          "ties": 0,
+          "winRatePct": 74.21,
+          "wilsonLower95Pct": 68.47,
+          "profitFactor": 1.47,
+          "totalNetPct": 70.89,
+          "compoundedNetPct": 93.72,
+          "maxDrawdownPct": 20.61,
+          "compoundedMaxDrawdownPct": 19.51,
+          "retToDd": 3.44,
+          "compRetToDd": 4.8,
+          "avgLev": 1,
+          "worstTradePct": -7.55,
+          "fundingDragPct": 7.55
+        }
+      },
+      "Fixed_2x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.58,
+          "totalNetPct": 111.81,
+          "compoundedNetPct": 167.23,
+          "maxDrawdownPct": 41.23,
+          "compoundedMaxDrawdownPct": 36.67,
+          "retToDd": 2.71,
+          "compRetToDd": 4.56,
+          "avgLev": 2,
+          "worstTradePct": -15.1,
+          "fundingDragPct": 9.78
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 87,
+          "wins": 62,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.26,
+          "wilsonLower95Pct": 61.02,
+          "profitFactor": 1.28,
+          "totalNetPct": 29.98,
+          "compoundedNetPct": 27.68,
+          "maxDrawdownPct": 16.17,
+          "compoundedMaxDrawdownPct": 15.6,
+          "retToDd": 1.85,
+          "compRetToDd": 1.77,
+          "avgLev": 2,
+          "worstTradePct": -6.62,
+          "fundingDragPct": 5.32
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 252,
+          "wins": 187,
+          "losses": 65,
+          "ties": 0,
+          "winRatePct": 74.21,
+          "wilsonLower95Pct": 68.47,
+          "profitFactor": 1.47,
+          "totalNetPct": 141.79,
+          "compoundedNetPct": 241.19,
+          "maxDrawdownPct": 41.23,
+          "compoundedMaxDrawdownPct": 36.67,
+          "retToDd": 3.44,
+          "compRetToDd": 6.58,
+          "avgLev": 2,
+          "worstTradePct": -15.1,
+          "fundingDragPct": 15.1
+        }
+      },
+      "VolNorm_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 165,
+          "wins": 125,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.76,
+          "wilsonLower95Pct": 68.68,
+          "profitFactor": 1.56,
+          "totalNetPct": 121.05,
+          "compoundedNetPct": 190.34,
+          "maxDrawdownPct": 31.73,
+          "compoundedMaxDrawdownPct": 30.15,
+          "retToDd": 3.82,
+          "compRetToDd": 6.31,
+          "avgLev": 2.36,
+          "worstTradePct": -12.08,
+          "fundingDragPct": 10.81
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 87,
+          "wins": 62,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.26,
+          "wilsonLower95Pct": 61.02,
+          "profitFactor": 1.24,
+          "totalNetPct": 30.49,
+          "compoundedNetPct": 26.45,
+          "maxDrawdownPct": 20.18,
+          "compoundedMaxDrawdownPct": 18.72,
+          "retToDd": 1.51,
+          "compRetToDd": 1.41,
+          "avgLev": 2.45,
+          "worstTradePct": -5.48,
+          "fundingDragPct": 6.38
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 252,
+          "wins": 187,
+          "losses": 65,
+          "ties": 0,
+          "winRatePct": 74.21,
+          "wilsonLower95Pct": 68.47,
+          "profitFactor": 1.44,
+          "totalNetPct": 151.54,
+          "compoundedNetPct": 267.14,
+          "maxDrawdownPct": 31.73,
+          "compoundedMaxDrawdownPct": 30.15,
+          "retToDd": 4.78,
+          "compRetToDd": 8.86,
+          "avgLev": 2.39,
+          "worstTradePct": -12.08,
+          "fundingDragPct": 17.19
+        }
+      },
+      "VolNorm_PartialTP_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 166,
+          "wins": 126,
+          "losses": 40,
+          "ties": 0,
+          "winRatePct": 75.9,
+          "wilsonLower95Pct": 68.86,
+          "profitFactor": 1.56,
+          "totalNetPct": 109.18,
+          "compoundedNetPct": 165.47,
+          "maxDrawdownPct": 26.17,
+          "compoundedMaxDrawdownPct": 25.86,
+          "retToDd": 4.17,
+          "compRetToDd": 6.4,
+          "avgLev": 2.16,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 9.92
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 88,
+          "wins": 63,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.59,
+          "wilsonLower95Pct": 61.42,
+          "profitFactor": 1.18,
+          "totalNetPct": 21.05,
+          "compoundedNetPct": 16.71,
+          "maxDrawdownPct": 18.49,
+          "compoundedMaxDrawdownPct": 17.26,
+          "retToDd": 1.14,
+          "compRetToDd": 0.97,
+          "avgLev": 2.25,
+          "worstTradePct": -4.96,
+          "fundingDragPct": 5.9
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 254,
+          "wins": 189,
+          "losses": 65,
+          "ties": 0,
+          "winRatePct": 74.41,
+          "wilsonLower95Pct": 68.71,
+          "profitFactor": 1.42,
+          "totalNetPct": 130.23,
+          "compoundedNetPct": 209.83,
+          "maxDrawdownPct": 26.17,
+          "compoundedMaxDrawdownPct": 25.86,
+          "retToDd": 4.98,
+          "compRetToDd": 8.11,
+          "avgLev": 2.19,
+          "worstTradePct": -11.32,
+          "fundingDragPct": 15.83
+        }
+      }
+    },
+    "OKX:ETHUSDT.P": {
+      "Baseline_1x_NoFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 163,
+          "wins": 103,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 63.19,
+          "wilsonLower95Pct": 55.56,
+          "profitFactor": 0.9,
+          "totalNetPct": -21.34,
+          "compoundedNetPct": -25.07,
+          "maxDrawdownPct": 64.27,
+          "compoundedMaxDrawdownPct": 49.21,
+          "retToDd": -0.33,
+          "compRetToDd": -0.51,
+          "avgLev": 1,
+          "worstTradePct": -7.99,
+          "fundingDragPct": 0
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 80,
+          "wins": 49,
+          "losses": 31,
+          "ties": 0,
+          "winRatePct": 61.25,
+          "wilsonLower95Pct": 50.29,
+          "profitFactor": 0.75,
+          "totalNetPct": -22.97,
+          "compoundedNetPct": -22.55,
+          "maxDrawdownPct": 31.41,
+          "compoundedMaxDrawdownPct": 28.5,
+          "retToDd": -0.73,
+          "compRetToDd": -0.79,
+          "avgLev": 1,
+          "worstTradePct": -7.41,
+          "fundingDragPct": 0
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 243,
+          "wins": 152,
+          "losses": 91,
+          "ties": 0,
+          "winRatePct": 62.55,
+          "wilsonLower95Pct": 56.32,
+          "profitFactor": 0.85,
+          "totalNetPct": -44.31,
+          "compoundedNetPct": -41.96,
+          "maxDrawdownPct": 64.27,
+          "compoundedMaxDrawdownPct": 49.21,
+          "retToDd": -0.69,
+          "compRetToDd": -0.85,
+          "avgLev": 1,
+          "worstTradePct": -7.99,
+          "fundingDragPct": 0
+        }
+      },
+      "Baseline_1x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 163,
+          "wins": 103,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 63.19,
+          "wilsonLower95Pct": 55.56,
+          "profitFactor": 0.87,
+          "totalNetPct": -26.47,
+          "compoundedNetPct": -28.82,
+          "maxDrawdownPct": 67.15,
+          "compoundedMaxDrawdownPct": 50.66,
+          "retToDd": -0.39,
+          "compRetToDd": -0.57,
+          "avgLev": 1,
+          "worstTradePct": -8.03,
+          "fundingDragPct": 5.13
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 80,
+          "wins": 49,
+          "losses": 31,
+          "ties": 0,
+          "winRatePct": 61.25,
+          "wilsonLower95Pct": 50.29,
+          "profitFactor": 0.72,
+          "totalNetPct": -25.46,
+          "compoundedNetPct": -24.45,
+          "maxDrawdownPct": 33.5,
+          "compoundedMaxDrawdownPct": 29.98,
+          "retToDd": -0.76,
+          "compRetToDd": -0.82,
+          "avgLev": 1,
+          "worstTradePct": -7.44,
+          "fundingDragPct": 2.49
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 243,
+          "wins": 152,
+          "losses": 91,
+          "ties": 0,
+          "winRatePct": 62.55,
+          "wilsonLower95Pct": 56.32,
+          "profitFactor": 0.83,
+          "totalNetPct": -51.93,
+          "compoundedNetPct": -46.23,
+          "maxDrawdownPct": 67.15,
+          "compoundedMaxDrawdownPct": 51.45,
+          "retToDd": -0.77,
+          "compRetToDd": -0.9,
+          "avgLev": 1,
+          "worstTradePct": -8.03,
+          "fundingDragPct": 7.62
+        }
+      },
+      "Fixed_2x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 163,
+          "wins": 103,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 63.19,
+          "wilsonLower95Pct": 55.56,
+          "profitFactor": 0.87,
+          "totalNetPct": -52.94,
+          "compoundedNetPct": -56.47,
+          "maxDrawdownPct": 134.29,
+          "compoundedMaxDrawdownPct": 77.4,
+          "retToDd": -0.39,
+          "compRetToDd": -0.73,
+          "avgLev": 2,
+          "worstTradePct": -16.07,
+          "fundingDragPct": 10.26
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 80,
+          "wins": 49,
+          "losses": 31,
+          "ties": 0,
+          "winRatePct": 61.25,
+          "wilsonLower95Pct": 50.29,
+          "profitFactor": 0.72,
+          "totalNetPct": -50.91,
+          "compoundedNetPct": -45.85,
+          "maxDrawdownPct": 67,
+          "compoundedMaxDrawdownPct": 53.09,
+          "retToDd": -0.76,
+          "compRetToDd": -0.86,
+          "avgLev": 2,
+          "worstTradePct": -14.88,
+          "fundingDragPct": 4.98
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 243,
+          "wins": 152,
+          "losses": 91,
+          "ties": 0,
+          "winRatePct": 62.55,
+          "wilsonLower95Pct": 56.32,
+          "profitFactor": 0.83,
+          "totalNetPct": -103.85,
+          "compoundedNetPct": -76.43,
+          "maxDrawdownPct": 134.29,
+          "compoundedMaxDrawdownPct": 80.3,
+          "retToDd": -0.77,
+          "compRetToDd": -0.95,
+          "avgLev": 2,
+          "worstTradePct": -16.07,
+          "fundingDragPct": 15.24
+        }
+      },
+      "VolNorm_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 163,
+          "wins": 103,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 63.19,
+          "wilsonLower95Pct": 55.56,
+          "profitFactor": 0.86,
+          "totalNetPct": -52.52,
+          "compoundedNetPct": -52.47,
+          "maxDrawdownPct": 113.77,
+          "compoundedMaxDrawdownPct": 71.02,
+          "retToDd": -0.46,
+          "compRetToDd": -0.74,
+          "avgLev": 1.84,
+          "worstTradePct": -12.85,
+          "fundingDragPct": 9.05
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 80,
+          "wins": 49,
+          "losses": 31,
+          "ties": 0,
+          "winRatePct": 61.25,
+          "wilsonLower95Pct": 50.29,
+          "profitFactor": 0.73,
+          "totalNetPct": -48.25,
+          "compoundedNetPct": -43.51,
+          "maxDrawdownPct": 61.93,
+          "compoundedMaxDrawdownPct": 50.07,
+          "retToDd": -0.78,
+          "compRetToDd": -0.87,
+          "avgLev": 2.1,
+          "worstTradePct": -11.9,
+          "fundingDragPct": 4.75
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 243,
+          "wins": 152,
+          "losses": 91,
+          "ties": 0,
+          "winRatePct": 62.55,
+          "wilsonLower95Pct": 56.32,
+          "profitFactor": 0.81,
+          "totalNetPct": -100.77,
+          "compoundedNetPct": -73.15,
+          "maxDrawdownPct": 118,
+          "compoundedMaxDrawdownPct": 76.44,
+          "retToDd": -0.85,
+          "compRetToDd": -0.96,
+          "avgLev": 1.92,
+          "worstTradePct": -12.85,
+          "fundingDragPct": 13.8
+        }
+      },
+      "VolNorm_PartialTP_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 166,
+          "wins": 106,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 63.86,
+          "wilsonLower95Pct": 56.31,
+          "profitFactor": 0.84,
+          "totalNetPct": -52.06,
+          "compoundedNetPct": -49.88,
+          "maxDrawdownPct": 103.61,
+          "compoundedMaxDrawdownPct": 67.61,
+          "retToDd": -0.5,
+          "compRetToDd": -0.74,
+          "avgLev": 1.69,
+          "worstTradePct": -12.05,
+          "fundingDragPct": 8.09
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 80,
+          "wins": 48,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60,
+          "wilsonLower95Pct": 49.05,
+          "profitFactor": 0.7,
+          "totalNetPct": -51.03,
+          "compoundedNetPct": -44.17,
+          "maxDrawdownPct": 61.19,
+          "compoundedMaxDrawdownPct": 49.08,
+          "retToDd": -0.83,
+          "compRetToDd": -0.9,
+          "avgLev": 1.92,
+          "worstTradePct": -11.16,
+          "fundingDragPct": 4.32
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 246,
+          "wins": 154,
+          "losses": 92,
+          "ties": 0,
+          "winRatePct": 62.6,
+          "wilsonLower95Pct": 56.4,
+          "profitFactor": 0.79,
+          "totalNetPct": -103.09,
+          "compoundedNetPct": -72.02,
+          "maxDrawdownPct": 125.45,
+          "compoundedMaxDrawdownPct": 77.02,
+          "retToDd": -0.82,
+          "compRetToDd": -0.94,
+          "avgLev": 1.76,
+          "worstTradePct": -12.05,
+          "fundingDragPct": 12.42
+        }
+      }
+    },
+    "OKX:SOLUSDT.P": {
+      "Baseline_1x_NoFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 173,
+          "wins": 100,
+          "losses": 73,
+          "ties": 0,
+          "winRatePct": 57.8,
+          "wilsonLower95Pct": 50.35,
+          "profitFactor": 0.83,
+          "totalNetPct": -55.93,
+          "compoundedNetPct": -51.89,
+          "maxDrawdownPct": 82.05,
+          "compoundedMaxDrawdownPct": 62.37,
+          "retToDd": -0.68,
+          "compRetToDd": -0.83,
+          "avgLev": 1,
+          "worstTradePct": -10,
+          "fundingDragPct": 0
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 81,
+          "wins": 49,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60.49,
+          "wilsonLower95Pct": 49.61,
+          "profitFactor": 0.86,
+          "totalNetPct": -14.51,
+          "compoundedNetPct": -16.47,
+          "maxDrawdownPct": 27.75,
+          "compoundedMaxDrawdownPct": 25.92,
+          "retToDd": -0.52,
+          "compRetToDd": -0.64,
+          "avgLev": 1,
+          "worstTradePct": -4.8,
+          "fundingDragPct": 0
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 254,
+          "wins": 149,
+          "losses": 105,
+          "ties": 0,
+          "winRatePct": 58.66,
+          "wilsonLower95Pct": 52.52,
+          "profitFactor": 0.84,
+          "totalNetPct": -70.43,
+          "compoundedNetPct": -59.81,
+          "maxDrawdownPct": 82.05,
+          "compoundedMaxDrawdownPct": 63.26,
+          "retToDd": -0.86,
+          "compRetToDd": -0.95,
+          "avgLev": 1,
+          "worstTradePct": -10,
+          "fundingDragPct": 0
+        }
+      },
+      "Baseline_1x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 173,
+          "wins": 100,
+          "losses": 73,
+          "ties": 0,
+          "winRatePct": 57.8,
+          "wilsonLower95Pct": 50.35,
+          "profitFactor": 0.82,
+          "totalNetPct": -60.89,
+          "compoundedNetPct": -54.24,
+          "maxDrawdownPct": 86.24,
+          "compoundedMaxDrawdownPct": 63.94,
+          "retToDd": -0.71,
+          "compRetToDd": -0.85,
+          "avgLev": 1,
+          "worstTradePct": -10.07,
+          "fundingDragPct": 4.96
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 81,
+          "wins": 49,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60.49,
+          "wilsonLower95Pct": 49.61,
+          "profitFactor": 0.84,
+          "totalNetPct": -16.74,
+          "compoundedNetPct": -18.32,
+          "maxDrawdownPct": 29.21,
+          "compoundedMaxDrawdownPct": 27.01,
+          "retToDd": -0.57,
+          "compRetToDd": -0.68,
+          "avgLev": 1,
+          "worstTradePct": -4.92,
+          "fundingDragPct": 2.23
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 254,
+          "wins": 149,
+          "losses": 105,
+          "ties": 0,
+          "winRatePct": 58.66,
+          "wilsonLower95Pct": 52.52,
+          "profitFactor": 0.82,
+          "totalNetPct": -77.62,
+          "compoundedNetPct": -62.62,
+          "maxDrawdownPct": 86.7,
+          "compoundedMaxDrawdownPct": 65.73,
+          "retToDd": -0.9,
+          "compRetToDd": -0.95,
+          "avgLev": 1,
+          "worstTradePct": -10.07,
+          "fundingDragPct": 7.19
+        }
+      },
+      "Fixed_2x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 173,
+          "wins": 100,
+          "losses": 73,
+          "ties": 0,
+          "winRatePct": 57.8,
+          "wilsonLower95Pct": 50.35,
+          "profitFactor": 0.82,
+          "totalNetPct": -121.77,
+          "compoundedNetPct": -85.19,
+          "maxDrawdownPct": 172.47,
+          "compoundedMaxDrawdownPct": 90.53,
+          "retToDd": -0.71,
+          "compRetToDd": -0.94,
+          "avgLev": 2,
+          "worstTradePct": -20.14,
+          "fundingDragPct": 9.92
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 81,
+          "wins": 49,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60.49,
+          "wilsonLower95Pct": 49.61,
+          "profitFactor": 0.84,
+          "totalNetPct": -33.47,
+          "compoundedNetPct": -37.83,
+          "maxDrawdownPct": 58.42,
+          "compoundedMaxDrawdownPct": 49.12,
+          "retToDd": -0.57,
+          "compRetToDd": -0.77,
+          "avgLev": 2,
+          "worstTradePct": -9.84,
+          "fundingDragPct": 4.46
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 254,
+          "wins": 149,
+          "losses": 105,
+          "ties": 0,
+          "winRatePct": 58.66,
+          "wilsonLower95Pct": 52.52,
+          "profitFactor": 0.82,
+          "totalNetPct": -155.25,
+          "compoundedNetPct": -90.79,
+          "maxDrawdownPct": 173.41,
+          "compoundedMaxDrawdownPct": 92.2,
+          "retToDd": -0.9,
+          "compRetToDd": -0.98,
+          "avgLev": 2,
+          "worstTradePct": -20.14,
+          "fundingDragPct": 14.38
+        }
+      },
+      "VolNorm_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 173,
+          "wins": 100,
+          "losses": 73,
+          "ties": 0,
+          "winRatePct": 57.8,
+          "wilsonLower95Pct": 50.35,
+          "profitFactor": 0.81,
+          "totalNetPct": -102.67,
+          "compoundedNetPct": -77.18,
+          "maxDrawdownPct": 145.64,
+          "compoundedMaxDrawdownPct": 84.54,
+          "retToDd": -0.7,
+          "compRetToDd": -0.91,
+          "avgLev": 1.66,
+          "worstTradePct": -16.12,
+          "fundingDragPct": 8.11
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 81,
+          "wins": 49,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60.49,
+          "wilsonLower95Pct": 49.61,
+          "profitFactor": 0.85,
+          "totalNetPct": -28.87,
+          "compoundedNetPct": -32.53,
+          "maxDrawdownPct": 55.19,
+          "compoundedMaxDrawdownPct": 46.24,
+          "retToDd": -0.52,
+          "compRetToDd": -0.7,
+          "avgLev": 1.92,
+          "worstTradePct": -7.88,
+          "fundingDragPct": 4.08
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 254,
+          "wins": 149,
+          "losses": 105,
+          "ties": 0,
+          "winRatePct": 58.66,
+          "wilsonLower95Pct": 52.52,
+          "profitFactor": 0.82,
+          "totalNetPct": -131.54,
+          "compoundedNetPct": -84.6,
+          "maxDrawdownPct": 149.88,
+          "compoundedMaxDrawdownPct": 87.01,
+          "retToDd": -0.88,
+          "compRetToDd": -0.97,
+          "avgLev": 1.75,
+          "worstTradePct": -16.12,
+          "fundingDragPct": 12.19
+        }
+      },
+      "VolNorm_PartialTP_Winner": {
+        "calVal": {
+          "range": [
+            0,
+            17520
+          ],
+          "count": 177,
+          "wins": 103,
+          "losses": 74,
+          "ties": 0,
+          "winRatePct": 58.19,
+          "wilsonLower95Pct": 50.83,
+          "profitFactor": 0.81,
+          "totalNetPct": -95.03,
+          "compoundedNetPct": -73.4,
+          "maxDrawdownPct": 138.45,
+          "compoundedMaxDrawdownPct": 82.29,
+          "retToDd": -0.69,
+          "compRetToDd": -0.89,
+          "avgLev": 1.55,
+          "worstTradePct": -15.11,
+          "fundingDragPct": 7.42
+        },
+        "holdoutY3": {
+          "range": [
+            17520,
+            26280
+          ],
+          "count": 82,
+          "wins": 50,
+          "losses": 32,
+          "ties": 0,
+          "winRatePct": 60.98,
+          "wilsonLower95Pct": 50.15,
+          "profitFactor": 0.81,
+          "totalNetPct": -32.98,
+          "compoundedNetPct": -33.66,
+          "maxDrawdownPct": 54.89,
+          "compoundedMaxDrawdownPct": 45.14,
+          "retToDd": -0.6,
+          "compRetToDd": -0.75,
+          "avgLev": 1.78,
+          "worstTradePct": -7.38,
+          "fundingDragPct": 3.74
+        },
+        "full3y": {
+          "range": [
+            0,
+            26280
+          ],
+          "count": 259,
+          "wins": 153,
+          "losses": 106,
+          "ties": 0,
+          "winRatePct": 59.07,
+          "wilsonLower95Pct": 52.99,
+          "profitFactor": 0.81,
+          "totalNetPct": -128.01,
+          "compoundedNetPct": -82.35,
+          "maxDrawdownPct": 144.52,
+          "compoundedMaxDrawdownPct": 84.87,
+          "retToDd": -0.89,
+          "compRetToDd": -0.97,
+          "avgLev": 1.62,
+          "worstTradePct": -15.11,
+          "fundingDragPct": 11.16
+        }
+      }
+    }
+  },
+  "track15mVolNorm": {
+    "OKX:BTCUSDT_15m": {
+      "Fixed_1x": {
+        "calVal": {
+          "range": [
+            0,
+            70080
+          ],
+          "count": 312,
+          "wins": 226,
+          "losses": 86,
+          "ties": 0,
+          "winRatePct": 72.44,
+          "wilsonLower95Pct": 67.23,
+          "profitFactor": 1.44,
+          "totalNetPct": 93.92,
+          "compoundedNetPct": 133.35,
+          "maxDrawdownPct": 32.38,
+          "compoundedMaxDrawdownPct": 29.33,
+          "retToDd": 2.9,
+          "compRetToDd": 4.55,
+          "avgLev": 1,
+          "worstTradePct": -5.91,
+          "fundingDragPct": 0
+        },
+        "holdoutY3": {
+          "range": [
+            70080,
+            105120
+          ],
+          "count": 152,
+          "wins": 94,
+          "losses": 58,
+          "ties": 0,
+          "winRatePct": 61.84,
+          "wilsonLower95Pct": 53.92,
+          "profitFactor": 1,
+          "totalNetPct": -0.66,
+          "compoundedNetPct": -5.18,
+          "maxDrawdownPct": 37.82,
+          "compoundedMaxDrawdownPct": 32.56,
+          "retToDd": -0.02,
+          "compRetToDd": -0.16,
+          "avgLev": 1,
+          "worstTradePct": -5.01,
+          "fundingDragPct": 0
+        },
+        "full3y": {
+          "range": [
+            0,
+            105120
+          ],
+          "count": 464,
+          "wins": 320,
+          "losses": 144,
+          "ties": 0,
+          "winRatePct": 68.97,
+          "wilsonLower95Pct": 64.61,
+          "profitFactor": 1.27,
+          "totalNetPct": 93.26,
+          "compoundedNetPct": 121.26,
+          "maxDrawdownPct": 37.82,
+          "compoundedMaxDrawdownPct": 32.56,
+          "retToDd": 2.47,
+          "compRetToDd": 3.72,
+          "avgLev": 1,
+          "worstTradePct": -5.91,
+          "fundingDragPct": 0
+        }
+      },
+      "VolNorm_2_2_075_15": {
+        "calVal": {
+          "range": [
+            0,
+            70080
+          ],
+          "count": 312,
+          "wins": 226,
+          "losses": 86,
+          "ties": 0,
+          "winRatePct": 72.44,
+          "wilsonLower95Pct": 67.23,
+          "profitFactor": 1.44,
+          "totalNetPct": 87.52,
+          "compoundedNetPct": 122.63,
+          "maxDrawdownPct": 27.34,
+          "compoundedMaxDrawdownPct": 25.23,
+          "retToDd": 3.2,
+          "compRetToDd": 4.86,
+          "avgLev": 1,
+          "worstTradePct": -4.43,
+          "fundingDragPct": 0
+        },
+        "holdoutY3": {
+          "range": [
+            70080,
+            105120
+          ],
+          "count": 152,
+          "wins": 94,
+          "losses": 58,
+          "ties": 0,
+          "winRatePct": 61.84,
+          "wilsonLower95Pct": 53.92,
+          "profitFactor": 1.01,
+          "totalNetPct": 0.67,
+          "compoundedNetPct": -3.2,
+          "maxDrawdownPct": 32.82,
+          "compoundedMaxDrawdownPct": 29.27,
+          "retToDd": 0.02,
+          "compRetToDd": -0.11,
+          "avgLev": 1.05,
+          "worstTradePct": -3.76,
+          "fundingDragPct": 0
+        },
+        "full3y": {
+          "range": [
+            0,
+            105120
+          ],
+          "count": 464,
+          "wins": 320,
+          "losses": 144,
+          "ties": 0,
+          "winRatePct": 68.97,
+          "wilsonLower95Pct": 64.61,
+          "profitFactor": 1.27,
+          "totalNetPct": 88.19,
+          "compoundedNetPct": 115.51,
+          "maxDrawdownPct": 32.82,
+          "compoundedMaxDrawdownPct": 29.27,
+          "retToDd": 2.69,
+          "compRetToDd": 3.95,
+          "avgLev": 1.02,
+          "worstTradePct": -4.43,
+          "fundingDragPct": 0
+        }
+      }
+    },
+    "OKX:BTCUSDT.P_15m": {
+      "Fixed_1x_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            70080
+          ],
+          "count": 304,
+          "wins": 210,
+          "losses": 94,
+          "ties": 0,
+          "winRatePct": 69.08,
+          "wilsonLower95Pct": 63.67,
+          "profitFactor": 1.12,
+          "totalNetPct": 29.47,
+          "compoundedNetPct": 22.53,
+          "maxDrawdownPct": 41.78,
+          "compoundedMaxDrawdownPct": 35.82,
+          "retToDd": 0.71,
+          "compRetToDd": 0.63,
+          "avgLev": 1,
+          "worstTradePct": -6.05,
+          "fundingDragPct": 8.09
+        },
+        "holdoutY3": {
+          "range": [
+            70080,
+            105120
+          ],
+          "count": 151,
+          "wins": 94,
+          "losses": 57,
+          "ties": 0,
+          "winRatePct": 62.25,
+          "wilsonLower95Pct": 54.31,
+          "profitFactor": 0.93,
+          "totalNetPct": -9.27,
+          "compoundedNetPct": -12.93,
+          "maxDrawdownPct": 39.82,
+          "compoundedMaxDrawdownPct": 33.92,
+          "retToDd": -0.23,
+          "compRetToDd": -0.38,
+          "avgLev": 1,
+          "worstTradePct": -5.13,
+          "fundingDragPct": 4.07
+        },
+        "full3y": {
+          "range": [
+            0,
+            105120
+          ],
+          "count": 455,
+          "wins": 304,
+          "losses": 151,
+          "ties": 0,
+          "winRatePct": 66.81,
+          "wilsonLower95Pct": 62.36,
+          "profitFactor": 1.05,
+          "totalNetPct": 20.2,
+          "compoundedNetPct": 6.69,
+          "maxDrawdownPct": 41.78,
+          "compoundedMaxDrawdownPct": 35.82,
+          "retToDd": 0.48,
+          "compRetToDd": 0.19,
+          "avgLev": 1,
+          "worstTradePct": -6.05,
+          "fundingDragPct": 12.16
+        }
+      },
+      "VolNorm_2_2_075_15_WithFunding": {
+        "calVal": {
+          "range": [
+            0,
+            70080
+          ],
+          "count": 304,
+          "wins": 210,
+          "losses": 94,
+          "ties": 0,
+          "winRatePct": 69.08,
+          "wilsonLower95Pct": 63.67,
+          "profitFactor": 1.14,
+          "totalNetPct": 31.81,
+          "compoundedNetPct": 27.78,
+          "maxDrawdownPct": 35.43,
+          "compoundedMaxDrawdownPct": 31.14,
+          "retToDd": 0.9,
+          "compRetToDd": 0.89,
+          "avgLev": 1,
+          "worstTradePct": -4.54,
+          "fundingDragPct": 7.67
+        },
+        "holdoutY3": {
+          "range": [
+            70080,
+            105120
+          ],
+          "count": 151,
+          "wins": 94,
+          "losses": 57,
+          "ties": 0,
+          "winRatePct": 62.25,
+          "wilsonLower95Pct": 54.31,
+          "profitFactor": 0.94,
+          "totalNetPct": -8.02,
+          "compoundedNetPct": -11.07,
+          "maxDrawdownPct": 34.81,
+          "compoundedMaxDrawdownPct": 30.55,
+          "retToDd": -0.23,
+          "compRetToDd": -0.36,
+          "avgLev": 1.04,
+          "worstTradePct": -3.85,
+          "fundingDragPct": 4.12
+        },
+        "full3y": {
+          "range": [
+            0,
+            105120
+          ],
+          "count": 455,
+          "wins": 304,
+          "losses": 151,
+          "ties": 0,
+          "winRatePct": 66.81,
+          "wilsonLower95Pct": 62.36,
+          "profitFactor": 1.07,
+          "totalNetPct": 23.8,
+          "compoundedNetPct": 13.64,
+          "maxDrawdownPct": 35.43,
+          "compoundedMaxDrawdownPct": 31.14,
+          "retToDd": 0.67,
+          "compRetToDd": 0.44,
+          "avgLev": 1.01,
+          "worstTradePct": -4.54,
+          "fundingDragPct": 11.78
+        }
+      }
+    }
+  }
+}

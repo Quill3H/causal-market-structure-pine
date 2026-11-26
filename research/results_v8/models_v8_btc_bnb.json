@@ -1,0 +1,1780 @@
+{
+  "schema": "smc-v8-btc-bnb-5y-models-v1",
+  "generatedAt": "2026-11-25T09:41:49.187869+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 50% Cal, 30% Val, 20% Blind Holdout Y5",
+    "purging": "Purged boundary-overlapping trades at calEnd and valEnd",
+    "fitScope": "Separate LONG & SHORT models fitted strictly on Cal/Val; Y5 Holdout untouched by trainer"
+  },
+  "models": {
+    "BTC_1h": {
+      "structuralSpec": {
+        "id": "BTCUSDT_1h_V8_L_AdpTrap50_S_RawTrap50_block_s3.2_tp1_0.58_lk0.28",
+        "sigSpec": {
+          "specId": "BTCUSDT_1h_V8_L_AdpTrap50_S_RawTrap50_block_s3.2_tp1_0.58_lk0.28",
+          "longCfg": {
+            "kind": "AdaptiveTrapPolarity",
+            "baseFamily": "HtfSmcMultiTrap",
+            "lookback": 20,
+            "trapMaxBars": 4,
+            "p4Lookback": 10,
+            "includePdhl": true,
+            "htfMode": "H4_50",
+            "limitOffsetAtr": 0.18,
+            "winLen": 6,
+            "slThresh": 2,
+            "requireNegNet": true,
+            "sharedHistory": false,
+            "virtExec": {
+              "entryMode": "LIMIT_PULLBACK",
+              "limitExpiryBars": 6,
+              "pendingPolicy": "ignore",
+              "limitSameBarTp": "close",
+              "cooldown": 4,
+              "warmup": 250,
+              "stopAtr": 3.2,
+              "minStopPct": 1.4,
+              "rewardRisk": 1.25,
+              "maxHoldBars": 96,
+              "beTriggerR": 0.36,
+              "beOffsetPct": 0.25,
+              "costPct": 0.1,
+              "slippagePct": 0.025
+            }
+          },
+          "shortCfg": {
+            "kind": "HtfSmcMultiTrap",
+            "family": "HtfSmcMultiTrap",
+            "lookback": 20,
+            "trapMaxBars": 4,
+            "p4Lookback": 10,
+            "includePdhl": true,
+            "htfMode": "H4_50",
+            "limitOffsetAtr": 0.18,
+            "warmup": 250
+          },
+          "rangePolicy": "block",
+          "requireH4RallyExhOnShort": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 3.2,
+          "minStopPct": 1.4,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.36,
+          "beOffsetPct": 0.25,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "tp1TriggerR": 0.58,
+          "tp1QtyPct": 50,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.28,
+          "volNormRiskPct": 4,
+          "minLev": 1.2,
+          "maxLev": 3
+        }
+      },
+      "longModel": {
+        "modelType": "gradient_boosting",
+        "featureNames": [
+          "wick_adv_atr",
+          "delta_ratio_1b",
+          "h4_rally_exh"
+        ],
+        "threshold": 0.7049,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.759
+        },
+        "imputer": {
+          "medians": [
+            0.25483424473038074,
+            0.06810152033474381,
+            0.0
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.3060584380253186,
+            0.05754469611701609,
+            0.0
+          ],
+          "scale": [
+            0.23009029530853023,
+            0.06251749476578491,
+            1.0
+          ]
+        },
+        "classifier": {
+          "initScore": 0.9315582040049433,
+          "learningRate": 0.04,
+          "trees": [
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.5611870288848877,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.060386473429951674,
+                0.9829059829059825,
+                -0.04467754467754446
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.5611870288848877,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.029757022071774948,
+                0.6617511395806874,
+                -0.17353832753148712
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.6656093895435333,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.05475302004041504,
+                0.5222025433390076,
+                -0.6579227193737976
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.08240719139575958,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.0023418383929558165,
+                0.7831079587683932,
+                -0.615778569547638
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.4625980108976364,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.031837017883763856,
+                -0.30529444019395396,
+                0.4768075097952444
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.5611870288848877,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.08613535100192836,
+                1.3711904340867562,
+                -0.030005900587879067
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.6656093895435333,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.052789155247713465,
+                0.9160267000751073,
+                -0.04316358100398866
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.5621281862258911,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.030570676438464967,
+                0.45946155676043254,
+                -0.4378702439455402
+              ]
+            }
+          ]
+        }
+      },
+      "shortModel": {
+        "modelType": "logistic_regression",
+        "featureNames": [
+          "wick_adv_atr",
+          "delta_ratio_1b",
+          "h4_rally_exh"
+        ],
+        "threshold": 0.6078,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.7396
+        },
+        "imputer": {
+          "medians": [
+            0.1568376556182571,
+            0.055129071973997024,
+            0.0
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.252008828782764,
+            0.06076389436859398,
+            0.16279069767441862
+          ],
+          "scale": [
+            0.24040610802906823,
+            0.06490022572124236,
+            0.3691746015438964
+          ]
+        },
+        "classifier": {
+          "coef": [
+            -0.37318269563916634,
+            0.07095060746593417,
+            -0.4518747102933184
+          ],
+          "intercept": 0.45460986159302114
+        }
+      },
+      "selectionMeta": {
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "long": {
+          "selectedId": "LONG:wick_delta:GB_d1_n8|t=0.7049|sc=linear_0.85_1.35",
+          "calCvAuc": 0.5714,
+          "calInAuc": 0.6923,
+          "valRocAuc": 0.5201,
+          "valCorrNet": 0.0131,
+          "calTrainSamples": 46,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 1.7019336377985659,
+            "medianMonthlySweepPct": 0.27500929791417494,
+            "pctPositiveMonths": 52.63157894736842,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -5.963558834745752,
+            "maxMonthlySweepDdPct": 7.544372926552391,
+            "totalSweptNetPct": 32.33673911817275,
+            "compoundedNetPct": 35.70625009716808,
+            "cagrPct": 22.50821777473966,
+            "geomMonthlyPct": 1.6199412455551343,
+            "maxCompoundedDdPct": 12.038470943250353,
+            "winRatePct": 78.18181818181819,
+            "profitFactor": 1.5835492670302318,
+            "liquidationCount": 0,
+            "count": 55
+          }
+        },
+        "short": {
+          "selectedId": "SHORT:wick_delta:LR_C0.15_mag|t=0.6078|sc=linear_0.85_1.35",
+          "calCvAuc": 0.659,
+          "calInAuc": 0.6549,
+          "valRocAuc": 0.6503,
+          "valCorrNet": -0.0225,
+          "calTrainSamples": 86,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 1.5624189316497752,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 42.10526315789473,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -7.008908812286563,
+            "maxMonthlySweepDdPct": 11.700467905504143,
+            "totalSweptNetPct": 29.68595970134573,
+            "compoundedNetPct": 32.277403609124256,
+            "cagrPct": 20.441299649853306,
+            "geomMonthlyPct": 1.4831600713649307,
+            "maxCompoundedDdPct": 11.342018095360409,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 1.9744971167025713,
+            "liquidationCount": 0,
+            "count": 33
+          }
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 2.390785111544529,
+          "medianMonthlySweepPct": 2.2372512533470834,
+          "pctPositiveMonths": 68.42105263157895,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -7.014939771310602,
+          "maxMonthlySweepDdPct": 8.464009942556807,
+          "totalSweptNetPct": 45.42491711934605,
+          "compoundedNetPct": 52.97534766583305,
+          "cagrPct": 32.66434551554562,
+          "geomMonthlyPct": 2.2626207229558437,
+          "maxCompoundedDdPct": 13.244128540166258,
+          "winRatePct": 78,
+          "profitFactor": 1.4805891095509753,
+          "liquidationCount": 0,
+          "count": 100,
+          "long": {
+            "count": 57,
+            "wins": 44,
+            "winRatePct": 77.19298245614034,
+            "profitFactor": 1.4119915368377975,
+            "netSumPct": 22.6724440373547
+          },
+          "short": {
+            "count": 43,
+            "wins": 34,
+            "winRatePct": 79.06976744186046,
+            "profitFactor": 1.5705381551074942,
+            "netSumPct": 23.944563614409837
+          }
+        }
+      }
+    },
+    "BTC_15m": {
+      "structuralSpec": {
+        "id": "BTCUSDT_15m_V8_L_H1SyncTrap_Raw_20_S_H4Disp_Adp_50_block_s5_tp1_0.48",
+        "sigSpec": {
+          "specId": "BTCUSDT_15m_V8_L_H1SyncTrap_Raw_20_S_H4Disp_Adp_50_block_s5_tp1_0.48",
+          "longCfg": {
+            "rawFamily": "M15_H1SyncedMultiTrap",
+            "h1Lookback": 20,
+            "h4Lookback": 10,
+            "include24h": true,
+            "trapMaxBars": 4,
+            "htfMode": "H4_20_or_50",
+            "minAtrPct": 0.14,
+            "pullAtr": 0.3,
+            "adaptive": false
+          },
+          "shortCfg": {
+            "rawFamily": "M15_H4Disp",
+            "h4BodyAtrMin": 0.85,
+            "h4ClosePosMin": 0.58,
+            "onH4CloseOnly": true,
+            "requireLtfConfirm": false,
+            "htfMode": "H4_50",
+            "minAtrPct": 0.14,
+            "pullAtr": 0.35,
+            "adaptive": true,
+            "winLen": 6,
+            "slThresh": 2,
+            "requireNegNet": true,
+            "virtExec": {
+              "entryMode": "LIMIT_PULLBACK",
+              "limitExpiryBars": 10,
+              "pendingPolicy": "ignore",
+              "limitSameBarTp": "close",
+              "cooldown": 8,
+              "warmup": 250,
+              "stopAtr": 5,
+              "minStopPct": 1.55,
+              "rewardRisk": 1.55,
+              "maxHoldBars": 180,
+              "beTriggerR": 0.28,
+              "beOffsetPct": 0.22,
+              "costPct": 0.1,
+              "slippagePct": 0.025
+            }
+          },
+          "rangePolicy": "block",
+          "requireH4RallyExhOnShort": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 10,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 8,
+          "warmup": 250,
+          "stopAtr": 5,
+          "minStopPct": 1.55,
+          "rewardRisk": 1.55,
+          "maxHoldBars": 180,
+          "beTriggerR": 0.28,
+          "beOffsetPct": 0.22,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "tp1TriggerR": 0.48,
+          "tp1QtyPct": 50,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.15,
+          "volNormRiskPct": 3,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "longModel": {
+        "modelType": "logistic_regression",
+        "featureNames": [
+          "wick_adv_atr",
+          "close_pos_dir",
+          "delta_ratio_1b",
+          "cvd_imb_6b"
+        ],
+        "threshold": 0.6004,
+        "sizeCurve": {
+          "mode": "flat"
+        },
+        "imputer": {
+          "medians": [
+            0.1775239704191787,
+            0.4845024469820137,
+            0.012272407311599842,
+            0.031784840194498676
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.21014334169876864,
+            0.49691695723457885,
+            -0.004264419828782387,
+            0.030204828250025254
+          ],
+          "scale": [
+            0.17817010386567034,
+            0.30670525218359707,
+            0.14927057001652927,
+            0.06750251278183898
+          ]
+        },
+        "classifier": {
+          "coef": [
+            -0.013535527961529476,
+            0.06375699521366818,
+            -0.09564542759892285,
+            0.19687871869121948
+          ],
+          "intercept": 0.5642508154561529
+        }
+      },
+      "shortModel": {
+        "modelType": "gradient_boosting",
+        "featureNames": [
+          "wick_adv_atr"
+        ],
+        "threshold": 0.7547,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.7609
+        },
+        "imputer": {
+          "medians": [
+            0.2659217189801947
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.30827171089799155
+          ],
+          "scale": [
+            0.2547114549274432
+          ]
+        },
+        "classifier": {
+          "initScore": 1.0986122886681098,
+          "learningRate": 0.04,
+          "trees": [
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.4459501653909683,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.05,
+                0.38095238095238093,
+                -0.6984126984126985
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.37482939660549164,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.019634338914811828,
+                0.6583321074940437,
+                -0.7335891713596996
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.992529571056366,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.03981085442766378,
+                -0.4959407108719755,
+                0.3507945958036085
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.7795300185680389,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.02250401570190206,
+                -0.14024541104146696,
+                1.3480657091242054
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.7942997515201569,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.034862760018682167,
+                -0.40182254953111385,
+                0.6148623200002629
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.7942997515201569,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.03390293717935746,
+                -0.4169727851110987,
+                0.6430974042474742
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.37482939660549164,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.017654483874558757,
+                0.41553275175590115,
+                -0.4480880844316946
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                0,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.7349548935890198,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.011210779347229721,
+                0.6267209491185113,
+                -0.2111643327313874
+              ]
+            }
+          ]
+        }
+      },
+      "selectionMeta": {
+        "calRange": [
+          0,
+          87904
+        ],
+        "valRange": [
+          87904,
+          140646
+        ],
+        "holdoutRangeUntouched": [
+          140646,
+          175808
+        ],
+        "long": {
+          "selectedId": "LONG:of_micro_15m:LR_C0.02_mag|t=0.6004|sc=flat_1_1",
+          "calCvAuc": 0.556,
+          "calInAuc": 0.6841,
+          "valRocAuc": 0.527,
+          "valCorrNet": 0.0912,
+          "calTrainSamples": 69,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 0.41019488589562403,
+            "medianMonthlySweepPct": 0.26117535483869414,
+            "pctPositiveMonths": 57.89473684210527,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -3.3695342118322813,
+            "maxMonthlySweepDdPct": 5.768899060153155,
+            "totalSweptNetPct": 7.793702832016857,
+            "compoundedNetPct": 7.709466355262173,
+            "cagrPct": 5.061468308338779,
+            "geomMonthlyPct": 0.3916454072334652,
+            "maxCompoundedDdPct": 5.714252301010703,
+            "winRatePct": 83.78378378378379,
+            "profitFactor": 1.4565553366319732,
+            "liquidationCount": 0,
+            "count": 37
+          }
+        },
+        "short": {
+          "selectedId": "SHORT:wick_adv_only:GB_d1_n8|t=0.7547|sc=linear_0.85_1.35",
+          "calCvAuc": 0.4504,
+          "calInAuc": 0.7073,
+          "valRocAuc": 0.5602,
+          "valCorrNet": -0.0864,
+          "calTrainSamples": 88,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 1.0062250127159575,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 26.31578947368421,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -6.094602032404206,
+            "maxMonthlySweepDdPct": 11.052732376989848,
+            "totalSweptNetPct": 19.118275241603193,
+            "compoundedNetPct": 17.89250048193878,
+            "cagrPct": 11.564604159057644,
+            "geomMonthlyPct": 0.870095146435923,
+            "maxCompoundedDdPct": 12.491202515272173,
+            "winRatePct": 80,
+            "profitFactor": 1.706869287204133,
+            "liquidationCount": 0,
+            "count": 35
+          }
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.0424526866279962,
+          "medianMonthlySweepPct": 0.23420709677419715,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -8.741240217684943,
+          "maxMonthlySweepDdPct": 21.733014656331584,
+          "totalSweptNetPct": 19.806601045931927,
+          "compoundedNetPct": 16.99143261394862,
+          "cagrPct": 10.996969816367464,
+          "geomMonthlyPct": 0.8293704867524454,
+          "maxCompoundedDdPct": 20.10114760788285,
+          "winRatePct": 78.57142857142857,
+          "profitFactor": 1.2773988991439984,
+          "liquidationCount": 0,
+          "count": 98,
+          "long": {
+            "count": 47,
+            "wins": 37,
+            "winRatePct": 78.72340425531915,
+            "profitFactor": 1.0477927028997813,
+            "netSumPct": 1.293152359299071
+          },
+          "short": {
+            "count": 51,
+            "wins": 40,
+            "winRatePct": 78.43137254901961,
+            "profitFactor": 1.4506712442809944,
+            "netSumPct": 16.15854688329749
+          }
+        }
+      }
+    },
+    "BNB_1h": {
+      "structuralSpec": {
+        "id": "BNBUSDT_1h_V8_L_RawTrap20_S_BnbComp20_long_only_065_s3.2_tp1_0.65_lk0.24",
+        "sigSpec": {
+          "specId": "BNBUSDT_1h_V8_L_RawTrap20_S_BnbComp20_long_only_065_s3.2_tp1_0.65_lk0.24",
+          "longCfg": {
+            "kind": "HtfSmcMultiTrap",
+            "family": "HtfSmcMultiTrap",
+            "lookback": 20,
+            "trapMaxBars": 4,
+            "p4Lookback": 10,
+            "includePdhl": true,
+            "htfMode": "H4_20",
+            "limitOffsetAtr": 0.22,
+            "warmup": 250
+          },
+          "shortCfg": {
+            "kind": "BnbCompositeV6",
+            "htfMode": "H4_20",
+            "limitOffsetAtr": 0.22,
+            "includeMeanRevPb": true,
+            "useLaunchpoolSqueeze": true
+          },
+          "rangePolicy": "long_only_065",
+          "requireH4RallyExhOnShort": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 3.2,
+          "minStopPct": 1.35,
+          "rewardRisk": 1.45,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.36,
+          "beOffsetPct": 0.28,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "tp1TriggerR": 0.65,
+          "tp1QtyPct": 45,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.24,
+          "volNormRiskPct": 3.5,
+          "minLev": 1.2,
+          "maxLev": 2.5
+        }
+      },
+      "longModel": {
+        "modelType": "logistic_regression",
+        "featureNames": [
+          "regime_trend_score",
+          "breadth_bear_ratio",
+          "delta_ratio_1b",
+          "funding_ma3_dir"
+        ],
+        "threshold": 0.5666,
+        "sizeCurve": {
+          "mode": "flat"
+        },
+        "imputer": {
+          "medians": [
+            0.7049172392910783,
+            0.0,
+            0.019793262381651022,
+            -0.012299999999999998
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.6388974438029136,
+            0.13541666666666666,
+            0.0199986626859122,
+            -1.116955555555556
+          ],
+          "scale": [
+            0.33225741955893273,
+            0.21625561970861143,
+            0.06794015782447874,
+            3.2492568099000887
+          ]
+        },
+        "classifier": {
+          "coef": [
+            -0.022545108967817164,
+            0.13920960965562507,
+            0.04018004775900818,
+            -0.13464497810487341
+          ],
+          "intercept": 0.4216928280481982
+        }
+      },
+      "shortModel": {
+        "modelType": "logistic_regression",
+        "featureNames": [
+          "wick_adv_atr",
+          "funding_ma3_dir",
+          "delta_ratio_1b"
+        ],
+        "threshold": 0.6363,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.7669
+        },
+        "imputer": {
+          "medians": [
+            0.23600490349356026,
+            0.050833333333333335,
+            0.05758447083397705
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.2875059506890266,
+            0.35526236559139773,
+            0.06734524426103285
+          ],
+          "scale": [
+            0.25174018483278754,
+            0.7249097707413441,
+            0.07165475810256318
+          ]
+        },
+        "classifier": {
+          "coef": [
+            -0.16202778580236607,
+            -0.037576165167550364,
+            0.34997682047267525
+          ],
+          "intercept": 0.5002861380920056
+        }
+      },
+      "selectionMeta": {
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "long": {
+          "selectedId": "LONG:bnb_regime_of:LR_C0.02_mag|t=0.5666|sc=flat_1_1",
+          "calCvAuc": 0.5434,
+          "calInAuc": 0.5625,
+          "valRocAuc": 0.6148,
+          "valCorrNet": 0.181,
+          "calTrainSamples": 48,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 1.1858390405235186,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 47.368421052631575,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -2.917017524766663,
+            "maxMonthlySweepDdPct": 3.0791759228135374,
+            "totalSweptNetPct": 22.530941769946853,
+            "compoundedNetPct": 24.524586469319942,
+            "cagrPct": 15.700389466096976,
+            "geomMonthlyPct": 1.1610728960908867,
+            "maxCompoundedDdPct": 7.3898675703487235,
+            "winRatePct": 81.81818181818183,
+            "profitFactor": 2.475630716545119,
+            "liquidationCount": 0,
+            "count": 22
+          }
+        },
+        "short": {
+          "selectedId": "SHORT:bnb_wick_fund:LR_C0.05_mag|t=0.6363|sc=linear_0.85_1.35",
+          "calCvAuc": 0.6661,
+          "calInAuc": 0.6771,
+          "valRocAuc": 0.71,
+          "valCorrNet": 0.3046,
+          "calTrainSamples": 62,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 0.9425285867316161,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 36.84210526315789,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -4.248657201116524,
+            "maxMonthlySweepDdPct": 7.6663637350840155,
+            "totalSweptNetPct": 17.908043147900706,
+            "compoundedNetPct": 18.082474153448235,
+            "cagrPct": 11.685263738320995,
+            "geomMonthlyPct": 0.8786435455166997,
+            "maxCompoundedDdPct": 7.538347870559342,
+            "winRatePct": 82.35294117647058,
+            "profitFactor": 2.3978613664878625,
+            "liquidationCount": 0,
+            "count": 17
+          }
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.7163326771423144,
+          "medianMonthlySweepPct": -0.3020850669132713,
+          "pctPositiveMonths": 47.368421052631575,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -8.184138345888547,
+          "maxMonthlySweepDdPct": 17.996507499786308,
+          "totalSweptNetPct": 13.610320865703974,
+          "compoundedNetPct": 11.153477556799164,
+          "cagrPct": 7.283786723631858,
+          "geomMonthlyPct": 0.5580870145558192,
+          "maxCompoundedDdPct": 19.891453112375977,
+          "winRatePct": 70.1492537313433,
+          "profitFactor": 1.1684669769728604,
+          "liquidationCount": 0,
+          "count": 67,
+          "long": {
+            "count": 37,
+            "wins": 27,
+            "winRatePct": 72.97297297297297,
+            "profitFactor": 1.4905389471589479,
+            "netSumPct": 20.011868248599924
+          },
+          "short": {
+            "count": 30,
+            "wins": 20,
+            "winRatePct": 66.66666666666666,
+            "profitFactor": 0.859729522229371,
+            "netSumPct": -5.969583441749099
+          }
+        }
+      }
+    },
+    "BNB_15m": {
+      "structuralSpec": {
+        "id": "BNBUSDT_15m_V8_L_H4Disp_Adp_50_S_H1Pullback_50_block_s5_tp1_0.54",
+        "sigSpec": {
+          "specId": "BNBUSDT_15m_V8_L_H4Disp_Adp_50_S_H1Pullback_50_block_s5_tp1_0.54",
+          "longCfg": {
+            "rawFamily": "M15_H4Disp",
+            "h4BodyAtrMin": 0.85,
+            "h4ClosePosMin": 0.58,
+            "onH4CloseOnly": true,
+            "requireLtfConfirm": false,
+            "htfMode": "H4_50",
+            "minAtrPct": 0.14,
+            "pullAtr": 0.35,
+            "adaptive": true,
+            "winLen": 6,
+            "slThresh": 2,
+            "requireNegNet": true,
+            "virtExec": {
+              "entryMode": "LIMIT_PULLBACK",
+              "limitExpiryBars": 10,
+              "pendingPolicy": "ignore",
+              "limitSameBarTp": "close",
+              "cooldown": 8,
+              "warmup": 250,
+              "stopAtr": 5,
+              "minStopPct": 1.55,
+              "rewardRisk": 1.75,
+              "maxHoldBars": 180,
+              "beTriggerR": 0.34,
+              "beOffsetPct": 0.24,
+              "costPct": 0.1,
+              "slippagePct": 0.025
+            }
+          },
+          "shortCfg": {
+            "rawFamily": "M15_H1Pullback_Trend",
+            "htfMode": "H4_50",
+            "pbTouchAtr": 0.3,
+            "minAtrPct": 0.14,
+            "pullAtr": 0.35,
+            "adaptive": false
+          },
+          "rangePolicy": "block",
+          "requireH4RallyExhOnShort": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 10,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 8,
+          "warmup": 250,
+          "stopAtr": 5,
+          "minStopPct": 1.55,
+          "rewardRisk": 1.75,
+          "maxHoldBars": 180,
+          "beTriggerR": 0.34,
+          "beOffsetPct": 0.24,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "tp1TriggerR": 0.54,
+          "tp1QtyPct": 50,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.18,
+          "volNormRiskPct": 3,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "longModel": {
+        "modelType": "gradient_boosting",
+        "featureNames": [
+          "launchpool_squeeze_flag",
+          "funding_dir_align",
+          "wick_adv_atr",
+          "atr_ratio_50"
+        ],
+        "threshold": 0.6203,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.7554
+        },
+        "imputer": {
+          "medians": [
+            0.0,
+            0.0,
+            0.23456913876889696,
+            1.2818070231838998
+          ]
+        },
+        "scaler": {
+          "mean": [
+            0.24778761061946902,
+            -0.6495283185840708,
+            0.38017891808497306,
+            1.3186111412650334
+          ],
+          "scale": [
+            0.43172782009382177,
+            2.9452854049684523,
+            0.480790411901946,
+            0.34595929210013876
+          ]
+        },
+        "classifier": {
+          "initScore": 1.0176432261344426,
+          "learningRate": 0.04,
+          "trees": [
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.6152640879154205,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.034513274336283206,
+                0.09606738642883217,
+                -1.794315724436206
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.5888829231262207,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.011042652490808014,
+                0.17451073011873905,
+                -1.5069727492650686
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.6152640879154205,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.012746405457431043,
+                0.3274630006230725,
+                -1.1672038254286887
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.3178226202726364,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.010110014082385153,
+                0.24149846579764114,
+                -1.010835755386593
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                3,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.3715222030878067,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.012792624274472395,
+                0.3030627222940418,
+                -0.6274655484276522
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.3178226202726364,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.02300616147527353,
+                0.3636400856631077,
+                -0.622577643123118
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.6152640879154205,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.0007721079086683229,
+                0.21424186788653712,
+                -0.8567515731050818
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.6268249452114105,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.0012514239191067545,
+                0.1834733270818945,
+                -0.9852462762891326
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                3,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.24737096577882767,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.008945659849676584,
+                0.34863720220894145,
+                -0.7846952522365982
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.5876606404781342,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.013785007370088247,
+                0.12497623562918757,
+                -1.1734087221575997
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                1,
+                -2,
+                -2
+              ],
+              "threshold": [
+                0.5876606404781342,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                -0.024248833544512117,
+                0.11890724111996259,
+                -1.4663605412792076
+              ]
+            },
+            {
+              "childrenLeft": [
+                1,
+                -1,
+                -1
+              ],
+              "childrenRight": [
+                2,
+                -1,
+                -1
+              ],
+              "feature": [
+                2,
+                -2,
+                -2
+              ],
+              "threshold": [
+                -0.7089292407035828,
+                -2.0,
+                -2.0
+              ],
+              "value": [
+                0.011440480003081701,
+                -1.1765364924442132,
+                0.2504419116504566
+              ]
+            }
+          ]
+        }
+      },
+      "shortModel": {
+        "modelType": "logistic_regression",
+        "featureNames": [
+          "regime_trend_score",
+          "d1_slope_atr",
+          "wick_adv_atr",
+          "delta_ratio_1b"
+        ],
+        "threshold": 0.7201,
+        "sizeCurve": {
+          "mode": "linear",
+          "minMult": 0.85,
+          "maxMult": 1.35,
+          "pMax": 0.7736
+        },
+        "imputer": {
+          "medians": [
+            -0.7164445018851878,
+            -1.083850948142045,
+            0.15007956947979892,
+            0.1257680940270809
+          ]
+        },
+        "scaler": {
+          "mean": [
+            -0.6480953417954917,
+            -1.1264159289705546,
+            0.1996888338169818,
+            0.13578490841386365
+          ],
+          "scale": [
+            0.2773317367854421,
+            1.313711037637409,
+            0.20859539377990802,
+            0.1208536644690529
+          ]
+        },
+        "classifier": {
+          "coef": [
+            0.0037593822703080497,
+            0.13367216355742373,
+            0.09101090080017914,
+            0.03799000907463985
+          ],
+          "intercept": 0.9225697665602189
+        }
+      },
+      "selectionMeta": {
+        "calRange": [
+          0,
+          87904
+        ],
+        "valRange": [
+          87904,
+          140646
+        ],
+        "holdoutRangeUntouched": [
+          140646,
+          175808
+        ],
+        "long": {
+          "selectedId": "LONG:bnb_lp_15m:GB_d1_n12|t=0.6203|sc=linear_0.85_1.35",
+          "calCvAuc": 0.5714,
+          "calInAuc": 0.6795,
+          "valRocAuc": 0.5648,
+          "valCorrNet": -0.1196,
+          "calTrainSamples": 113,
+          "usedPooledFallback": false,
+          "eligibleOnVal": false,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 0.5292675707856871,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 47.368421052631575,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -6.866547451793171,
+            "maxMonthlySweepDdPct": 9.078357123180215,
+            "totalSweptNetPct": 10.056083844928054,
+            "compoundedNetPct": 9.217621539138609,
+            "cagrPct": 6.037209772867347,
+            "geomMonthlyPct": 0.4651428343118935,
+            "maxCompoundedDdPct": 15.502614138751197,
+            "winRatePct": 75.53191489361703,
+            "profitFactor": 1.1290535674422277,
+            "liquidationCount": 0,
+            "count": 94
+          }
+        },
+        "short": {
+          "selectedId": "SHORT:bnb_regime_15m:LR_C0.02_unw|t=0.7201|sc=linear_0.85_1.35",
+          "calCvAuc": 0.5171,
+          "calInAuc": 0.5896,
+          "valRocAuc": 0.6078,
+          "valCorrNet": 0.159,
+          "calTrainSamples": 245,
+          "usedPooledFallback": false,
+          "eligibleOnVal": true,
+          "valSelected": {
+            "totalMonths": 19,
+            "meanMonthlySweepPct": 2.179082136288207,
+            "medianMonthlySweepPct": 0,
+            "pctPositiveMonths": 47.368421052631575,
+            "pctMonthsGe30": 0,
+            "worstMonthPct": -4.421770184825336,
+            "maxMonthlySweepDdPct": 7.771546756843804,
+            "totalSweptNetPct": 41.40256058947594,
+            "compoundedNetPct": 48.23431783962344,
+            "cagrPct": 29.9129710299038,
+            "geomMonthlyPct": 2.0933143883116623,
+            "maxCompoundedDdPct": 11.808776561661038,
+            "winRatePct": 77.02702702702703,
+            "profitFactor": 1.6896736983416183,
+            "liquidationCount": 0,
+            "count": 74
+          }
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.9483088492242782,
+          "medianMonthlySweepPct": 0.17058706207233598,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -8.399683267373225,
+          "maxMonthlySweepDdPct": 10.056612617846428,
+          "totalSweptNetPct": 18.017868135261285,
+          "compoundedNetPct": 16.62004653332083,
+          "cagrPct": 10.762586287479635,
+          "geomMonthlyPct": 0.8124987837401232,
+          "maxCompoundedDdPct": 22.336296101970177,
+          "winRatePct": 72.39583333333334,
+          "profitFactor": 1.1208474418355878,
+          "liquidationCount": 0,
+          "count": 192,
+          "long": {
+            "count": 96,
+            "wins": 72,
+            "winRatePct": 75,
+            "profitFactor": 1.0850351555293174,
+            "netSumPct": 6.794543070546339
+          },
+          "short": {
+            "count": 96,
+            "wins": 67,
+            "winRatePct": 69.79166666666666,
+            "profitFactor": 1.1516173418484263,
+            "netSumPct": 14.099917994354447
+          }
+        }
+      }
+    }
+  }
+}

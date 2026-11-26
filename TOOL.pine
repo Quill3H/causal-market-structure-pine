@@ -2,9 +2,11 @@
 // © BigBeluga
 //
 //@version=6
-// Maintenance revision 2026-11-18: SMC Confirmed [3.0.0] — causal 15m/1h high-winrate engines,
-// Limit Pullback + conservative SL/TP + confirmed-close BE+ ratchet, universal symbol support.
-indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [3.0.0]",
+// Maintenance revision 2026-11-23: SMC Confirmed [4.1.0] — Option 1 + v4.1 Profit-Amplification:
+// Calibrated strictly for 15m (<= 15m profile: v4.0 H4-Close-Disp 15m_r3) and 1h (> 15m profile: v3.0 Adaptive-MultiTrap + v4.0 H4-Disp Trend),
+// plus Vol-Normalized Risk Sizing (1h 4.5% [1.5..2.8x], 15m 2.2% [0.75..1.5x]) and optional Partial TP1 + Runner.
+// Paper engine evaluates intrabar/close-bar rules conservatively in parity with research/sim_engine.mjs (unlike Strategy Tester process_orders_on_close = false next-open exits).
+indicator("BigBeluga - Smart Money Concepts", "SMC Confirmed [4.1.0]",
      overlay = true,
      max_bars_back = 5000,
      max_boxes_count = 500,
@@ -83,7 +85,9 @@ bool dispraid       = input.bool(false, "Display Raids", inline="raid", group="F
 
 SIG = "CONFIRMED SIGNALS"
 bool showSignals       = input.bool(true, "Show IN/OUT markers", group = SIG)
-string signalMode      = input.string("SMC High-WinRate [v3.0]", "Signal mode", options = ["SMC High-WinRate [v3.0]", "CHoCH + Source RVOL", "Balanced", "Strict"], group = SIG, tooltip = "SMC High-WinRate [v3.0] automatically selects the causal 15m H1-Clean-Displacement engine (<=15m) or 1h Adaptive-MultiTrap-Polarity engine (>15m) on standard OHLC charts. Legacy modes remain selectable for comparison.")
+string signalMode      = input.string("SMC High-WinRate [v3.0]", "Signal mode", options = ["SMC High-WinRate [v3.0]", "CHoCH + Source RVOL", "Balanced", "Strict"], group = SIG, tooltip = "SMC High-WinRate [v3.0] automatically selects the causal 15m or 1h engine profile configured below on standard OHLC charts. Legacy modes remain selectable for comparison.")
+string engine15mProfile = input.string("v4.0 H4-Close-Disp [3Y OKX]", "15m Engine profile", options = ["v4.0 H4-Close-Disp [3Y OKX]", "v3.0 H1-Clean-Disp [Legacy]"], group = SIG, tooltip = "Default v4.0 H4-Close-Disp (15m_r3) achieves 68.97% WR (+93.3% add / +121.3% comp) on 3-year OKX Spot and 73.9%-81.0% WR on TV-6k windows. Legacy v3.0 H1-Clean-Disp remains selectable.")
+string engine1hProfile  = input.string("v3.0 Adaptive-MultiTrap [All-Weather]", "1h Engine profile", options = ["v3.0 Adaptive-MultiTrap [All-Weather]", "v4.0 H4-Disp Trend [High-Return 1x]"], group = SIG, tooltip = "Default v3.0 Adaptive-MultiTrap achieves 74.21% WR on 3-year OKX Perp (+78.4% 1x / +296.5% 2x comp, positive all 3 years & all 6 half-years). Optional v4.0 H4-Disp Trend (1h_r1r2) maximizes 1x 3-year trend return (+149.1% add / +259.8% comp).")
 float chochSourceRvolMin = input.float(1.2, "CHoCH: minimum OB source RVOL", minval = 0.1, step = 0.1, group = SIG)
 bool signalUseMapping  = input.bool(true, "Legacy: use Mapping agreement", group = SIG)
 bool signalUseFVG      = input.bool(true, "Legacy: use overlapping FVG", group = SIG)
@@ -114,7 +118,7 @@ int qualityCooldownBars = input.int(5, "Legacy: cooldown bars", minval = 1, maxv
 PAPER = "PAPER IN / OUT"
 bool showTradeStats    = input.bool(true, "Show compact scoreboard", group = PAPER)
 bool showPaperLines    = input.bool(true, "Show Limit / SL / TP lines", group = PAPER)
-bool paperUseAutoPreset = input.bool(true, "Auto-tune v3.0 profile (15m / 1h)", group = PAPER, tooltip = "Automatically loads verified 15m (<=15m) or 1h (>15m) execution parameters when Signal mode is SMC High-WinRate [v3.0]. Turn off to use custom inputs below.")
+bool paperUseAutoPreset = input.bool(true, "Auto-tune v4.0/v3.0 profile (15m / 1h)", group = PAPER, tooltip = "Automatically loads verified 15m (<=15m) or 1h (>15m) execution parameters for the selected engine profile when Signal mode is SMC High-WinRate [v3.0]. Turn off to use custom inputs below.")
 string paperEntryModeInput = input.string("LIMIT_PULLBACK", "Custom entry mode", options = ["LIMIT_PULLBACK", "MARKET_NEXT_OPEN"], group = PAPER)
 int paperLimitExpiryInput  = input.int(6, "Custom limit expiry bars", minval = 1, maxval = 50, group = PAPER)
 float paperStopAtr         = input.float(3.0, "Custom stop distance (ATR14)", minval = 0.1, maxval = 10, step = 0.1, group = PAPER)
@@ -124,6 +128,16 @@ int paperMaxBars           = input.int(120, "Custom max holding bars", minval = 
 int paperCooldownBars      = input.int(8, "Custom cooldown bars", minval = 1, maxval = 100, group = PAPER)
 float paperBeTriggerRInput = input.float(0.43, "Custom BE+ trigger (R, 0=off)", minval = 0, maxval = 5, step = 0.01, group = PAPER)
 float paperBeOffsetPctInput = input.float(0.28, "Custom BE+ lock offset (%)", minval = 0, maxval = 5, step = 0.01, group = PAPER)
+float paperLock2TriggerRInput = input.float(0.0, "Custom Lock2 trigger (R, 0=off)", minval = 0, maxval = 5, step = 0.05, group = PAPER)
+float paperLock2OffsetRInput  = input.float(0.0, "Custom Lock2 offset (R)", minval = 0, maxval = 5, step = 0.05, group = PAPER)
+float paperLeverageRef        = input.float(2.0, "Fixed leverage fallback (x)", minval = 1.0, maxval = 5.0, step = 0.5, group = PAPER, tooltip = "Used when Futures sizing mode is Fixed Leverage (default 2.0x). Core 1x metrics remain unchanged.")
+string paperSizingMode        = input.string("VolNorm [v4.1 Auto]", "Futures sizing mode", options = ["VolNorm [v4.1 Auto]", "Custom VolNorm", "Fixed Leverage"], group = PAPER, tooltip = "VolNorm [v4.1 Auto]: 1h uses 4.5% risk [1.5x..2.8x], 15m uses 2.2% risk [0.75x..1.5x]. Custom VolNorm uses Risk/Min/Max below. Fixed Leverage uses the multiplier above.")
+float paperRiskPct            = input.float(4.5, "VolNorm risk / trade (%)", minval = 0.25, maxval = 15.0, step = 0.25, group = PAPER)
+float paperMinLev             = input.float(1.5, "VolNorm min leverage (x)", minval = 0.25, maxval = 5.0, step = 0.1, group = PAPER)
+float paperMaxLev             = input.float(2.8, "VolNorm max leverage (x)", minval = 0.5, maxval = 5.0, step = 0.1, group = PAPER)
+float paperTp1QtyPct          = input.float(0.0, "Partial TP1 qty (%, 0=off)", minval = 0.0, maxval = 95.0, step = 5.0, group = PAPER, tooltip = "Set to 50 for Partial TP1 + Runner. Keep 0 for default v4.0 full-exit parity. When > 0 on 1h v3.0, pair with Custom execution RR=2.0 or TP1 Trigger < 1.15R.")
+float paperTp1TriggerR        = input.float(0.95, "Partial TP1 trigger (R)", minval = 0.25, maxval = 4.0, step = 0.05, group = PAPER)
+float paperTp1LockR           = input.float(0.65, "Post-TP1 SL lock (R, 0=none)", minval = 0.0, maxval = 3.0, step = 0.05, group = PAPER)
 float paperFeePct          = input.float(0.10, "Total entry + exit fees (%)", minval = 0, maxval = 1, step = 0.01, group = PAPER)
 float paperSlippagePct     = input.float(0.025, "Adverse slippage per fill (%)", minval = 0, maxval = 1, step = 0.005, group = PAPER, tooltip = "Conservative paper assumptions: adverse slippage on entry and exit, SL/BE always beats TP if both touch in one bar, gap through SL fills at open, and same-bar non-gap limit fills require close past TP. Only closed trades enter statistics.")
 
@@ -247,6 +261,8 @@ invcol = #ffffff00
 float chartSeconds = timeframe.in_seconds()
 bool is15mProfile = chartSeconds <= 900
 bool useV3Mode = signalMode == "SMC High-WinRate [v3.0]"
+bool useV4_15m = engine15mProfile == "v4.0 H4-Close-Disp [3Y OKX]"
+bool useV4_1h  = engine1hProfile == "v4.0 H4-Disp Trend [High-Return 1x]"
 
 float atr200 = ta.atr(200)
 float atr = atr200 / (5 / len)
@@ -255,7 +271,7 @@ float plRaw = ta.pivotlow(low, mslen, mslen)
 float signalVolumeBase = ta.sma(volume, signalVolLength)[1]
 float chochVolumeBase = ta.sma(volume, 20)[1]
 
-// v3.0.0 Core LTF series
+// v3.0 / v4.0 Core LTF series
 float qualityAtr = ta.atr(14)
 float qualityAtrBaseline = ta.sma(qualityAtr, 100)[1]
 float qualityVolumeBaseline = ta.sma(volume, 20)[1]
@@ -264,18 +280,18 @@ float ltfEma50 = ta.ema(close, 50)
 float ltfPrevHigh20 = ta.highest(high, 20)[1]
 float ltfPrevLow20 = ta.lowest(low, 20)[1]
 
-// v3.0.0 HTF non-lookahead feeds (safe on any chart timeframe)
+// v3.0 / v4.0 HTF non-lookahead feeds (safe on any chart timeframe; 4 total request.security calls)
 string v3HtfTf = chartSeconds <= 900 ? "60" : chartSeconds < 14400 ? "240" : timeframe.period
-string v3D1Tf = chartSeconds < 86400 ? "1D" : timeframe.period
+string v3D1Tf = chartSeconds <= 900 ? "240" : chartSeconds < 86400 ? "1D" : timeframe.period
 
 [rawHtfO, rawHtfH, rawHtfL, rawHtfC, rawHtfEma50, rawHtfAtr14, rawHtfRsi14, rawHtfPrevH10, rawHtfPrevL10, rawHtfV3CloseTime] = request.security(
      syminfo.tickerid, v3HtfTf,
      [open, high, low, close, ta.ema(close, 50), ta.atr(14), ta.rsi(close, 14), ta.highest(high, 10)[1], ta.lowest(low, 10)[1], time_close],
      gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
 
-[rawD1High, rawD1Low, rawD1CloseTime] = request.security(
+[rawAuxO, rawAuxH, rawAuxL, rawAuxC, rawAuxEma50, rawAuxAtr14, rawD1CloseTime] = request.security(
      syminfo.tickerid, v3D1Tf,
-     [high, low, time_close],
+     [open, high, low, close, ta.ema(close, 50), ta.atr(14), time_close],
      gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
 
 // Legacy optional HTF feed
@@ -464,6 +480,10 @@ recordShadowOutcome(int[] slHist, float[] netHist, bool isSl, float netPct, int 
     if netHist.size() > maxLen
         netHist.shift()
     true
+
+calcPosLev(bool useVolNorm, float riskPct, float minLev, float maxLev, float fixedLev, float entryPrice, float dist) =>
+    float stopDistPct = not na(entryPrice) and entryPrice > 0 and not na(dist) and dist > 0 ? dist / entryPrice * 100.0 : na
+    useVolNorm and not na(stopDistPct) and stopDistPct > 0 ? math.max(minLev, math.min(maxLev, riskPct / stopDistPct)) : fixedLev
 
 adaptivePolarityFlip(int[] slHist, float[] netHist, int winLen, int slThresh) =>
     int n = slHist.size()
@@ -1311,7 +1331,7 @@ bool legacyFinalBuy = beforeQualityBuy and buyQualityOK
 bool legacyFinalSell = beforeQualitySell and sellQualityOK
 
 // ============================================================================
-// V3.0.0 CAUSAL CLOSED-HTF LATCHES & SIGNAL ENGINES (15m & 1h)
+// V3.0 / V4.0 CAUSAL CLOSED-HTF LATCHES & SIGNAL ENGINES (15m & 1h)
 // ============================================================================
 var float h1Open = na
 var float h1High = na
@@ -1321,13 +1341,25 @@ var float h1Ema50 = na
 var float h1Atr14 = na
 var float h1Rsi14 = na
 
+var float h4Open = na
+var float h4High = na
+var float h4Low = na
 var float h4Close = na
 var float h4Ema50 = na
+var float h4Atr14 = na
 var float h4PrevHigh10 = na
 var float h4PrevLow10 = na
 
+var float m15H4Open = na
+var float m15H4High = na
+var float m15H4Low = na
+var float m15H4Close = na
+var float m15H4Ema50 = na
+var float m15H4Atr14 = na
+
 var float d1High = na
 var float d1Low = na
+bool isNewH4_15m = false
 
 if barstate.isconfirmed
     if v3HtfBoundary and not na(rawHtfV3CloseTime[1]) and rawHtfV3CloseTime[1] <= time
@@ -1338,15 +1370,26 @@ if barstate.isconfirmed
         h1Ema50 := rawHtfEma50[1]
         h1Atr14 := rawHtfAtr14[1]
         h1Rsi14 := rawHtfRsi14[1]
+        h4Open := rawHtfO[1]
+        h4High := rawHtfH[1]
+        h4Low := rawHtfL[1]
         h4Close := rawHtfC[1]
         h4Ema50 := rawHtfEma50[1]
+        h4Atr14 := rawHtfAtr14[1]
         h4PrevHigh10 := rawHtfPrevH10[1]
         h4PrevLow10 := rawHtfPrevL10[1]
     if d1Boundary and not na(rawD1CloseTime[1]) and rawD1CloseTime[1] <= time
-        d1High := rawD1High[1]
-        d1Low := rawD1Low[1]
+        m15H4Open := rawAuxO[1]
+        m15H4High := rawAuxH[1]
+        m15H4Low := rawAuxL[1]
+        m15H4Close := rawAuxC[1]
+        m15H4Ema50 := rawAuxEma50[1]
+        m15H4Atr14 := rawAuxAtr14[1]
+        isNewH4_15m := true
+        d1High := rawAuxH[1]
+        d1Low := rawAuxL[1]
 
-// --- 15m Engine: H1_CleanDisp_AtrExh ---
+// --- 15m Legacy v3.0 Engine: H1_CleanDisp_AtrExh ---
 int v3_15m_side = 0
 float v3_15m_limit = na
 if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qualityAtr) and qualityAtr > 0 and not na(ltfEma50) and not na(h1Atr14) and h1Atr14 > 0 and not na(h1Ema50)
@@ -1367,7 +1410,24 @@ if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qu
                 v3_15m_side := cand15
                 v3_15m_limit := lim15
 
-// --- 1h Engine: HtfSmcMultiTrap + Virtual Shadow Ledger (AdaptiveTrapPolarity) ---
+// --- 15m v4.0 Engine (15m_r3): H4 Close Displacement + LTF EMA50 ---
+int v4_15m_rawSide = 0
+float v4_15m_rawLimit = na
+if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and isNewH4_15m and not na(qualityAtr) and qualityAtr > 0 and not na(ltfEma50) and not na(m15H4Atr14) and m15H4Atr14 > 0 and not na(m15H4Ema50)
+    float atrPct15 = (qualityAtr / close) * 100.0
+    float h4Range15 = m15H4High - m15H4Low
+    if atrPct15 >= 0.15 and h4Range15 > 0
+        float h4Body15 = m15H4Close - m15H4Open
+        bool h4Bull15 = h4Body15 >= 0.85 * m15H4Atr14 and (m15H4Close - m15H4Low) / h4Range15 >= 0.60 and m15H4Close > m15H4Ema50 and close > ltfEma50
+        bool h4Bear15 = -h4Body15 >= 0.85 * m15H4Atr14 and (m15H4High - m15H4Close) / h4Range15 >= 0.60 and m15H4Close < m15H4Ema50 and close < ltfEma50
+        if h4Bull15 != h4Bear15
+            int rSide15 = h4Bull15 ? 1 : -1
+            float rLim15 = close - rSide15 * 0.35 * qualityAtr
+            if rLim15 > 0
+                v4_15m_rawSide := rSide15
+                v4_15m_rawLimit := rLim15
+
+// --- 1h Default v3.0 Engine: HtfSmcMultiTrap ---
 int v3_1h_rawSide = 0
 float v3_1h_rawLimit = na
 if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qualityAtr) and qualityAtr > 0 and not na(h4Close) and not na(h4Ema50)
@@ -1435,7 +1495,40 @@ if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qu
             v3_1h_rawSide := rSide
             v3_1h_rawLimit := rLim
 
-// Virtual shadow ledger for 1h AdaptiveTrapPolarity (always runs causally on confirmed bars)
+// --- 1h Optional v4.0 High-Return Trend Engine (1h_r1r2): H4Disp_0.9_off0.15 ---
+int v4_1h_rawSide = 0
+float v4_1h_rawLimit = na
+if barstate.isconfirmed and chart.is_standard and bar_index >= 250 and not na(qualityAtr) and qualityAtr > 0 and not na(ltfEma50) and not na(h4Atr14) and h4Atr14 > 0 and not na(h4Ema50)
+    float h4Range1h = h4High - h4Low
+    if h4Range1h > 0
+        float h4Body1h = h4Close - h4Open
+        bool h4Bull1h = h4Body1h >= 0.90 * h4Atr14 and (h4Close - h4Low) / h4Range1h >= 0.60 and h4Close > h4Ema50 and close > ltfEma50
+        bool h4Bear1h = -h4Body1h >= 0.90 * h4Atr14 and (h4High - h4Close) / h4Range1h >= 0.60 and h4Close < h4Ema50 and close < ltfEma50
+        if h4Bull1h != h4Bear1h
+            int rSide1hV4 = h4Bull1h ? 1 : -1
+            float rLim1hV4 = close - rSide1hV4 * 0.15 * qualityAtr
+            if rLim1hV4 > 0
+                v4_1h_rawSide := rSide1hV4
+                v4_1h_rawLimit := rLim1hV4
+
+// Unified profile config for active chart (15m v4.0 default/v3.0 legacy; 1h v3.0 default/v4.0 optional)
+float vPullAtrCfg   = is15mProfile ? 0.35 : (useV4_1h ? 0.15 : 0.18)
+float vStopAtrCfg   = is15mProfile ? (useV4_15m ? 5.5  : 3.0)  : (useV4_1h ? 4.0  : 3.2)
+float vMinStopCfg   = is15mProfile ? (useV4_15m ? 1.6  : 1.0)  : (useV4_1h ? 1.8  : 1.4)
+float vRrCfg        = is15mProfile ? (useV4_15m ? 2.0  : 1.15) : (useV4_1h ? 2.5  : 1.15)
+int   vMaxHoldCfg   = is15mProfile ? (useV4_15m ? 240  : 120)  : (useV4_1h ? 192  : 96)
+float vBeTrigCfg    = is15mProfile ? (useV4_15m ? 0.44 : 0.43) : (useV4_1h ? 0.46 : 0.43)
+float vBeOffCfg     = is15mProfile ? (useV4_15m ? 0.38 : 0.28) : (useV4_1h ? 0.40 : 0.34)
+float vLock2TrigCfg = is15mProfile ? 0.0  : (useV4_1h ? 1.20 : 0.0)
+float vLock2OffCfg  = is15mProfile ? 0.0  : (useV4_1h ? 0.75 : 0.0)
+int   vExpiryCfg    = is15mProfile ? (useV4_15m ? 16   : 6)    : 6
+int   vCooldownCfg  = is15mProfile ? (useV4_15m ? 12   : 8)    : (useV4_1h ? 1    : 4)
+
+int   activeRawSide   = is15mProfile ? (useV4_15m ? v4_15m_rawSide : v3_15m_side) : (useV4_1h ? v4_1h_rawSide : v3_1h_rawSide)
+float activeRawLimit  = is15mProfile ? (useV4_15m ? v4_15m_rawLimit : v3_15m_limit) : (useV4_1h ? v4_1h_rawLimit : v3_1h_rawLimit)
+bool  useShadowLedger = is15mProfile ? useV4_15m : true
+
+// Virtual shadow ledger for AdaptivePolarity (always runs causally on confirmed bars)
 var int   vSide = 0
 var int   vPendingSide = 0
 var float vPendingAtr = na
@@ -1449,15 +1542,16 @@ var float vStop = na
 var float vTarget = na
 var float vInitialDist = na
 var bool  vBeArmed = false
+var bool  vLock2Armed = false
 var int[]   vLongSlHist = array.new<int>()
 var float[] vLongNetHist = array.new<float>()
 var int[]   vShortSlHist = array.new<int>()
 var float[] vShortNetHist = array.new<float>()
 
-int v3_1h_side = 0
-float v3_1h_limit = na
+int   shadowAdaptedSide = 0
+float shadowAdaptedLimit = na
 
-if barstate.isconfirmed and chart.is_standard
+if barstate.isconfirmed and chart.is_standard and useShadowLedger
     // 1) Shadow pending limit fill / expiry
     if vSide == 0 and vPendingSide != 0
         bool vBullPend = vPendingSide == 1
@@ -1466,7 +1560,7 @@ if barstate.isconfirmed and chart.is_standard
             bool vFillAtOpen = vBullPend ? open <= vPendingLimit : open >= vPendingLimit
             float vRawFill = vBullPend ? math.min(open, vPendingLimit) : math.max(open, vPendingLimit)
             float vFill = adverseFill(vRawFill, vPendingSide, true, V3_SHADOW_SLIP_PCT)
-            [vOk, vS, vT, vD] = resolvePaperLevels(vPendingSide, vFill, vPendingAtr, 3.2, 1.4, 1.15)
+            [vOk, vS, vT, vD] = resolvePaperLevels(vPendingSide, vFill, vPendingAtr, vStopAtrCfg, vMinStopCfg, vRrCfg)
             if vOk
                 vSide := vPendingSide
                 vEntry := vFill
@@ -1476,6 +1570,7 @@ if barstate.isconfirmed and chart.is_standard
                 vEntryBar := bar_index
                 vFilledAtOpen := vFillAtOpen
                 vBeArmed := false
+                vLock2Armed := false
             vPendingSide := 0
             vPendingAtr := na
             vPendingLimit := na
@@ -1488,67 +1583,82 @@ if barstate.isconfirmed and chart.is_standard
 
     // 2) Shadow intra-bar exit + push settled outcome BEFORE adaptive polarity decision on bar i
     if vSide != 0
-        [vExitRaw, vExitReason] = paperExitConservative(vSide, "LIMIT_PULLBACK", bar_index == vEntryBar, vFilledAtOpen, vBeArmed, open, high, low, close, vStop, vTarget, bar_index - vEntryBar + 1, 96)
+        bool vIsBeRaised = vBeArmed or (vLock2Armed and vSide * (vStop - vEntry) >= -EPS_ZERO)
+        [vExitRaw, vExitReason] = paperExitConservative(vSide, "LIMIT_PULLBACK", bar_index == vEntryBar, vFilledAtOpen, vIsBeRaised, open, high, low, close, vStop, vTarget, bar_index - vEntryBar + 1, vMaxHoldCfg)
         if vExitReason != 0
             float vOutPrice = adverseFill(vExitRaw, vSide, false, V3_SHADOW_SLIP_PCT)
             float vNet = vSide * (vOutPrice - vEntry) / vEntry * 100.0 - V3_SHADOW_FEE_PCT
             vNet := math.abs(vNet) < EPS_ZERO ? 0.0 : vNet
-            bool isPureSl = vExitReason == 1 and not vBeArmed
+            bool isPureSl = vExitReason == 1 and not vIsBeRaised
             if vSide == 1
                 recordShadowOutcome(vLongSlHist, vLongNetHist, isPureSl, vNet, 6)
             else
                 recordShadowOutcome(vShortSlHist, vShortNetHist, isPureSl, vNet, 6)
             vSide := 0
 
-    // 3) Shadow confirmed-close BE+ ratchet (active from bar i + 1)
-    if vSide != 0 and not vBeArmed
-        if vSide * (close - vEntry) >= 0.43 * vInitialDist
-            float vRaisedStop = vEntry * (1.0 + vSide * 0.34 / 100.0)
+    // 3a) Shadow confirmed-close BE+ ratchet (active from bar i + 1)
+    if vSide != 0 and vBeTrigCfg > 0 and not vBeArmed
+        if vSide * (close - vEntry) >= vBeTrigCfg * vInitialDist
+            float vRaisedStop = vEntry * (1.0 + vSide * vBeOffCfg / 100.0)
             if vSide * (vRaisedStop - vStop) > 0 and vSide * (vTarget - vRaisedStop) > 0
                 vStop := vRaisedStop
                 vBeArmed := true
 
+    // 3b) Shadow confirmed-close Tier-2 Lock2 ratchet (active from bar i + 1)
+    if vSide != 0 and vLock2TrigCfg > 0 and not vLock2Armed
+        if vSide * (close - vEntry) >= vLock2TrigCfg * vInitialDist
+            float vRaisedLock2 = vEntry + vSide * vLock2OffCfg * vInitialDist
+            if vSide * (vRaisedLock2 - vStop) > 0 and vSide * (vTarget - vRaisedLock2) > 0
+                vStop := vRaisedLock2
+                vLock2Armed := true
+
     // 4) Live adaptive polarity decision (reading history AFTER settled exits on bar i)
-    if v3_1h_rawSide != 0
-        bool shouldFlip = v3_1h_rawSide == 1
+    if activeRawSide != 0
+        bool shouldFlip = activeRawSide == 1
              ? adaptivePolarityFlip(vLongSlHist, vLongNetHist, 6, 2)
              : adaptivePolarityFlip(vShortSlHist, vShortNetHist, 6, 2)
-        int adaptSide = shouldFlip ? -v3_1h_rawSide : v3_1h_rawSide
-        float adaptLimit = close - adaptSide * 0.18 * qualityAtr
+        int adaptSide = shouldFlip ? -activeRawSide : activeRawSide
+        float adaptLimit = close - adaptSide * vPullAtrCfg * qualityAtr
         if adaptLimit > 0
-            v3_1h_side := adaptSide
-            v3_1h_limit := adaptLimit
+            shadowAdaptedSide := adaptSide
+            shadowAdaptedLimit := adaptLimit
 
     // 5) Queue new shadow pending limit on raw signal
-    if vSide == 0 and vPendingSide == 0 and v3_1h_rawSide != 0 and bar_index >= 250 and cooldownGate(true, vLastAccepted, bar_index, 4)
-        [vPreOk, _vs, _vt, _vd] = resolvePaperLevels(v3_1h_rawSide, v3_1h_rawLimit, qualityAtr, 3.2, 1.4, 1.15)
+    if vSide == 0 and vPendingSide == 0 and activeRawSide != 0 and bar_index >= 250 and cooldownGate(true, vLastAccepted, bar_index, vCooldownCfg)
+        [vPreOk, _vs, _vt, _vd] = resolvePaperLevels(activeRawSide, activeRawLimit, qualityAtr, vStopAtrCfg, vMinStopCfg, vRrCfg)
         if vPreOk
-            vPendingSide := v3_1h_rawSide
+            vPendingSide := activeRawSide
             vPendingAtr := qualityAtr
-            vPendingLimit := v3_1h_rawLimit
-            vPendingExpiryBar := bar_index + 6
+            vPendingLimit := activeRawLimit
+            vPendingExpiryBar := bar_index + vExpiryCfg
             vLastAccepted := bar_index
 
 // ============================================================================
 // EFFECTIVE EXECUTION PROFILE & LIVE PAPER ENGINE (100% sim_engine.mjs parity)
 // ============================================================================
 bool applyV3Auto = useV3Mode and paperUseAutoPreset
-string effEntryMode   = applyV3Auto ? "LIMIT_PULLBACK" : (useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : (not useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : "MARKET_NEXT_OPEN"))
-int    effExpiryBars  = applyV3Auto ? 6 : paperLimitExpiryInput
-float  effStopAtr     = applyV3Auto ? (is15mProfile ? 3.0 : 3.2) : paperStopAtr
-float  effMinStopPct  = applyV3Auto ? (is15mProfile ? 1.0 : 1.4) : paperMinStopPctInput
-float  effRewardRisk  = applyV3Auto ? 1.15 : paperRewardRisk
-int    effMaxHoldBars = applyV3Auto ? (is15mProfile ? 120 : 96) : paperMaxBars
-int    effCooldown    = applyV3Auto ? (is15mProfile ? 8 : 4) : paperCooldownBars
-float  effBeTriggerR  = applyV3Auto ? 0.43 : paperBeTriggerRInput
-float  effBeOffsetPct = applyV3Auto ? (is15mProfile ? 0.28 : 0.34) : paperBeOffsetPctInput
+string effEntryMode     = applyV3Auto ? "LIMIT_PULLBACK" : (useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : (not useV3Mode and not paperUseAutoPreset ? paperEntryModeInput : "MARKET_NEXT_OPEN"))
+int    effExpiryBars    = applyV3Auto ? vExpiryCfg    : paperLimitExpiryInput
+float  effStopAtr       = applyV3Auto ? vStopAtrCfg   : paperStopAtr
+float  effMinStopPct    = applyV3Auto ? vMinStopCfg   : paperMinStopPctInput
+float  effRewardRisk    = applyV3Auto ? vRrCfg        : paperRewardRisk
+int    effMaxHoldBars   = applyV3Auto ? vMaxHoldCfg   : paperMaxBars
+int    effCooldown      = applyV3Auto ? vCooldownCfg  : paperCooldownBars
+float  effBeTriggerR    = applyV3Auto ? vBeTrigCfg    : paperBeTriggerRInput
+float  effBeOffsetPct   = applyV3Auto ? vBeOffCfg     : paperBeOffsetPctInput
+float  effLock2TriggerR = applyV3Auto ? vLock2TrigCfg : paperLock2TriggerRInput
+float  effLock2OffsetR  = applyV3Auto ? vLock2OffCfg  : paperLock2OffsetRInput
+bool   effUseVolNorm    = paperSizingMode != "Fixed Leverage"
+bool   effAutoVolNorm   = paperSizingMode == "VolNorm [v4.1 Auto]"
+float  effRiskPct       = effAutoVolNorm ? (is15mProfile ? 2.2 : 4.5) : paperRiskPct
+float  effMinLev        = effAutoVolNorm ? (is15mProfile ? 0.75 : 1.5) : paperMinLev
+float  effMaxLev        = math.max(effMinLev, effAutoVolNorm ? (is15mProfile ? 1.5 : 2.8) : paperMaxLev)
+float  effTp1QtyFrac    = paperTp1TriggerR > 0 and paperTp1QtyPct > 0 ? paperTp1QtyPct / 100.0 : 0.0
 
-int candSide = useV3Mode
-     ? (is15mProfile ? v3_15m_side : v3_1h_side)
-     : (legacyFinalBuy ? 1 : legacyFinalSell ? -1 : 0)
-float candLimit = useV3Mode
-     ? (is15mProfile ? v3_15m_limit : v3_1h_limit)
-     : (effEntryMode == "LIMIT_PULLBACK" ? close : na)
+int   activeEngineSide  = useShadowLedger ? shadowAdaptedSide : activeRawSide
+float activeEngineLimit = useShadowLedger ? shadowAdaptedLimit : activeRawLimit
+int   candSide  = useV3Mode ? activeEngineSide : (legacyFinalBuy ? 1 : legacyFinalSell ? -1 : 0)
+float candLimit = useV3Mode ? activeEngineLimit : (effEntryMode == "LIMIT_PULLBACK" ? close : na)
 
 var int   paperSide = 0
 var int   paperPendingSide = 0
@@ -1569,6 +1679,13 @@ var float paperInitialStop = na
 var float paperTarget = na
 var float paperInitialDist = na
 var bool  paperBeArmed = false
+var bool  paperLock2Armed = false
+var float paperActiveLev = 1.0
+var float paperTp1QtyFrac = 0.0
+var float paperTp1Price = na
+var bool  paperTp1Hit = false
+var float paperRemFrac = 1.0
+var float paperLeg1Net = 0.0
 
 var int   paperWins = 0
 var int   paperLosses = 0
@@ -1576,6 +1693,10 @@ var int   paperTies = 0
 var float paperGains = 0.0
 var float paperLossSum = 0.0
 var float paperTotalNet = 0.0
+var float paperGainsLev = 0.0
+var float paperLossSumLev = 0.0
+var float paperTotalNetLev = 0.0
+var float paperEquityLev = 1.0
 var paperVisual[] paperHistory = array.new<paperVisual>()
 
 bool  paperInLong = false
@@ -1627,6 +1748,13 @@ if barstate.isconfirmed and chart.is_standard
                     paperFilledAtOpen := true
                     paperActiveEntryMode := paperPendingEntryMode
                     paperBeArmed := false
+                    paperLock2Armed := false
+                    paperActiveLev := calcPosLev(effUseVolNorm, effRiskPct, effMinLev, effMaxLev, paperLeverageRef, fill, d)
+                    paperTp1QtyFrac := effTp1QtyFrac
+                    paperTp1Price := effTp1QtyFrac > 0.0 ? fill + paperSide * paperTp1TriggerR * d : na
+                    paperTp1Hit := false
+                    paperRemFrac := 1.0
+                    paperLeg1Net := 0.0
                     paperInLong := paperSide == 1
                     paperInShort := paperSide == -1
                     paperInPrice := fill
@@ -1654,6 +1782,13 @@ if barstate.isconfirmed and chart.is_standard
                     paperFilledAtOpen := fillAtOpen
                     paperActiveEntryMode := paperPendingEntryMode
                     paperBeArmed := false
+                    paperLock2Armed := false
+                    paperActiveLev := calcPosLev(effUseVolNorm, effRiskPct, effMinLev, effMaxLev, paperLeverageRef, fill, d)
+                    paperTp1QtyFrac := effTp1QtyFrac
+                    paperTp1Price := effTp1QtyFrac > 0.0 ? fill + paperSide * paperTp1TriggerR * d : na
+                    paperTp1Hit := false
+                    paperRemFrac := 1.0
+                    paperLeg1Net := 0.0
                     paperInLong := paperSide == 1
                     paperInShort := paperSide == -1
                     paperInPrice := fill
@@ -1667,37 +1802,93 @@ if barstate.isconfirmed and chart.is_standard
                 paperPendingLimit := na
                 paperPendingExpiryBar := na
 
-    // 2) Conservative intra-bar exit check (including fill bar)
+    // 2) Conservative intra-bar exit check (including fill bar & optional Partial TP1)
     if paperSide != 0
-        [exitRaw, exitReason] = paperExitConservative(paperSide, paperActiveEntryMode, bar_index == paperEntryBar, paperFilledAtOpen, paperBeArmed, open, high, low, close, paperStop, paperTarget, bar_index - paperEntryBar + 1, effMaxHoldBars)
+        bool paperIsBeRaised = paperBeArmed or paperTp1Hit or (paperLock2Armed and paperSide * (paperStop - paperEntry) >= -EPS_ZERO)
+        bool bullOpen = paperSide == 1
+        bool isEntryBarNow = bar_index == paperEntryBar
+        bool canGapAndHL = paperActiveEntryMode == "MARKET_NEXT_OPEN" or not isEntryBarNow or paperFilledAtOpen
+        bool gapStopNow = bullOpen ? open <= paperStop : open >= paperStop
+        bool gapTargetNow = canGapAndHL and (bullOpen ? open >= paperTarget : open <= paperTarget)
+        bool hitStopNow = bullOpen ? low <= paperStop : high >= paperStop
+        bool tp1JustHitByWick = false
+        if paperTp1QtyFrac > 0.0 and not paperTp1Hit and not na(paperTp1Price) and not gapStopNow
+            bool hitTp1Bar = false
+            float tp1Raw = na
+            if gapTargetNow
+                hitTp1Bar := true
+                tp1Raw := paperTp1Price
+            else if not hitStopNow
+                bool gapTp1 = canGapAndHL and (bullOpen ? open >= paperTp1Price : open <= paperTp1Price)
+                bool hitTp1 = canGapAndHL ? (bullOpen ? high >= paperTp1Price : low <= paperTp1Price) : (bullOpen ? close >= paperTp1Price : close <= paperTp1Price)
+                if gapTp1 or hitTp1
+                    hitTp1Bar := true
+                    tp1Raw := gapTp1 ? open : paperTp1Price
+                    tp1JustHitByWick := not gapTp1
+            if hitTp1Bar
+                float tp1Exit = adverseFill(tp1Raw, paperSide, false, paperSlippagePct)
+                float leg1Net = paperSide * (tp1Exit - paperEntry) / paperEntry * 100.0 - paperFeePct
+                paperLeg1Net += paperTp1QtyFrac * leg1Net
+                paperRemFrac := 1.0 - paperTp1QtyFrac
+                paperTp1Hit := true
+        [exitRaw, exitReason] = paperExitConservative(paperSide, paperActiveEntryMode, isEntryBarNow, paperFilledAtOpen, paperIsBeRaised, open, high, low, close, paperStop, paperTarget, bar_index - paperEntryBar + 1, effMaxHoldBars)
+        if tp1JustHitByWick and exitReason == 2 and not (bullOpen ? close >= paperTarget : close <= paperTarget)
+            if bar_index - paperEntryBar + 1 >= effMaxHoldBars
+                exitRaw := close
+                exitReason := 3
+            else
+                exitReason := 0
+                exitRaw := na
         if exitReason != 0
             paperOutPrice := adverseFill(exitRaw, paperSide, false, paperSlippagePct)
-            paperClosedNet := paperSide * (paperOutPrice - paperEntry) / paperEntry * 100.0 - paperFeePct
+            float remNet = paperSide * (paperOutPrice - paperEntry) / paperEntry * 100.0 - paperFeePct
+            paperClosedNet := paperLeg1Net + paperRemFrac * remNet
             paperClosedNet := math.abs(paperClosedNet) < EPS_ZERO ? 0.0 : paperClosedNet
+            float closedLevNet = paperClosedNet * paperActiveLev
             paperOutReason := exitReason
             paperClosedSide := paperSide
             paperClosedEntry := paperEntry
             if paperClosedNet > EPS_ZERO
                 paperWins += 1
                 paperGains += paperClosedNet
+                paperGainsLev += closedLevNet
             else if paperClosedNet < -EPS_ZERO
                 paperLosses += 1
                 paperLossSum -= paperClosedNet
+                paperLossSumLev -= closedLevNet
             else
                 paperTies += 1
             paperTotalNet += paperClosedNet
-            paperHistory.unshift(paperVisual.new(side = paperSide, xStart = paperEntryTime, xEnd = time, entryPrice = paperEntry, stopPrice = paperStop, initialStop = paperInitialStop, targetPrice = paperTarget, beArmed = paperBeArmed, outReason = exitReason))
+            paperTotalNetLev += closedLevNet
+            float levFactor = 1.0 + closedLevNet / 100.0
+            paperEquityLev := levFactor <= 0.0 ? 0.0 : paperEquityLev * levFactor
+            paperHistory.unshift(paperVisual.new(side = paperSide, xStart = paperEntryTime, xEnd = time, entryPrice = paperEntry, stopPrice = paperStop, initialStop = paperInitialStop, targetPrice = paperTarget, beArmed = paperIsBeRaised, outReason = exitReason))
             if paperHistory.size() > MAX_PAPER_VISUALS
                 paperHistory.pop()
             paperSide := 0
 
-    // 3) Confirmed-close Breakeven-Plus-Cost Ratchet (active starting bar i + 1)
+    // 3.0) Confirmed-close TP1 Stop-Lock Ratchet
+    if paperSide != 0 and paperTp1Hit and paperTp1LockR > 0
+        float raisedTp1Stop = paperEntry + paperSide * paperTp1LockR * paperInitialDist
+        if paperSide * (raisedTp1Stop - paperStop) > 0 and paperSide * (paperTarget - raisedTp1Stop) > 0
+            paperStop := raisedTp1Stop
+            paperBeArmed := true
+
+    // 3a) Confirmed-close Breakeven-Plus-Cost Ratchet (active starting bar i + 1)
     if paperSide != 0 and effBeTriggerR > 0 and not paperBeArmed
         if paperSide * (close - paperEntry) >= effBeTriggerR * paperInitialDist
             float raisedStop = paperEntry * (1.0 + paperSide * effBeOffsetPct / 100.0)
             if paperSide * (raisedStop - paperStop) > 0 and paperSide * (paperTarget - raisedStop) > 0
                 paperStop := raisedStop
                 paperBeArmed := true
+
+    // 3b) Confirmed-close Tier-2 Lock2 Ratchet (active starting bar i + 1)
+    if paperSide != 0 and effLock2TriggerR > 0 and not paperLock2Armed
+        if paperSide * (close - paperEntry) >= effLock2TriggerR * paperInitialDist
+            float raisedLock2 = paperEntry + paperSide * effLock2OffsetR * paperInitialDist
+            if paperSide * (raisedLock2 - paperStop) > 0 and paperSide * (paperTarget - raisedLock2) > 0
+                paperStop := raisedLock2
+                paperLock2Armed := true
 
     // 4) Queue new pending order if flat & not pending & cooldown satisfied
     if paperSide == 0 and paperPendingSide == 0 and candSide != 0 and bar_index >= 250 and cooldownGate(true, lastPaperSignal, bar_index, effCooldown)
@@ -1734,12 +1925,15 @@ if barstate.islast and showPaperLines and chart.is_standard
         bin.ln.unshift(line.new(x1 = paperSignalTime, x2 = time, y1 = paperPendingLimit, y2 = paperPendingLimit, xloc = xloc.bar_time, color = pendCol, style = line.style_dotted, width = 2))
         bin.lb.unshift(label.new(x = time, y = paperPendingLimit, xloc = xloc.bar_time, text = (paperPendingSide == 1 ? "LMT L " : "LMT S ") + str.tostring(paperPendingLimit, format.mintick) + " (" + str.tostring(barsLeft) + "b)", color = color.new(pendCol, 85), textcolor = pendCol, style = label.style_label_left, size = size.tiny))
     if paperSide != 0
-        color slCol = paperBeArmed ? #26a69a : #ff9800
-        string slPrefix = paperBeArmed ? "BE+ " : "SL "
+        color slCol = paperBeArmed or paperLock2Armed ? #26a69a : #ff9800
+        string slPrefix = paperLock2Armed ? "L2+ " : paperBeArmed ? "BE+ " : "SL "
         bin.ln.unshift(line.new(x1 = paperEntryTime, x2 = time, y1 = paperStop, y2 = paperStop, xloc = xloc.bar_time, extend = extend.right, color = slCol, style = line.style_dashed, width = 2))
         bin.ln.unshift(line.new(x1 = paperEntryTime, x2 = time, y1 = paperTarget, y2 = paperTarget, xloc = xloc.bar_time, extend = extend.right, color = color.aqua, style = line.style_dashed, width = 2))
         bin.lb.unshift(label.new(x = time, y = paperStop, xloc = xloc.bar_time, text = slPrefix + str.tostring(paperStop, format.mintick), color = color.new(slCol, 85), textcolor = slCol, style = label.style_label_left, size = size.tiny))
         bin.lb.unshift(label.new(x = time, y = paperTarget, xloc = xloc.bar_time, text = "TP " + str.tostring(paperTarget, format.mintick), color = color.new(color.aqua, 85), textcolor = color.aqua, style = label.style_label_left, size = size.tiny))
+        if paperTp1QtyFrac > 0.0 and not paperTp1Hit and not na(paperTp1Price)
+            bin.ln.unshift(line.new(x1 = paperEntryTime, x2 = time, y1 = paperTp1Price, y2 = paperTp1Price, xloc = xloc.bar_time, extend = extend.right, color = #4dd0e1, style = line.style_dotted, width = 1))
+            bin.lb.unshift(label.new(x = time, y = paperTp1Price, xloc = xloc.bar_time, text = "TP1 " + str.tostring(paperTp1Price, format.mintick), color = color.new(#4dd0e1, 85), textcolor = #4dd0e1, style = label.style_label_left, size = size.tiny))
     if paperHistory.size() > 0
         for item in paperHistory
             color histSlCol = item.beArmed ? #26a69a : #ff9800
@@ -1748,16 +1942,24 @@ if barstate.islast and showPaperLines and chart.is_standard
 
 int paperClosedCount = paperWins + paperLosses + paperTies
 float paperPF = paperLossSum > 0 ? paperGains / paperLossSum : na
+float paperPFLev = paperLossSumLev > 0 ? paperGainsLev / paperLossSumLev : na
 var table winLoss = table.new(position.top_right, 1, 1, bgcolor = color.new(color.black, 25))
 if barstate.islast
     if showTradeStats
+        float shownPF = effUseVolNorm ? paperPFLev : paperPF
         string winText = paperClosedCount > 0 ? str.tostring(paperWins * 100.0 / paperClosedCount, "0.0") + "% (" + str.tostring(paperWins) + ")" : "N/A"
         string lossText = paperClosedCount > 0 ? str.tostring(paperLosses * 100.0 / paperClosedCount, "0.0") + "% (" + str.tostring(paperLosses) + ")" : "N/A"
-        string pfText = paperClosedCount > 0 ? (not na(paperPF) ? str.tostring(paperPF, "0.00") : "∞") : "N/A"
+        string pfText = paperClosedCount > 0 ? (not na(shownPF) ? str.tostring(shownPF, "0.00") : "∞") : "N/A"
         string netSign = paperTotalNet >= 0 ? "+" : ""
         string netText = paperClosedCount > 0 ? netSign + str.tostring(paperTotalNet, "0.00") + "%" : "N/A"
-        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | PF=" + pfText + " | Net " + netText
-        table.cell(winLoss, 0, 0, boardText, text_color = color.white, text_size = size.small, tooltip = "Chỉ tính lệnh mô phỏng đã OUT trong lịch sử đang tải, sau phí (" + str.tostring(paperFeePct, "0.00") + "%) và trượt giá (" + str.tostring(paperSlippagePct, "0.000") + "%/chiều). Engine v3.0: " + (is15mProfile ? "15m H1-CleanDisp" : "1h Adaptive-MultiTrap") + ".")
+        string levLabel = effUseVolNorm ? "VolNorm" : str.tostring(paperLeverageRef, "0.#") + "x"
+        float paperCompLevPct = (paperEquityLev - 1.0) * 100.0
+        string levText = paperClosedCount > 0 and (effUseVolNorm or paperLeverageRef > 1.0) ? " | " + levLabel + " " + (paperTotalNetLev >= 0 ? "+" : "") + str.tostring(paperTotalNetLev, "0.0") + "% (Comp " + (paperCompLevPct >= 0 ? "+" : "") + str.tostring(paperCompLevPct, "0.0") + "%)" : ""
+        // When effUseVolNorm is enabled, shownPF reflects VolNorm-levered paperPFLev rather than 1x paperPF; label explicitly beside 1x Net.
+        string pfLabel = effUseVolNorm ? "PF (Lev)=" : "PF (1x)="
+        string boardText = "Thắng " + winText + " | Thua " + lossText + (paperTies > 0 ? " | Hòa " + str.tostring(paperTies) : "") + " | N=" + str.tostring(paperClosedCount) + " | " + pfLabel + pfText + " | 1x Net " + netText + levText
+        string engineDesc = (is15mProfile ? (useV4_15m ? "15m v4.0 H4-Close-Disp" : "15m v3.0 H1-CleanDisp") : (useV4_1h ? "1h v4.0 H4-Disp Trend" : "1h v3.0 Adaptive-MultiTrap")) + (effUseVolNorm ? " | VolNorm" : " | Fixed") + (effTp1QtyFrac > 0.0 ? " + TP1" : "")
+        table.cell(winLoss, 0, 0, boardText, text_color = color.white, text_size = size.small, tooltip = "Chỉ tính lệnh mô phỏng đã OUT trong lịch sử đang tải, sau phí (" + str.tostring(paperFeePct, "0.00") + "%) và trượt giá (" + str.tostring(paperSlippagePct, "0.000") + "%/chiều). Engine: " + engineDesc + ".")
     else
         table.clear(winLoss, 0, 0, 0, 0)
 
@@ -1771,8 +1973,8 @@ plotshape(showSignals and paperOutReason == 4 ? paperOutPrice : na, title = "Pap
 plotshape(showSignals and paperOutReason == 1 ? paperOutPrice : na, title = "Paper OUT SL", style = shape.xcross, location = location.absolute, color = color.orange, text = "OUT SL", textcolor = color.orange, size = size.tiny)
 plotshape(showSignals and paperOutReason == 3 ? paperOutPrice : na, title = "Paper OUT TIME", style = shape.xcross, location = location.absolute, color = color.silver, text = "OUT T", textcolor = color.silver, size = size.tiny)
 
-alertcondition(barstate.isconfirmed and candSide == 1, "Signal BUY (Pending)", "SMC v3.0 Signal BUY: {{ticker}} {{interval}}")
-alertcondition(barstate.isconfirmed and candSide == -1, "Signal SELL (Pending)", "SMC v3.0 Signal SELL: {{ticker}} {{interval}}")
+alertcondition(barstate.isconfirmed and candSide == 1, "Signal BUY (Pending)", "SMC v4.0 Signal BUY: {{ticker}} {{interval}}")
+alertcondition(barstate.isconfirmed and candSide == -1, "Signal SELL (Pending)", "SMC v4.0 Signal SELL: {{ticker}} {{interval}}")
 alertcondition(paperInLong, "Paper IN LONG", "Paper IN LONG: {{ticker}} {{interval}}")
 alertcondition(paperInShort, "Paper IN SHORT", "Paper IN SHORT: {{ticker}} {{interval}}")
 alertcondition(paperOutReason == 2, "Paper OUT TP", "Paper OUT TP: {{ticker}} {{interval}}")
@@ -1786,7 +1988,7 @@ plot(paperOutPrice, "Paper exit price", display = display.data_window)
 plot(paperClosedNet, "Paper closed net (%)", display = display.data_window)
 
 // Compact Audit series (17 hidden plots; total plot calls = 28)
-plot(is15mProfile ? v3_15m_side : v3_1h_rawSide, "Audit: raw signal side", display = display.none)
+plot(activeRawSide, "Audit: raw signal side", display = display.none)
 plot(candSide, "Audit: trade candidate", display = display.none)
 plot(candLimit, "Audit: signal limit price", display = display.none)
 plot(qualityAtr, "Audit: trade ATR14", display = display.none)

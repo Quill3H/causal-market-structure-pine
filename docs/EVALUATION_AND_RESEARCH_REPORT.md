@@ -1,5 +1,8 @@
 # Báo cáo Đánh giá Toàn diện & Nghiên cứu Nâng cấp SMC Confirmed [3.0.0]
 
+> [!NOTE]
+> **Bản ghi lịch sử đã khóa (`v1.4 - v3.0`):** Tài liệu này lưu giữ nguyên trạng kết quả kiểm chứng chuẩn hóa lịch sử của `v1.4`, `v2.0` và `v3.0`, được trích xuất trực tiếp bởi `research/version_matrix_preview.mjs` (không thay đổi tiêu đề, số liệu hay bảng gốc). Kiến trúc hiện hành (`Pine [4.1.0]` và Standalone / Commercial Autopilot `v5.0 -> v14.0`) được tổng hợp tại [README.md](../README.md), [docs/V13_SECURITY_AND_INTEGRITY_AUDIT_REMEDIATION.md](V13_SECURITY_AND_INTEGRITY_AUDIT_REMEDIATION.md) và [docs/V14_ATTACH_SLTP_AND_EXPANDING_WF_REPORT.md](V14_ATTACH_SLTP_AND_EXPANDING_WF_REPORT.md).
+
 **Nhánh phát triển:** `feat/smc-v3-winrate-65`  
 **Mục tiêu kiểm định:** Đạt **≥ 65,0% Net Closed-Trade Win Rate**, **Profit Factor ≥ 1,20**, **Mean Net Return > 0** đồng thời trên Unseen Holdout (≥ 30 lệnh), cửa sổ TradingView 6.000 nến (≥ 40 lệnh), Walk-Forward 4 Fold, và kiểm định nhân quả không nhìn trước (zero lookahead / zero repainting) cho cả hai khung **15m** và **1h** dưới giả định chi phí thực tế (`0,10%` phí khứ hồi + `0,025%` trượt giá bất lợi mỗi chiều khớp).
 

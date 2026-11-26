@@ -1,0 +1,3019 @@
+{
+  "generatedAt": "2026-11-21T22:14:50.436Z",
+  "strategyVersion": "SMC Confirmed [3.0.0]",
+  "goal": "Net closed-trade Win Rate >= 65% over 3 years on OKX (15m & 1h), 0.10% fee + 0.025% slippage per fill",
+  "configs": {
+    "15m": {
+      "params": {
+        "family": "H1_CleanDisp_AtrExh",
+        "h1BodyAtrMin": 1,
+        "h1ClosePosMin": 0.65,
+        "minAtrPct": 0.18,
+        "h1RsiExh": 72,
+        "emaExhAtr": 1.8,
+        "h1RvolMin": null,
+        "h1Disp3hMin": null,
+        "pullAtr": 0.55,
+        "emaLen": 50,
+        "atrLen": 14,
+        "warmup": 250,
+        "h1RsiMax": null,
+        "emaCapAtr": null
+      },
+      "simOptions": {
+        "warmup": 250,
+        "cooldown": 8,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "stopAtr": 3,
+        "minStopPct": 1,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 120,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.28,
+        "costPct": 0.1,
+        "slippagePct": 0.025
+      }
+    },
+    "1h": {
+      "roundId": "r14",
+      "specId": "AdaptiveTrapPolarity:Multi:P4_10:N20:K4:pd1:H4_50:off0.18:w6_sl2_neg_ps|s3.2|m1.4|rr1.15|h96|be0.43_0.34|cd4",
+      "execOptions": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025
+      }
+    }
+  },
+  "results": [
+    {
+      "dataset": "data/okx_btcusdt_15m_3y.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "15m",
+      "bars": 105120,
+      "signals": 5409,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "simOptions": {
+        "warmup": 250,
+        "cooldown": 8,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "stopAtr": 3,
+        "minStopPct": 1,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 120,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.28,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 900
+      },
+      "primary": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 943,
+        "wins": 619,
+        "losses": 324,
+        "ties": 0,
+        "winRatePct": 65.6416,
+        "wilsonLower95Pct": 62.5525,
+        "profitFactor": 0.8847,
+        "totalNetPct": -53.4289,
+        "meanNetPct": -0.0567,
+        "meanGrossPct": 0.0433,
+        "maxDrawdownPct": 101.2459,
+        "exitReasons": {
+          "SL": 311,
+          "TP": 255,
+          "TIME": 23,
+          "BE": 354
+        },
+        "ignoredSignals": 4130,
+        "expiredOrders": 335,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 457,
+          "wins": 298,
+          "winRatePct": 65.2079,
+          "wilsonLower95Pct": 60.7304,
+          "totalNetPct": -38.7005
+        },
+        "sell": {
+          "count": 486,
+          "wins": 321,
+          "winRatePct": 66.0494,
+          "wilsonLower95Pct": 61.728,
+          "totalNetPct": -14.7285
+        },
+        "gatePass65": false
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 943,
+        "wins": 619,
+        "losses": 324,
+        "ties": 0,
+        "winRatePct": 65.6416,
+        "wilsonLower95Pct": 62.5525,
+        "profitFactor": 0.986,
+        "totalNetPct": -6.2789,
+        "meanNetPct": -0.0067,
+        "meanGrossPct": 0.0433,
+        "maxDrawdownPct": 75.0959,
+        "exitReasons": {
+          "SL": 311,
+          "TP": 255,
+          "TIME": 23,
+          "BE": 354
+        },
+        "ignoredSignals": 4130,
+        "expiredOrders": 335,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 457,
+          "wins": 298,
+          "winRatePct": 65.2079,
+          "wilsonLower95Pct": 60.7304,
+          "totalNetPct": -15.8505
+        },
+        "sell": {
+          "count": 486,
+          "wins": 321,
+          "winRatePct": 66.0494,
+          "wilsonLower95Pct": 61.728,
+          "totalNetPct": 9.5715
+        },
+        "gatePass65": false
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 895,
+        "wins": 452,
+        "losses": 443,
+        "ties": 0,
+        "winRatePct": 50.5028,
+        "wilsonLower95Pct": 47.232,
+        "profitFactor": 0.9681,
+        "totalNetPct": -19.3289,
+        "meanNetPct": -0.0216,
+        "meanGrossPct": 0.0784,
+        "maxDrawdownPct": 71.4424,
+        "exitReasons": {
+          "SL": 400,
+          "TP": 422,
+          "TIME": 73,
+          "BE": 0
+        },
+        "ignoredSignals": 4204,
+        "expiredOrders": 309,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 431,
+          "wins": 209,
+          "winRatePct": 48.4919,
+          "wilsonLower95Pct": 43.8077,
+          "totalNetPct": -32.3455
+        },
+        "sell": {
+          "count": 464,
+          "wins": 243,
+          "winRatePct": 52.3707,
+          "wilsonLower95Pct": 47.8255,
+          "totalNetPct": 13.0166
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": false,
+        "status": "SKIPPED_FULL_15M_RUNTIME_GUARD"
+      },
+      "yearlyBreakdown": [
+        {
+          "label": "Year 1",
+          "range": [
+            0,
+            35040
+          ],
+          "bars": 35040,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 326,
+          "wins": 207,
+          "losses": 119,
+          "ties": 0,
+          "winRatePct": 63.4969,
+          "wilsonLower95Pct": 58.1417,
+          "profitFactor": 0.7903,
+          "totalNetPct": -39.4349,
+          "meanNetPct": -0.121,
+          "meanGrossPct": -0.021,
+          "maxDrawdownPct": 46.2439,
+          "exitReasons": {
+            "SL": 116,
+            "TP": 91,
+            "TIME": 7,
+            "BE": 112
+          },
+          "ignoredSignals": 1451,
+          "expiredOrders": 128,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 170,
+            "wins": 107,
+            "winRatePct": 62.9412,
+            "wilsonLower95Pct": 55.47,
+            "totalNetPct": -14.4754
+          },
+          "sell": {
+            "count": 156,
+            "wins": 100,
+            "winRatePct": 64.1026,
+            "wilsonLower95Pct": 56.3192,
+            "totalNetPct": -24.9595
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "Year 2",
+          "range": [
+            35040,
+            70080
+          ],
+          "bars": 35040,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 325,
+          "wins": 199,
+          "losses": 126,
+          "ties": 0,
+          "winRatePct": 61.2308,
+          "wilsonLower95Pct": 55.8318,
+          "profitFactor": 0.7414,
+          "totalNetPct": -43.8515,
+          "meanNetPct": -0.1349,
+          "meanGrossPct": -0.0349,
+          "maxDrawdownPct": 56.8355,
+          "exitReasons": {
+            "SL": 120,
+            "TP": 77,
+            "TIME": 8,
+            "BE": 120
+          },
+          "ignoredSignals": 2862,
+          "expiredOrders": 246,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 148,
+            "wins": 91,
+            "winRatePct": 61.4865,
+            "wilsonLower95Pct": 53.4501,
+            "totalNetPct": -31.2048
+          },
+          "sell": {
+            "count": 177,
+            "wins": 108,
+            "winRatePct": 61.0169,
+            "wilsonLower95Pct": 53.6707,
+            "totalNetPct": -12.6468
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "Year 3",
+          "range": [
+            70080,
+            105120
+          ],
+          "bars": 35040,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 291,
+          "wins": 213,
+          "losses": 78,
+          "ties": 0,
+          "winRatePct": 73.1959,
+          "wilsonLower95Pct": 67.8286,
+          "profitFactor": 1.3025,
+          "totalNetPct": 31.4759,
+          "meanNetPct": 0.1082,
+          "meanGrossPct": 0.2082,
+          "maxDrawdownPct": 13.0523,
+          "exitReasons": {
+            "SL": 75,
+            "TP": 87,
+            "TIME": 7,
+            "BE": 122
+          },
+          "ignoredSignals": 4130,
+          "expiredOrders": 335,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 139,
+            "wins": 100,
+            "winRatePct": 71.9424,
+            "wilsonLower95Pct": 63.9608,
+            "totalNetPct": 6.9797
+          },
+          "sell": {
+            "count": 152,
+            "wins": 113,
+            "winRatePct": 74.3421,
+            "wilsonLower95Pct": 66.8587,
+            "totalNetPct": 24.4961
+          },
+          "gatePass65": true
+        }
+      ],
+      "semiAnnualBreakdown": [
+        {
+          "label": "H 1",
+          "range": [
+            0,
+            17520
+          ],
+          "bars": 17520,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-05-23T09:45:00.000Z",
+          "count": 168,
+          "wins": 109,
+          "losses": 59,
+          "ties": 0,
+          "winRatePct": 64.881,
+          "wilsonLower95Pct": 57.4034,
+          "profitFactor": 0.8669,
+          "totalNetPct": -12.8346,
+          "meanNetPct": -0.0764,
+          "meanGrossPct": 0.0236,
+          "maxDrawdownPct": 21.9964,
+          "exitReasons": {
+            "SL": 58,
+            "TP": 52,
+            "TIME": 1,
+            "BE": 57
+          },
+          "ignoredSignals": 707,
+          "expiredOrders": 53,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 86,
+            "wins": 57,
+            "winRatePct": 66.2791,
+            "wilsonLower95Pct": 55.7824,
+            "totalNetPct": 1.3669
+          },
+          "sell": {
+            "count": 82,
+            "wins": 52,
+            "winRatePct": 63.4146,
+            "wilsonLower95Pct": 52.6071,
+            "totalNetPct": -14.2014
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 2",
+          "range": [
+            17520,
+            35040
+          ],
+          "bars": 17520,
+          "firstIso": "2024-05-23T10:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 158,
+          "wins": 98,
+          "losses": 60,
+          "ties": 0,
+          "winRatePct": 62.0253,
+          "wilsonLower95Pct": 54.2572,
+          "profitFactor": 0.7096,
+          "totalNetPct": -26.6004,
+          "meanNetPct": -0.1684,
+          "meanGrossPct": -0.0684,
+          "maxDrawdownPct": 29.4056,
+          "exitReasons": {
+            "SL": 58,
+            "TP": 39,
+            "TIME": 6,
+            "BE": 55
+          },
+          "ignoredSignals": 1451,
+          "expiredOrders": 128,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 84,
+            "wins": 50,
+            "winRatePct": 59.5238,
+            "wilsonLower95Pct": 48.834,
+            "totalNetPct": -15.8423
+          },
+          "sell": {
+            "count": 74,
+            "wins": 48,
+            "winRatePct": 64.8649,
+            "wilsonLower95Pct": 53.5006,
+            "totalNetPct": -10.7581
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 3",
+          "range": [
+            35040,
+            52560
+          ],
+          "bars": 17520,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-05-23T09:45:00.000Z",
+          "count": 181,
+          "wins": 114,
+          "losses": 67,
+          "ties": 0,
+          "winRatePct": 62.9834,
+          "wilsonLower95Pct": 55.7474,
+          "profitFactor": 0.7869,
+          "totalNetPct": -21.6715,
+          "meanNetPct": -0.1197,
+          "meanGrossPct": -0.0197,
+          "maxDrawdownPct": 25.4607,
+          "exitReasons": {
+            "SL": 64,
+            "TP": 47,
+            "TIME": 3,
+            "BE": 67
+          },
+          "ignoredSignals": 2224,
+          "expiredOrders": 190,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 78,
+            "wins": 52,
+            "winRatePct": 66.6667,
+            "wilsonLower95Pct": 55.6412,
+            "totalNetPct": -9.2038
+          },
+          "sell": {
+            "count": 103,
+            "wins": 62,
+            "winRatePct": 60.1942,
+            "wilsonLower95Pct": 50.5385,
+            "totalNetPct": -12.4677
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 4",
+          "range": [
+            52560,
+            70080
+          ],
+          "bars": 17520,
+          "firstIso": "2025-05-23T10:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 144,
+          "wins": 85,
+          "losses": 59,
+          "ties": 0,
+          "winRatePct": 59.0278,
+          "wilsonLower95Pct": 50.8623,
+          "profitFactor": 0.6732,
+          "totalNetPct": -22.1801,
+          "meanNetPct": -0.154,
+          "meanGrossPct": -0.054,
+          "maxDrawdownPct": 33.9837,
+          "exitReasons": {
+            "SL": 56,
+            "TP": 30,
+            "TIME": 5,
+            "BE": 53
+          },
+          "ignoredSignals": 2862,
+          "expiredOrders": 246,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 70,
+            "wins": 39,
+            "winRatePct": 55.7143,
+            "wilsonLower95Pct": 44.0833,
+            "totalNetPct": -22.001
+          },
+          "sell": {
+            "count": 74,
+            "wins": 46,
+            "winRatePct": 62.1622,
+            "wilsonLower95Pct": 50.7712,
+            "totalNetPct": -0.1791
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 5",
+          "range": [
+            70080,
+            87600
+          ],
+          "bars": 17520,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-05-23T09:45:00.000Z",
+          "count": 147,
+          "wins": 103,
+          "losses": 44,
+          "ties": 0,
+          "winRatePct": 70.068,
+          "wilsonLower95Pct": 62.2307,
+          "profitFactor": 1.1583,
+          "totalNetPct": 9.7579,
+          "meanNetPct": 0.0664,
+          "meanGrossPct": 0.1664,
+          "maxDrawdownPct": 13.0523,
+          "exitReasons": {
+            "SL": 42,
+            "TP": 45,
+            "TIME": 5,
+            "BE": 55
+          },
+          "ignoredSignals": 3503,
+          "expiredOrders": 297,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 74,
+            "wins": 56,
+            "winRatePct": 75.6757,
+            "wilsonLower95Pct": 64.7935,
+            "totalNetPct": 10.4446
+          },
+          "sell": {
+            "count": 73,
+            "wins": 47,
+            "winRatePct": 64.3836,
+            "wilsonLower95Pct": 52.9333,
+            "totalNetPct": -0.6867
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 6",
+          "range": [
+            87600,
+            105120
+          ],
+          "bars": 17520,
+          "firstIso": "2026-05-23T10:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 144,
+          "wins": 110,
+          "losses": 34,
+          "ties": 0,
+          "winRatePct": 76.3889,
+          "wilsonLower95Pct": 68.823,
+          "profitFactor": 1.512,
+          "totalNetPct": 21.718,
+          "meanNetPct": 0.1508,
+          "meanGrossPct": 0.2508,
+          "maxDrawdownPct": 6.661,
+          "exitReasons": {
+            "SL": 33,
+            "TP": 42,
+            "TIME": 2,
+            "BE": 67
+          },
+          "ignoredSignals": 4130,
+          "expiredOrders": 335,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 65,
+            "wins": 44,
+            "winRatePct": 67.6923,
+            "wilsonLower95Pct": 55.6138,
+            "totalNetPct": -3.4648
+          },
+          "sell": {
+            "count": 79,
+            "wins": 66,
+            "winRatePct": 83.5443,
+            "wilsonLower95Pct": 73.8541,
+            "totalNetPct": 25.1829
+          },
+          "gatePass65": true
+        }
+      ]
+    },
+    {
+      "dataset": "data/okx_btcusdt_1h_3y.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "1h",
+      "bars": 26280,
+      "signals": 495,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "simOptions": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 3600
+      },
+      "primary": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 261,
+        "wins": 187,
+        "losses": 74,
+        "ties": 0,
+        "winRatePct": 71.6475,
+        "wilsonLower95Pct": 65.8962,
+        "profitFactor": 1.2974,
+        "totalNetPct": 49.0311,
+        "meanNetPct": 0.1879,
+        "meanGrossPct": 0.2879,
+        "maxDrawdownPct": 26.6375,
+        "exitReasons": {
+          "SL": 73,
+          "TP": 79,
+          "TIME": 3,
+          "BE": 106
+        },
+        "ignoredSignals": 209,
+        "expiredOrders": 25,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 141,
+          "wins": 104,
+          "winRatePct": 73.7589,
+          "wilsonLower95Pct": 65.9362,
+          "totalNetPct": 24.6054
+        },
+        "sell": {
+          "count": 120,
+          "wins": 83,
+          "winRatePct": 69.1667,
+          "wilsonLower95Pct": 60.4168,
+          "totalNetPct": 24.4256
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 261,
+        "wins": 187,
+        "losses": 74,
+        "ties": 0,
+        "winRatePct": 71.6475,
+        "wilsonLower95Pct": 65.8962,
+        "profitFactor": 1.3852,
+        "totalNetPct": 62.0811,
+        "meanNetPct": 0.2379,
+        "meanGrossPct": 0.2879,
+        "maxDrawdownPct": 24.7375,
+        "exitReasons": {
+          "SL": 73,
+          "TP": 79,
+          "TIME": 3,
+          "BE": 106
+        },
+        "ignoredSignals": 209,
+        "expiredOrders": 25,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 141,
+          "wins": 104,
+          "winRatePct": 73.7589,
+          "wilsonLower95Pct": 65.9362,
+          "totalNetPct": 31.6554
+        },
+        "sell": {
+          "count": 120,
+          "wins": 83,
+          "winRatePct": 69.1667,
+          "wilsonLower95Pct": 60.4168,
+          "totalNetPct": 30.4256
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 225,
+        "wins": 116,
+        "losses": 109,
+        "ties": 0,
+        "winRatePct": 51.5556,
+        "wilsonLower95Pct": 45.0543,
+        "profitFactor": 1.0713,
+        "totalNetPct": 17.3323,
+        "meanNetPct": 0.077,
+        "meanGrossPct": 0.177,
+        "maxDrawdownPct": 46.09,
+        "exitReasons": {
+          "SL": 104,
+          "TP": 104,
+          "TIME": 17,
+          "BE": 0
+        },
+        "ignoredSignals": 247,
+        "expiredOrders": 23,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 118,
+          "wins": 63,
+          "winRatePct": 53.3898,
+          "wilsonLower95Pct": 44.4245,
+          "totalNetPct": 14.7504
+        },
+        "sell": {
+          "count": 107,
+          "wins": 53,
+          "winRatePct": 49.5327,
+          "wilsonLower95Pct": 40.2409,
+          "totalNetPct": 2.5819
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 495,
+        "trades": 261,
+        "wins": 187,
+        "losses": 74
+      },
+      "yearlyBreakdown": [
+        {
+          "label": "Year 1",
+          "range": [
+            0,
+            8760
+          ],
+          "bars": 8760,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:00:00.000Z",
+          "count": 78,
+          "wins": 54,
+          "losses": 24,
+          "ties": 0,
+          "winRatePct": 69.2308,
+          "wilsonLower95Pct": 58.288,
+          "profitFactor": 1.4193,
+          "totalNetPct": 25.7326,
+          "meanNetPct": 0.3299,
+          "meanGrossPct": 0.4299,
+          "maxDrawdownPct": 20.0726,
+          "exitReasons": {
+            "SL": 23,
+            "TP": 31,
+            "TIME": 2,
+            "BE": 22
+          },
+          "ignoredSignals": 65,
+          "expiredOrders": 8,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 31,
+            "wins": 21,
+            "winRatePct": 67.7419,
+            "wilsonLower95Pct": 50.1407,
+            "totalNetPct": 10.1096
+          },
+          "sell": {
+            "count": 47,
+            "wins": 33,
+            "winRatePct": 70.2128,
+            "wilsonLower95Pct": 56.0221,
+            "totalNetPct": 15.623
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "Year 2",
+          "range": [
+            8760,
+            17520
+          ],
+          "bars": 8760,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:00:00.000Z",
+          "count": 93,
+          "wins": 67,
+          "losses": 26,
+          "ties": 0,
+          "winRatePct": 72.043,
+          "wilsonLower95Pct": 62.1874,
+          "profitFactor": 1.2231,
+          "totalNetPct": 11.7677,
+          "meanNetPct": 0.1265,
+          "meanGrossPct": 0.2265,
+          "maxDrawdownPct": 15.4359,
+          "exitReasons": {
+            "SL": 26,
+            "TP": 24,
+            "TIME": 0,
+            "BE": 43
+          },
+          "ignoredSignals": 139,
+          "expiredOrders": 19,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 62,
+            "wins": 46,
+            "winRatePct": 74.1935,
+            "wilsonLower95Pct": 62.1186,
+            "totalNetPct": 1.9848
+          },
+          "sell": {
+            "count": 31,
+            "wins": 21,
+            "winRatePct": 67.7419,
+            "wilsonLower95Pct": 50.1407,
+            "totalNetPct": 9.7829
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "Year 3",
+          "range": [
+            17520,
+            26280
+          ],
+          "bars": 8760,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:00:00.000Z",
+          "count": 90,
+          "wins": 66,
+          "losses": 24,
+          "ties": 0,
+          "winRatePct": 73.3333,
+          "wilsonLower95Pct": 63.38,
+          "profitFactor": 1.2272,
+          "totalNetPct": 11.5307,
+          "meanNetPct": 0.1281,
+          "meanGrossPct": 0.2281,
+          "maxDrawdownPct": 7.8937,
+          "exitReasons": {
+            "SL": 24,
+            "TP": 24,
+            "TIME": 1,
+            "BE": 41
+          },
+          "ignoredSignals": 209,
+          "expiredOrders": 25,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 48,
+            "wins": 37,
+            "winRatePct": 77.0833,
+            "wilsonLower95Pct": 63.4605,
+            "totalNetPct": 12.511
+          },
+          "sell": {
+            "count": 42,
+            "wins": 29,
+            "winRatePct": 69.0476,
+            "wilsonLower95Pct": 53.9737,
+            "totalNetPct": -0.9803
+          },
+          "gatePass65": true
+        }
+      ],
+      "semiAnnualBreakdown": [
+        {
+          "label": "H 1",
+          "range": [
+            0,
+            4380
+          ],
+          "bars": 4380,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-05-23T09:00:00.000Z",
+          "count": 36,
+          "wins": 26,
+          "losses": 10,
+          "ties": 0,
+          "winRatePct": 72.2222,
+          "wilsonLower95Pct": 56.0072,
+          "profitFactor": 2.0667,
+          "totalNetPct": 25.7998,
+          "meanNetPct": 0.7167,
+          "meanGrossPct": 0.8167,
+          "maxDrawdownPct": 6.1633,
+          "exitReasons": {
+            "SL": 9,
+            "TP": 16,
+            "TIME": 1,
+            "BE": 10
+          },
+          "ignoredSignals": 31,
+          "expiredOrders": 3,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 15,
+            "wins": 10,
+            "winRatePct": 66.6667,
+            "wilsonLower95Pct": 41.7131,
+            "totalNetPct": 9.1711
+          },
+          "sell": {
+            "count": 21,
+            "wins": 16,
+            "winRatePct": 76.1905,
+            "wilsonLower95Pct": 54.9084,
+            "totalNetPct": 16.6286
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 2",
+          "range": [
+            4380,
+            8760
+          ],
+          "bars": 4380,
+          "firstIso": "2024-05-23T10:00:00.000Z",
+          "lastIso": "2024-11-21T21:00:00.000Z",
+          "count": 41,
+          "wins": 27,
+          "losses": 14,
+          "ties": 0,
+          "winRatePct": 65.8537,
+          "wilsonLower95Pct": 50.5496,
+          "profitFactor": 0.9216,
+          "totalNetPct": -2.9148,
+          "meanNetPct": -0.0711,
+          "meanGrossPct": 0.0289,
+          "maxDrawdownPct": 20.0726,
+          "exitReasons": {
+            "SL": 14,
+            "TP": 14,
+            "TIME": 1,
+            "BE": 12
+          },
+          "ignoredSignals": 65,
+          "expiredOrders": 8,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 16,
+            "wins": 11,
+            "winRatePct": 68.75,
+            "wilsonLower95Pct": 44.4039,
+            "totalNetPct": 0.9384
+          },
+          "sell": {
+            "count": 25,
+            "wins": 16,
+            "winRatePct": 64,
+            "wilsonLower95Pct": 44.5182,
+            "totalNetPct": -3.8533
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 3",
+          "range": [
+            8760,
+            13140
+          ],
+          "bars": 4380,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-05-23T09:00:00.000Z",
+          "count": 46,
+          "wins": 35,
+          "losses": 11,
+          "ties": 0,
+          "winRatePct": 76.087,
+          "wilsonLower95Pct": 62.0646,
+          "profitFactor": 1.4503,
+          "totalNetPct": 11.303,
+          "meanNetPct": 0.2457,
+          "meanGrossPct": 0.3457,
+          "maxDrawdownPct": 10.6957,
+          "exitReasons": {
+            "SL": 11,
+            "TP": 13,
+            "TIME": 0,
+            "BE": 22
+          },
+          "ignoredSignals": 107,
+          "expiredOrders": 11,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 34,
+            "wins": 28,
+            "winRatePct": 82.3529,
+            "wilsonLower95Pct": 66.4859,
+            "totalNetPct": 10.8667
+          },
+          "sell": {
+            "count": 12,
+            "wins": 7,
+            "winRatePct": 58.3333,
+            "wilsonLower95Pct": 31.9507,
+            "totalNetPct": 0.4363
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 4",
+          "range": [
+            13140,
+            17520
+          ],
+          "bars": 4380,
+          "firstIso": "2025-05-23T10:00:00.000Z",
+          "lastIso": "2025-11-21T21:00:00.000Z",
+          "count": 47,
+          "wins": 32,
+          "losses": 15,
+          "ties": 0,
+          "winRatePct": 68.0851,
+          "wilsonLower95Pct": 53.8324,
+          "profitFactor": 1.0168,
+          "totalNetPct": 0.4648,
+          "meanNetPct": 0.0099,
+          "meanGrossPct": 0.1099,
+          "maxDrawdownPct": 15.4359,
+          "exitReasons": {
+            "SL": 15,
+            "TP": 11,
+            "TIME": 0,
+            "BE": 21
+          },
+          "ignoredSignals": 139,
+          "expiredOrders": 19,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 28,
+            "wins": 18,
+            "winRatePct": 64.2857,
+            "wilsonLower95Pct": 45.83,
+            "totalNetPct": -8.8819
+          },
+          "sell": {
+            "count": 19,
+            "wins": 14,
+            "winRatePct": 73.6842,
+            "wilsonLower95Pct": 51.208,
+            "totalNetPct": 9.3467
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 5",
+          "range": [
+            17520,
+            21900
+          ],
+          "bars": 4380,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-05-23T09:00:00.000Z",
+          "count": 42,
+          "wins": 32,
+          "losses": 10,
+          "ties": 0,
+          "winRatePct": 76.1905,
+          "wilsonLower95Pct": 61.4722,
+          "profitFactor": 1.3635,
+          "totalNetPct": 8.4494,
+          "meanNetPct": 0.2012,
+          "meanGrossPct": 0.3012,
+          "maxDrawdownPct": 5.6342,
+          "exitReasons": {
+            "SL": 10,
+            "TP": 10,
+            "TIME": 1,
+            "BE": 21
+          },
+          "ignoredSignals": 177,
+          "expiredOrders": 23,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 11,
+            "wins": 9,
+            "winRatePct": 81.8182,
+            "wilsonLower95Pct": 52.3014,
+            "totalNetPct": 3.5785
+          },
+          "sell": {
+            "count": 31,
+            "wins": 23,
+            "winRatePct": 74.1935,
+            "wilsonLower95Pct": 56.7535,
+            "totalNetPct": 4.871
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 6",
+          "range": [
+            21900,
+            26280
+          ],
+          "bars": 4380,
+          "firstIso": "2026-05-23T10:00:00.000Z",
+          "lastIso": "2026-11-21T21:00:00.000Z",
+          "count": 48,
+          "wins": 34,
+          "losses": 14,
+          "ties": 0,
+          "winRatePct": 70.8333,
+          "wilsonLower95Pct": 56.8205,
+          "profitFactor": 1.112,
+          "totalNetPct": 3.0813,
+          "meanNetPct": 0.0642,
+          "meanGrossPct": 0.1642,
+          "maxDrawdownPct": 7.8937,
+          "exitReasons": {
+            "SL": 14,
+            "TP": 14,
+            "TIME": 0,
+            "BE": 20
+          },
+          "ignoredSignals": 209,
+          "expiredOrders": 25,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 37,
+            "wins": 28,
+            "winRatePct": 75.6757,
+            "wilsonLower95Pct": 59.8824,
+            "totalNetPct": 8.9325
+          },
+          "sell": {
+            "count": 11,
+            "wins": 6,
+            "winRatePct": 54.5455,
+            "wilsonLower95Pct": 28.0088,
+            "totalNetPct": -5.8512
+          },
+          "gatePass65": true
+        }
+      ]
+    },
+    {
+      "dataset": "data/okx_btcusdt_swap_15m_3y.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "15m",
+      "bars": 105120,
+      "signals": 5228,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "simOptions": {
+        "warmup": 250,
+        "cooldown": 8,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "stopAtr": 3,
+        "minStopPct": 1,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 120,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.28,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 900
+      },
+      "primary": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 917,
+        "wins": 596,
+        "losses": 321,
+        "ties": 0,
+        "winRatePct": 64.9945,
+        "wilsonLower95Pct": 61.8505,
+        "profitFactor": 0.8747,
+        "totalNetPct": -58.2393,
+        "meanNetPct": -0.0635,
+        "meanGrossPct": 0.0365,
+        "maxDrawdownPct": 102.423,
+        "exitReasons": {
+          "SL": 307,
+          "TP": 253,
+          "TIME": 24,
+          "BE": 333
+        },
+        "ignoredSignals": 3982,
+        "expiredOrders": 328,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 447,
+          "wins": 286,
+          "winRatePct": 63.9821,
+          "wilsonLower95Pct": 59.43,
+          "totalNetPct": -45.829
+        },
+        "sell": {
+          "count": 470,
+          "wins": 310,
+          "winRatePct": 65.9574,
+          "wilsonLower95Pct": 61.5595,
+          "totalNetPct": -12.4102
+        },
+        "gatePass65": false
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 917,
+        "wins": 596,
+        "losses": 321,
+        "ties": 0,
+        "winRatePct": 64.9945,
+        "wilsonLower95Pct": 61.8505,
+        "profitFactor": 0.9724,
+        "totalNetPct": -12.3893,
+        "meanNetPct": -0.0135,
+        "meanGrossPct": 0.0365,
+        "maxDrawdownPct": 74.2494,
+        "exitReasons": {
+          "SL": 307,
+          "TP": 253,
+          "TIME": 24,
+          "BE": 333
+        },
+        "ignoredSignals": 3982,
+        "expiredOrders": 328,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 447,
+          "wins": 286,
+          "winRatePct": 63.9821,
+          "wilsonLower95Pct": 59.43,
+          "totalNetPct": -23.479
+        },
+        "sell": {
+          "count": 470,
+          "wins": 310,
+          "winRatePct": 65.9574,
+          "wilsonLower95Pct": 61.5595,
+          "totalNetPct": 11.0898
+        },
+        "gatePass65": false
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          105120
+        ],
+        "bars": 105120,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 871,
+        "wins": 441,
+        "losses": 430,
+        "ties": 0,
+        "winRatePct": 50.6315,
+        "wilsonLower95Pct": 47.3156,
+        "profitFactor": 0.977,
+        "totalNetPct": -13.7133,
+        "meanNetPct": -0.0157,
+        "meanGrossPct": 0.0843,
+        "maxDrawdownPct": 81.9624,
+        "exitReasons": {
+          "SL": 388,
+          "TP": 413,
+          "TIME": 70,
+          "BE": 0
+        },
+        "ignoredSignals": 4046,
+        "expiredOrders": 310,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 423,
+          "wins": 205,
+          "winRatePct": 48.4634,
+          "wilsonLower95Pct": 43.736,
+          "totalNetPct": -29.6642
+        },
+        "sell": {
+          "count": 448,
+          "wins": 236,
+          "winRatePct": 52.6786,
+          "wilsonLower95Pct": 48.052,
+          "totalNetPct": 15.951
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": false,
+        "status": "SKIPPED_FULL_15M_RUNTIME_GUARD"
+      },
+      "yearlyBreakdown": [
+        {
+          "label": "Year 1",
+          "range": [
+            0,
+            35040
+          ],
+          "bars": 35040,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 317,
+          "wins": 199,
+          "losses": 118,
+          "ties": 0,
+          "winRatePct": 62.776,
+          "wilsonLower95Pct": 57.3313,
+          "profitFactor": 0.7878,
+          "totalNetPct": -40.4592,
+          "meanNetPct": -0.1276,
+          "meanGrossPct": -0.0276,
+          "maxDrawdownPct": 48.3958,
+          "exitReasons": {
+            "SL": 116,
+            "TP": 94,
+            "TIME": 6,
+            "BE": 101
+          },
+          "ignoredSignals": 1380,
+          "expiredOrders": 119,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 163,
+            "wins": 100,
+            "winRatePct": 61.3497,
+            "wilsonLower95Pct": 53.6947,
+            "totalNetPct": -17.7435
+          },
+          "sell": {
+            "count": 154,
+            "wins": 99,
+            "winRatePct": 64.2857,
+            "wilsonLower95Pct": 56.4547,
+            "totalNetPct": -22.7158
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "Year 2",
+          "range": [
+            35040,
+            70080
+          ],
+          "bars": 35040,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 319,
+          "wins": 194,
+          "losses": 125,
+          "ties": 0,
+          "winRatePct": 60.815,
+          "wilsonLower95Pct": 55.3597,
+          "profitFactor": 0.7352,
+          "totalNetPct": -44.9253,
+          "meanNetPct": -0.1408,
+          "meanGrossPct": -0.0408,
+          "maxDrawdownPct": 57.1357,
+          "exitReasons": {
+            "SL": 118,
+            "TP": 76,
+            "TIME": 9,
+            "BE": 116
+          },
+          "ignoredSignals": 2776,
+          "expiredOrders": 242,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 147,
+            "wins": 88,
+            "winRatePct": 59.8639,
+            "wilsonLower95Pct": 51.7862,
+            "totalNetPct": -30.6942
+          },
+          "sell": {
+            "count": 172,
+            "wins": 106,
+            "winRatePct": 61.6279,
+            "wilsonLower95Pct": 54.1817,
+            "totalNetPct": -14.2311
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "Year 3",
+          "range": [
+            70080,
+            105120
+          ],
+          "bars": 35040,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 280,
+          "wins": 203,
+          "losses": 77,
+          "ties": 0,
+          "winRatePct": 72.5,
+          "wilsonLower95Pct": 66.9919,
+          "profitFactor": 1.2787,
+          "totalNetPct": 28.7353,
+          "meanNetPct": 0.1026,
+          "meanGrossPct": 0.2026,
+          "maxDrawdownPct": 13.2848,
+          "exitReasons": {
+            "SL": 73,
+            "TP": 83,
+            "TIME": 8,
+            "BE": 116
+          },
+          "ignoredSignals": 3982,
+          "expiredOrders": 328,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 137,
+            "wins": 98,
+            "winRatePct": 71.5328,
+            "wilsonLower95Pct": 63.4697,
+            "totalNetPct": 2.6086
+          },
+          "sell": {
+            "count": 143,
+            "wins": 105,
+            "winRatePct": 73.4266,
+            "wilsonLower95Pct": 65.6428,
+            "totalNetPct": 26.1267
+          },
+          "gatePass65": true
+        }
+      ],
+      "semiAnnualBreakdown": [
+        {
+          "label": "H 1",
+          "range": [
+            0,
+            17520
+          ],
+          "bars": 17520,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-05-23T09:45:00.000Z",
+          "count": 165,
+          "wins": 106,
+          "losses": 59,
+          "ties": 0,
+          "winRatePct": 64.2424,
+          "wilsonLower95Pct": 56.6816,
+          "profitFactor": 0.868,
+          "totalNetPct": -12.9695,
+          "meanNetPct": -0.0786,
+          "meanGrossPct": 0.0214,
+          "maxDrawdownPct": 23.6917,
+          "exitReasons": {
+            "SL": 58,
+            "TP": 55,
+            "TIME": 1,
+            "BE": 51
+          },
+          "ignoredSignals": 658,
+          "expiredOrders": 47,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 84,
+            "wins": 54,
+            "winRatePct": 64.2857,
+            "wilsonLower95Pct": 53.6211,
+            "totalNetPct": -2.5211
+          },
+          "sell": {
+            "count": 81,
+            "wins": 52,
+            "winRatePct": 64.1975,
+            "wilsonLower95Pct": 53.3329,
+            "totalNetPct": -10.4484
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 2",
+          "range": [
+            17520,
+            35040
+          ],
+          "bars": 17520,
+          "firstIso": "2024-05-23T10:00:00.000Z",
+          "lastIso": "2024-11-21T21:45:00.000Z",
+          "count": 152,
+          "wins": 93,
+          "losses": 59,
+          "ties": 0,
+          "winRatePct": 61.1842,
+          "wilsonLower95Pct": 53.2522,
+          "profitFactor": 0.7024,
+          "totalNetPct": -27.4897,
+          "meanNetPct": -0.1809,
+          "meanGrossPct": -0.0809,
+          "maxDrawdownPct": 30.6964,
+          "exitReasons": {
+            "SL": 58,
+            "TP": 39,
+            "TIME": 5,
+            "BE": 50
+          },
+          "ignoredSignals": 1380,
+          "expiredOrders": 119,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 79,
+            "wins": 46,
+            "winRatePct": 58.2278,
+            "wilsonLower95Pct": 47.2191,
+            "totalNetPct": -15.2223
+          },
+          "sell": {
+            "count": 73,
+            "wins": 47,
+            "winRatePct": 64.3836,
+            "wilsonLower95Pct": 52.9333,
+            "totalNetPct": -12.2674
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 3",
+          "range": [
+            35040,
+            52560
+          ],
+          "bars": 17520,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-05-23T09:45:00.000Z",
+          "count": 179,
+          "wins": 113,
+          "losses": 66,
+          "ties": 0,
+          "winRatePct": 63.1285,
+          "wilsonLower95Pct": 55.854,
+          "profitFactor": 0.791,
+          "totalNetPct": -21.383,
+          "meanNetPct": -0.1195,
+          "meanGrossPct": -0.0195,
+          "maxDrawdownPct": 30.6054,
+          "exitReasons": {
+            "SL": 63,
+            "TP": 46,
+            "TIME": 3,
+            "BE": 67
+          },
+          "ignoredSignals": 2144,
+          "expiredOrders": 180,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 77,
+            "wins": 50,
+            "winRatePct": 64.9351,
+            "wilsonLower95Pct": 53.7992,
+            "totalNetPct": -9.9497
+          },
+          "sell": {
+            "count": 102,
+            "wins": 63,
+            "winRatePct": 61.7647,
+            "wilsonLower95Pct": 52.0696,
+            "totalNetPct": -11.4332
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 4",
+          "range": [
+            52560,
+            70080
+          ],
+          "bars": 17520,
+          "firstIso": "2025-05-23T10:00:00.000Z",
+          "lastIso": "2025-11-21T21:45:00.000Z",
+          "count": 139,
+          "wins": 81,
+          "losses": 58,
+          "ties": 0,
+          "winRatePct": 58.2734,
+          "wilsonLower95Pct": 49.9611,
+          "profitFactor": 0.6531,
+          "totalNetPct": -23.2503,
+          "meanNetPct": -0.1673,
+          "meanGrossPct": -0.0673,
+          "maxDrawdownPct": 33.6611,
+          "exitReasons": {
+            "SL": 55,
+            "TP": 30,
+            "TIME": 5,
+            "BE": 49
+          },
+          "ignoredSignals": 2776,
+          "expiredOrders": 242,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 69,
+            "wins": 38,
+            "winRatePct": 55.0725,
+            "wilsonLower95Pct": 43.3786,
+            "totalNetPct": -20.4524
+          },
+          "sell": {
+            "count": 70,
+            "wins": 43,
+            "winRatePct": 61.4286,
+            "wilsonLower95Pct": 49.7155,
+            "totalNetPct": -2.7978
+          },
+          "gatePass65": false
+        },
+        {
+          "label": "H 5",
+          "range": [
+            70080,
+            87600
+          ],
+          "bars": 17520,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-05-23T09:45:00.000Z",
+          "count": 135,
+          "wins": 92,
+          "losses": 43,
+          "ties": 0,
+          "winRatePct": 68.1481,
+          "wilsonLower95Pct": 59.88,
+          "profitFactor": 1.0392,
+          "totalNetPct": 2.3596,
+          "meanNetPct": 0.0175,
+          "meanGrossPct": 0.1175,
+          "maxDrawdownPct": 13.2848,
+          "exitReasons": {
+            "SL": 40,
+            "TP": 38,
+            "TIME": 6,
+            "BE": 51
+          },
+          "ignoredSignals": 3371,
+          "expiredOrders": 292,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 71,
+            "wins": 52,
+            "winRatePct": 73.2394,
+            "wilsonLower95Pct": 61.9458,
+            "totalNetPct": 4.6249
+          },
+          "sell": {
+            "count": 64,
+            "wins": 40,
+            "winRatePct": 62.5,
+            "wilsonLower95Pct": 50.2502,
+            "totalNetPct": -2.2653
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 6",
+          "range": [
+            87600,
+            105120
+          ],
+          "bars": 17520,
+          "firstIso": "2026-05-23T10:00:00.000Z",
+          "lastIso": "2026-11-21T21:45:00.000Z",
+          "count": 145,
+          "wins": 111,
+          "losses": 34,
+          "ties": 0,
+          "winRatePct": 76.5517,
+          "wilsonLower95Pct": 69.0255,
+          "profitFactor": 1.6155,
+          "totalNetPct": 26.3757,
+          "meanNetPct": 0.1819,
+          "meanGrossPct": 0.2819,
+          "maxDrawdownPct": 6.7167,
+          "exitReasons": {
+            "SL": 33,
+            "TP": 45,
+            "TIME": 2,
+            "BE": 65
+          },
+          "ignoredSignals": 3982,
+          "expiredOrders": 328,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 66,
+            "wins": 46,
+            "winRatePct": 69.697,
+            "wilsonLower95Pct": 57.781,
+            "totalNetPct": -2.0163
+          },
+          "sell": {
+            "count": 79,
+            "wins": 65,
+            "winRatePct": 82.2785,
+            "wilsonLower95Pct": 72.4236,
+            "totalNetPct": 28.392
+          },
+          "gatePass65": true
+        }
+      ]
+    },
+    {
+      "dataset": "data/okx_btcusdt_swap_1h_3y.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "1h",
+      "bars": 26280,
+      "signals": 499,
+      "firstIso": "2023-11-22T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "simOptions": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 3600
+      },
+      "primary": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 252,
+        "wins": 187,
+        "losses": 65,
+        "ties": 0,
+        "winRatePct": 74.2063,
+        "wilsonLower95Pct": 68.4696,
+        "profitFactor": 1.5266,
+        "totalNetPct": 78.4426,
+        "meanNetPct": 0.3113,
+        "meanGrossPct": 0.4113,
+        "maxDrawdownPct": 19.6729,
+        "exitReasons": {
+          "SL": 64,
+          "TP": 84,
+          "TIME": 3,
+          "BE": 101
+        },
+        "ignoredSignals": 216,
+        "expiredOrders": 31,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 126,
+          "wins": 97,
+          "winRatePct": 76.9841,
+          "wilsonLower95Pct": 68.9015,
+          "totalNetPct": 37.7863
+        },
+        "sell": {
+          "count": 126,
+          "wins": 90,
+          "winRatePct": 71.4286,
+          "wilsonLower95Pct": 62.9982,
+          "totalNetPct": 40.6563
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 252,
+        "wins": 187,
+        "losses": 65,
+        "ties": 0,
+        "winRatePct": 74.2063,
+        "wilsonLower95Pct": 68.4696,
+        "profitFactor": 1.6248,
+        "totalNetPct": 91.0426,
+        "meanNetPct": 0.3613,
+        "meanGrossPct": 0.4113,
+        "maxDrawdownPct": 17.9229,
+        "exitReasons": {
+          "SL": 64,
+          "TP": 84,
+          "TIME": 3,
+          "BE": 101
+        },
+        "ignoredSignals": 216,
+        "expiredOrders": 31,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 126,
+          "wins": 97,
+          "winRatePct": 76.9841,
+          "wilsonLower95Pct": 68.9015,
+          "totalNetPct": 44.0863
+        },
+        "sell": {
+          "count": 126,
+          "wins": 90,
+          "winRatePct": 71.4286,
+          "wilsonLower95Pct": 62.9982,
+          "totalNetPct": 46.9563
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          26280
+        ],
+        "bars": 26280,
+        "firstIso": "2023-11-22T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 220,
+        "wins": 120,
+        "losses": 100,
+        "ties": 0,
+        "winRatePct": 54.5455,
+        "wilsonLower95Pct": 47.9439,
+        "profitFactor": 1.1952,
+        "totalNetPct": 44.4406,
+        "meanNetPct": 0.202,
+        "meanGrossPct": 0.302,
+        "maxDrawdownPct": 30.3978,
+        "exitReasons": {
+          "SL": 96,
+          "TP": 108,
+          "TIME": 16,
+          "BE": 0
+        },
+        "ignoredSignals": 250,
+        "expiredOrders": 29,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 107,
+          "wins": 60,
+          "winRatePct": 56.0748,
+          "wilsonLower95Pct": 46.6224,
+          "totalNetPct": 24.3001
+        },
+        "sell": {
+          "count": 113,
+          "wins": 60,
+          "winRatePct": 53.0973,
+          "wilsonLower95Pct": 43.9461,
+          "totalNetPct": 20.1405
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 499,
+        "trades": 252,
+        "wins": 187,
+        "losses": 65
+      },
+      "yearlyBreakdown": [
+        {
+          "label": "Year 1",
+          "range": [
+            0,
+            8760
+          ],
+          "bars": 8760,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-11-21T21:00:00.000Z",
+          "count": 79,
+          "wins": 58,
+          "losses": 21,
+          "ties": 0,
+          "winRatePct": 73.4177,
+          "wilsonLower95Pct": 62.7568,
+          "profitFactor": 1.7387,
+          "totalNetPct": 40.4514,
+          "meanNetPct": 0.512,
+          "meanGrossPct": 0.612,
+          "maxDrawdownPct": 12.6961,
+          "exitReasons": {
+            "SL": 20,
+            "TP": 34,
+            "TIME": 2,
+            "BE": 23
+          },
+          "ignoredSignals": 68,
+          "expiredOrders": 8,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 30,
+            "wins": 22,
+            "winRatePct": 73.3333,
+            "wilsonLower95Pct": 55.5517,
+            "totalNetPct": 13.5512
+          },
+          "sell": {
+            "count": 49,
+            "wins": 36,
+            "winRatePct": 73.4694,
+            "wilsonLower95Pct": 59.7374,
+            "totalNetPct": 26.9002
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "Year 2",
+          "range": [
+            8760,
+            17520
+          ],
+          "bars": 8760,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-11-21T21:00:00.000Z",
+          "count": 86,
+          "wins": 67,
+          "losses": 19,
+          "ties": 0,
+          "winRatePct": 77.907,
+          "wilsonLower95Pct": 68.0522,
+          "profitFactor": 1.4937,
+          "totalNetPct": 20.3419,
+          "meanNetPct": 0.2365,
+          "meanGrossPct": 0.3365,
+          "maxDrawdownPct": 11.1851,
+          "exitReasons": {
+            "SL": 19,
+            "TP": 23,
+            "TIME": 0,
+            "BE": 44
+          },
+          "ignoredSignals": 146,
+          "expiredOrders": 22,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 49,
+            "wins": 38,
+            "winRatePct": 77.551,
+            "wilsonLower95Pct": 64.1209,
+            "totalNetPct": 2.9374
+          },
+          "sell": {
+            "count": 37,
+            "wins": 29,
+            "winRatePct": 78.3784,
+            "wilsonLower95Pct": 62.8045,
+            "totalNetPct": 17.4045
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "Year 3",
+          "range": [
+            17520,
+            26280
+          ],
+          "bars": 8760,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-11-21T21:00:00.000Z",
+          "count": 87,
+          "wins": 62,
+          "losses": 25,
+          "ties": 0,
+          "winRatePct": 71.2644,
+          "wilsonLower95Pct": 61.0158,
+          "profitFactor": 1.333,
+          "totalNetPct": 17.6493,
+          "meanNetPct": 0.2029,
+          "meanGrossPct": 0.3029,
+          "maxDrawdownPct": 7.7859,
+          "exitReasons": {
+            "SL": 25,
+            "TP": 27,
+            "TIME": 1,
+            "BE": 34
+          },
+          "ignoredSignals": 216,
+          "expiredOrders": 31,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 47,
+            "wins": 37,
+            "winRatePct": 78.7234,
+            "wilsonLower95Pct": 65.0957,
+            "totalNetPct": 21.2977
+          },
+          "sell": {
+            "count": 40,
+            "wins": 25,
+            "winRatePct": 62.5,
+            "wilsonLower95Pct": 47.0322,
+            "totalNetPct": -3.6484
+          },
+          "gatePass65": true
+        }
+      ],
+      "semiAnnualBreakdown": [
+        {
+          "label": "H 1",
+          "range": [
+            0,
+            4380
+          ],
+          "bars": 4380,
+          "firstIso": "2023-11-22T22:00:00.000Z",
+          "lastIso": "2024-05-23T09:00:00.000Z",
+          "count": 36,
+          "wins": 27,
+          "losses": 9,
+          "ties": 0,
+          "winRatePct": 75,
+          "wilsonLower95Pct": 58.9292,
+          "profitFactor": 2.3713,
+          "totalNetPct": 29.7745,
+          "meanNetPct": 0.8271,
+          "meanGrossPct": 0.9271,
+          "maxDrawdownPct": 5.5179,
+          "exitReasons": {
+            "SL": 8,
+            "TP": 16,
+            "TIME": 1,
+            "BE": 11
+          },
+          "ignoredSignals": 30,
+          "expiredOrders": 5,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 15,
+            "wins": 10,
+            "winRatePct": 66.6667,
+            "wilsonLower95Pct": 41.7131,
+            "totalNetPct": 9.3313
+          },
+          "sell": {
+            "count": 21,
+            "wins": 17,
+            "winRatePct": 80.9524,
+            "wilsonLower95Pct": 59.999,
+            "totalNetPct": 20.4432
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 2",
+          "range": [
+            4380,
+            8760
+          ],
+          "bars": 4380,
+          "firstIso": "2024-05-23T10:00:00.000Z",
+          "lastIso": "2024-11-21T21:00:00.000Z",
+          "count": 42,
+          "wins": 30,
+          "losses": 12,
+          "ties": 0,
+          "winRatePct": 71.4286,
+          "wilsonLower95Pct": 56.4325,
+          "profitFactor": 1.2361,
+          "totalNetPct": 7.8024,
+          "meanNetPct": 0.1858,
+          "meanGrossPct": 0.2858,
+          "maxDrawdownPct": 12.6961,
+          "exitReasons": {
+            "SL": 12,
+            "TP": 17,
+            "TIME": 1,
+            "BE": 12
+          },
+          "ignoredSignals": 68,
+          "expiredOrders": 8,
+          "purgedTrades": 1,
+          "buy": {
+            "count": 15,
+            "wins": 12,
+            "winRatePct": 80,
+            "wilsonLower95Pct": 54.8141,
+            "totalNetPct": 4.2198
+          },
+          "sell": {
+            "count": 27,
+            "wins": 18,
+            "winRatePct": 66.6667,
+            "wilsonLower95Pct": 47.8244,
+            "totalNetPct": 3.5825
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 3",
+          "range": [
+            8760,
+            13140
+          ],
+          "bars": 4380,
+          "firstIso": "2024-11-21T22:00:00.000Z",
+          "lastIso": "2025-05-23T09:00:00.000Z",
+          "count": 44,
+          "wins": 34,
+          "losses": 10,
+          "ties": 0,
+          "winRatePct": 77.2727,
+          "wilsonLower95Pct": 63.0074,
+          "profitFactor": 1.3501,
+          "totalNetPct": 8.2038,
+          "meanNetPct": 0.1864,
+          "meanGrossPct": 0.2864,
+          "maxDrawdownPct": 11.1851,
+          "exitReasons": {
+            "SL": 10,
+            "TP": 11,
+            "TIME": 0,
+            "BE": 23
+          },
+          "ignoredSignals": 111,
+          "expiredOrders": 13,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 33,
+            "wins": 27,
+            "winRatePct": 81.8182,
+            "wilsonLower95Pct": 65.6114,
+            "totalNetPct": 5.5429
+          },
+          "sell": {
+            "count": 11,
+            "wins": 7,
+            "winRatePct": 63.6364,
+            "wilsonLower95Pct": 35.3797,
+            "totalNetPct": 2.6609
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 4",
+          "range": [
+            13140,
+            17520
+          ],
+          "bars": 4380,
+          "firstIso": "2025-05-23T10:00:00.000Z",
+          "lastIso": "2025-11-21T21:00:00.000Z",
+          "count": 42,
+          "wins": 33,
+          "losses": 9,
+          "ties": 0,
+          "winRatePct": 78.5714,
+          "wilsonLower95Pct": 64.0599,
+          "profitFactor": 1.6831,
+          "totalNetPct": 12.1381,
+          "meanNetPct": 0.289,
+          "meanGrossPct": 0.389,
+          "maxDrawdownPct": 7.2641,
+          "exitReasons": {
+            "SL": 9,
+            "TP": 12,
+            "TIME": 0,
+            "BE": 21
+          },
+          "ignoredSignals": 146,
+          "expiredOrders": 22,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 16,
+            "wins": 11,
+            "winRatePct": 68.75,
+            "wilsonLower95Pct": 44.4039,
+            "totalNetPct": -2.6055
+          },
+          "sell": {
+            "count": 26,
+            "wins": 22,
+            "winRatePct": 84.6154,
+            "wilsonLower95Pct": 66.4684,
+            "totalNetPct": 14.7436
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 5",
+          "range": [
+            17520,
+            21900
+          ],
+          "bars": 4380,
+          "firstIso": "2025-11-21T22:00:00.000Z",
+          "lastIso": "2026-05-23T09:00:00.000Z",
+          "count": 40,
+          "wins": 28,
+          "losses": 12,
+          "ties": 0,
+          "winRatePct": 70,
+          "wilsonLower95Pct": 54.5697,
+          "profitFactor": 1.3105,
+          "totalNetPct": 8.2774,
+          "meanNetPct": 0.2069,
+          "meanGrossPct": 0.3069,
+          "maxDrawdownPct": 7.043,
+          "exitReasons": {
+            "SL": 12,
+            "TP": 11,
+            "TIME": 1,
+            "BE": 16
+          },
+          "ignoredSignals": 185,
+          "expiredOrders": 27,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 11,
+            "wins": 9,
+            "winRatePct": 81.8182,
+            "wilsonLower95Pct": 52.3014,
+            "totalNetPct": 7.2304
+          },
+          "sell": {
+            "count": 29,
+            "wins": 19,
+            "winRatePct": 65.5172,
+            "wilsonLower95Pct": 47.3448,
+            "totalNetPct": 1.047
+          },
+          "gatePass65": true
+        },
+        {
+          "label": "H 6",
+          "range": [
+            21900,
+            26280
+          ],
+          "bars": 4380,
+          "firstIso": "2026-05-23T10:00:00.000Z",
+          "lastIso": "2026-11-21T21:00:00.000Z",
+          "count": 47,
+          "wins": 34,
+          "losses": 13,
+          "ties": 0,
+          "winRatePct": 72.3404,
+          "wilsonLower95Pct": 58.2412,
+          "profitFactor": 1.3557,
+          "totalNetPct": 9.3719,
+          "meanNetPct": 0.1994,
+          "meanGrossPct": 0.2994,
+          "maxDrawdownPct": 7.7859,
+          "exitReasons": {
+            "SL": 13,
+            "TP": 16,
+            "TIME": 0,
+            "BE": 18
+          },
+          "ignoredSignals": 216,
+          "expiredOrders": 31,
+          "purgedTrades": 0,
+          "buy": {
+            "count": 36,
+            "wins": 28,
+            "winRatePct": 77.7778,
+            "wilsonLower95Pct": 61.915,
+            "totalNetPct": 14.0672
+          },
+          "sell": {
+            "count": 11,
+            "wins": 6,
+            "winRatePct": 54.5455,
+            "wilsonLower95Pct": 28.0088,
+            "totalNetPct": -4.6953
+          },
+          "gatePass65": true
+        }
+      ]
+    },
+    {
+      "dataset": "data/okx_btcusdt_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "15m",
+      "bars": 6000,
+      "signals": 235,
+      "firstIso": "2026-09-20T10:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "simOptions": {
+        "warmup": 250,
+        "cooldown": 8,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "stopAtr": 3,
+        "minStopPct": 1,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 120,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.28,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 900
+      },
+      "primary": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 42,
+        "wins": 30,
+        "losses": 12,
+        "ties": 0,
+        "winRatePct": 71.4286,
+        "wilsonLower95Pct": 56.4325,
+        "profitFactor": 1.3759,
+        "totalNetPct": 5.445,
+        "meanNetPct": 0.1296,
+        "meanGrossPct": 0.2296,
+        "maxDrawdownPct": 6.661,
+        "exitReasons": {
+          "SL": 12,
+          "TP": 13,
+          "TIME": 1,
+          "BE": 16
+        },
+        "ignoredSignals": 182,
+        "expiredOrders": 10,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 15,
+          "wins": 7,
+          "winRatePct": 46.6667,
+          "wilsonLower95Pct": 24.8092,
+          "totalNetPct": -7.7648
+        },
+        "sell": {
+          "count": 27,
+          "wins": 23,
+          "winRatePct": 85.1852,
+          "wilsonLower95Pct": 67.5209,
+          "totalNetPct": 13.2098
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 42,
+        "wins": 30,
+        "losses": 12,
+        "ties": 0,
+        "winRatePct": 71.4286,
+        "wilsonLower95Pct": 56.4325,
+        "profitFactor": 1.5434,
+        "totalNetPct": 7.545,
+        "meanNetPct": 0.1796,
+        "meanGrossPct": 0.2296,
+        "maxDrawdownPct": 6.061,
+        "exitReasons": {
+          "SL": 12,
+          "TP": 13,
+          "TIME": 1,
+          "BE": 16
+        },
+        "ignoredSignals": 182,
+        "expiredOrders": 10,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 15,
+          "wins": 7,
+          "winRatePct": 46.6667,
+          "wilsonLower95Pct": 24.8092,
+          "totalNetPct": -7.0148
+        },
+        "sell": {
+          "count": 27,
+          "wins": 23,
+          "winRatePct": 85.1852,
+          "wilsonLower95Pct": 67.5209,
+          "totalNetPct": 14.5598
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 38,
+        "wins": 18,
+        "losses": 20,
+        "ties": 0,
+        "winRatePct": 47.3684,
+        "wilsonLower95Pct": 32.4788,
+        "profitFactor": 0.8774,
+        "totalNetPct": -2.9896,
+        "meanNetPct": -0.0787,
+        "meanGrossPct": 0.0213,
+        "maxDrawdownPct": 8.6107,
+        "exitReasons": {
+          "SL": 19,
+          "TP": 16,
+          "TIME": 3,
+          "BE": 0
+        },
+        "ignoredSignals": 187,
+        "expiredOrders": 9,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 12,
+          "wins": 2,
+          "winRatePct": 16.6667,
+          "wilsonLower95Pct": 4.6964,
+          "totalNetPct": -10.7281
+        },
+        "sell": {
+          "count": 26,
+          "wins": 16,
+          "winRatePct": 61.5385,
+          "wilsonLower95Pct": 42.5345,
+          "totalNetPct": 7.7384
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 235,
+        "trades": 42,
+        "wins": 30,
+        "losses": 12
+      }
+    },
+    {
+      "dataset": "data/okx_btcusdt_tv_1h_6k.json",
+      "symbol": "OKX:BTCUSDT",
+      "interval": "1h",
+      "bars": 6000,
+      "signals": 118,
+      "firstIso": "2026-03-16T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "simOptions": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 3600
+      },
+      "primary": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 64,
+        "wins": 47,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 73.4375,
+        "wilsonLower95Pct": 61.5169,
+        "profitFactor": 1.3296,
+        "totalNetPct": 10.907,
+        "meanNetPct": 0.1704,
+        "meanGrossPct": 0.2704,
+        "maxDrawdownPct": 7.8937,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 19,
+          "TIME": 0,
+          "BE": 28
+        },
+        "ignoredSignals": 51,
+        "expiredOrders": 3,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 48,
+          "wins": 37,
+          "winRatePct": 77.0833,
+          "wilsonLower95Pct": 63.4605,
+          "totalNetPct": 14.4808
+        },
+        "sell": {
+          "count": 16,
+          "wins": 10,
+          "winRatePct": 62.5,
+          "wilsonLower95Pct": 38.6406,
+          "totalNetPct": -3.5738
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 64,
+        "wins": 47,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 73.4375,
+        "wilsonLower95Pct": 61.5169,
+        "profitFactor": 1.4375,
+        "totalNetPct": 14.107,
+        "meanNetPct": 0.2204,
+        "meanGrossPct": 0.2704,
+        "maxDrawdownPct": 7.2437,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 19,
+          "TIME": 0,
+          "BE": 28
+        },
+        "ignoredSignals": 51,
+        "expiredOrders": 3,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 48,
+          "wins": 37,
+          "winRatePct": 77.0833,
+          "wilsonLower95Pct": 63.4605,
+          "totalNetPct": 16.8808
+        },
+        "sell": {
+          "count": 16,
+          "wins": 10,
+          "winRatePct": 62.5,
+          "wilsonLower95Pct": 38.6406,
+          "totalNetPct": -2.7738
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 52,
+        "wins": 29,
+        "losses": 23,
+        "ties": 0,
+        "winRatePct": 55.7692,
+        "wilsonLower95Pct": 42.3395,
+        "profitFactor": 1.2417,
+        "totalNetPct": 10.6092,
+        "meanNetPct": 0.204,
+        "meanGrossPct": 0.304,
+        "maxDrawdownPct": 12.7324,
+        "exitReasons": {
+          "SL": 22,
+          "TP": 28,
+          "TIME": 2,
+          "BE": 0
+        },
+        "ignoredSignals": 64,
+        "expiredOrders": 2,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 38,
+          "wins": 23,
+          "winRatePct": 60.5263,
+          "wilsonLower95Pct": 44.7176,
+          "totalNetPct": 18.523
+        },
+        "sell": {
+          "count": 14,
+          "wins": 6,
+          "winRatePct": 42.8571,
+          "wilsonLower95Pct": 21.3805,
+          "totalNetPct": -7.9137
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 118,
+        "trades": 64,
+        "wins": 47,
+        "losses": 17
+      }
+    },
+    {
+      "dataset": "data/okx_btcusdt_swap_tv_15m_6k.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "15m",
+      "bars": 6000,
+      "signals": 229,
+      "firstIso": "2026-09-20T10:00:00.000Z",
+      "lastIso": "2026-11-21T21:45:00.000Z",
+      "simOptions": {
+        "warmup": 250,
+        "cooldown": 8,
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "stopAtr": 3,
+        "minStopPct": 1,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 120,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.28,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 900
+      },
+      "primary": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 42,
+        "wins": 30,
+        "losses": 12,
+        "ties": 0,
+        "winRatePct": 71.4286,
+        "wilsonLower95Pct": 56.4325,
+        "profitFactor": 1.4379,
+        "totalNetPct": 6.3879,
+        "meanNetPct": 0.1521,
+        "meanGrossPct": 0.2521,
+        "maxDrawdownPct": 6.7167,
+        "exitReasons": {
+          "SL": 12,
+          "TP": 14,
+          "TIME": 1,
+          "BE": 15
+        },
+        "ignoredSignals": 177,
+        "expiredOrders": 9,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 15,
+          "wins": 7,
+          "winRatePct": 46.6667,
+          "wilsonLower95Pct": 24.8092,
+          "totalNetPct": -7.853
+        },
+        "sell": {
+          "count": 27,
+          "wins": 23,
+          "winRatePct": 85.1852,
+          "wilsonLower95Pct": 67.5209,
+          "totalNetPct": 14.2408
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 42,
+        "wins": 30,
+        "losses": 12,
+        "ties": 0,
+        "winRatePct": 71.4286,
+        "wilsonLower95Pct": 56.4325,
+        "profitFactor": 1.6069,
+        "totalNetPct": 8.4879,
+        "meanNetPct": 0.2021,
+        "meanGrossPct": 0.2521,
+        "maxDrawdownPct": 6.1167,
+        "exitReasons": {
+          "SL": 12,
+          "TP": 14,
+          "TIME": 1,
+          "BE": 15
+        },
+        "ignoredSignals": 177,
+        "expiredOrders": 9,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 15,
+          "wins": 7,
+          "winRatePct": 46.6667,
+          "wilsonLower95Pct": 24.8092,
+          "totalNetPct": -7.103
+        },
+        "sell": {
+          "count": 27,
+          "wins": 23,
+          "winRatePct": 85.1852,
+          "wilsonLower95Pct": 67.5209,
+          "totalNetPct": 15.5908
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-09-20T10:00:00.000Z",
+        "lastIso": "2026-11-21T21:45:00.000Z",
+        "count": 39,
+        "wins": 19,
+        "losses": 20,
+        "ties": 0,
+        "winRatePct": 48.7179,
+        "wilsonLower95Pct": 33.8649,
+        "profitFactor": 0.921,
+        "totalNetPct": -1.9424,
+        "meanNetPct": -0.0498,
+        "meanGrossPct": 0.0502,
+        "maxDrawdownPct": 8.4089,
+        "exitReasons": {
+          "SL": 19,
+          "TP": 17,
+          "TIME": 3,
+          "BE": 0
+        },
+        "ignoredSignals": 182,
+        "expiredOrders": 7,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 13,
+          "wins": 3,
+          "winRatePct": 23.0769,
+          "wilsonLower95Pct": 8.1794,
+          "totalNetPct": -9.7751
+        },
+        "sell": {
+          "count": 26,
+          "wins": 16,
+          "winRatePct": 61.5385,
+          "wilsonLower95Pct": 42.5345,
+          "totalNetPct": 7.8327
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 229,
+        "trades": 42,
+        "wins": 30,
+        "losses": 12
+      }
+    },
+    {
+      "dataset": "data/okx_btcusdt_swap_tv_1h_6k.json",
+      "symbol": "OKX:BTCUSDT.P",
+      "interval": "1h",
+      "bars": 6000,
+      "signals": 119,
+      "firstIso": "2026-03-16T22:00:00.000Z",
+      "lastIso": "2026-11-21T21:00:00.000Z",
+      "simOptions": {
+        "entryMode": "LIMIT_PULLBACK",
+        "limitExpiryBars": 6,
+        "pendingPolicy": "ignore",
+        "limitSameBarTp": "close",
+        "cooldown": 4,
+        "warmup": 250,
+        "stopAtr": 3.2,
+        "minStopPct": 1.4,
+        "rewardRisk": 1.15,
+        "maxHoldBars": 96,
+        "beTriggerR": 0.43,
+        "beOffsetPct": 0.34,
+        "costPct": 0.1,
+        "slippagePct": 0.025,
+        "intervalSeconds": 3600
+      },
+      "primary": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 62,
+        "wins": 45,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 72.5806,
+        "wilsonLower95Pct": 60.4072,
+        "profitFactor": 1.4606,
+        "totalNetPct": 15.4473,
+        "meanNetPct": 0.2492,
+        "meanGrossPct": 0.3492,
+        "maxDrawdownPct": 7.7859,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 21,
+          "TIME": 0,
+          "BE": 24
+        },
+        "ignoredSignals": 51,
+        "expiredOrders": 6,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 46,
+          "wins": 36,
+          "winRatePct": 78.2609,
+          "wilsonLower95Pct": 64.426,
+          "totalNetPct": 19.5456
+        },
+        "sell": {
+          "count": 16,
+          "wins": 9,
+          "winRatePct": 56.25,
+          "wilsonLower95Pct": 33.1782,
+          "totalNetPct": -4.0982
+        },
+        "gatePass65": true
+      },
+      "okxBlendFee005Informational": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 62,
+        "wins": 45,
+        "losses": 17,
+        "ties": 0,
+        "winRatePct": 72.5806,
+        "wilsonLower95Pct": 60.4072,
+        "profitFactor": 1.5674,
+        "totalNetPct": 18.5473,
+        "meanNetPct": 0.2992,
+        "meanGrossPct": 0.3492,
+        "maxDrawdownPct": 7.1359,
+        "exitReasons": {
+          "SL": 17,
+          "TP": 21,
+          "TIME": 0,
+          "BE": 24
+        },
+        "ignoredSignals": 51,
+        "expiredOrders": 6,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 46,
+          "wins": 36,
+          "winRatePct": 78.2609,
+          "wilsonLower95Pct": 64.426,
+          "totalNetPct": 21.8456
+        },
+        "sell": {
+          "count": 16,
+          "wins": 9,
+          "winRatePct": 56.25,
+          "wilsonLower95Pct": 33.1782,
+          "totalNetPct": -3.2982
+        },
+        "gatePass65": true
+      },
+      "noBeAblation": {
+        "range": [
+          0,
+          6000
+        ],
+        "bars": 6000,
+        "firstIso": "2026-03-16T22:00:00.000Z",
+        "lastIso": "2026-11-21T21:00:00.000Z",
+        "count": 51,
+        "wins": 29,
+        "losses": 22,
+        "ties": 0,
+        "winRatePct": 56.8627,
+        "wilsonLower95Pct": 43.2651,
+        "profitFactor": 1.2888,
+        "totalNetPct": 12.4099,
+        "meanNetPct": 0.2433,
+        "meanGrossPct": 0.3433,
+        "maxDrawdownPct": 12.9917,
+        "exitReasons": {
+          "SL": 21,
+          "TP": 28,
+          "TIME": 2,
+          "BE": 0
+        },
+        "ignoredSignals": 63,
+        "expiredOrders": 5,
+        "purgedTrades": 0,
+        "buy": {
+          "count": 37,
+          "wins": 23,
+          "winRatePct": 62.1622,
+          "wilsonLower95Pct": 46.1001,
+          "totalNetPct": 20.5441
+        },
+        "sell": {
+          "count": 14,
+          "wins": 6,
+          "winRatePct": 42.8571,
+          "wilsonLower95Pct": 21.3805,
+          "totalNetPct": -8.1341
+        },
+        "gatePass65": false
+      },
+      "pineParity": {
+        "checked": true,
+        "status": "100%_BAR_AND_TRADE_MATCH",
+        "signals": 119,
+        "trades": 62,
+        "wins": 45,
+        "losses": 17
+      }
+    }
+  ]
+}

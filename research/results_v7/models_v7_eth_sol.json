@@ -1,0 +1,1483 @@
+{
+  "schema": "smc-v7-eth-sol-5y-models-v1",
+  "generatedAt": "2026-11-25T09:03:16.810623+00:00",
+  "antiLeakageProtocol": {
+    "splitRule": "Chrono 50% Cal, 30% Val, 20% Blind Holdout Y5",
+    "purging": "Purged boundary-overlapping trades at calEnd and valEnd",
+    "fitScope": "Structural & ML fit strictly on Cal/Val; Y5 Holdout untouched by trainer"
+  },
+  "models": {
+    "SOL_15m": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "wick_adv_atr",
+        "wick_opp_atr",
+        "delta_ratio_1b",
+        "cvd_imb_24b"
+      ],
+      "threshold": 0.5589,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.6709
+      },
+      "imputer": {
+        "medians": [
+          0.21222399456396826,
+          0.21715821855611084,
+          -0.010810279593140404,
+          -0.017607582983737387
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.2413545083052579,
+          0.27781591156740326,
+          -0.008593831449854051,
+          -0.01722328765417278
+        ],
+        "scale": [
+          0.19614914885948997,
+          0.26345712428157364,
+          0.10577312393669147,
+          0.028131190180643143
+        ]
+      },
+      "classifier": {
+        "coef": [
+          0.014192000303765853,
+          -0.18738398125005984,
+          -0.057973044521204074,
+          -0.10171861431080288
+        ],
+        "intercept": 0.41240956827991077
+      },
+      "structuralSpec": {
+        "id": "SOL_15m_Sync_H4_20_or_50_p0.18_s4.5_tbrall_tp1_0.58",
+        "sigSpec": {
+          "specId": "SOL_15m_Sync_H4_20_or_50_p0.18_s4.5_tbrall_tp1_0.58",
+          "rawFamily": "M15_H1SyncedMultiTrap",
+          "h1Lookback": 20,
+          "h4Lookback": 10,
+          "ltfLookback": null,
+          "include24h": true,
+          "trapMaxBars": 4,
+          "htfMode": "H4_20_or_50",
+          "minAtrPct": 0.14,
+          "pullAtr": 0.18,
+          "tbrMin": null,
+          "adaptive": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 8,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 6,
+          "warmup": 250,
+          "stopAtr": 4.5,
+          "minStopPct": 1.3,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 160,
+          "beTriggerR": 0.38,
+          "beOffsetPct": 0.3,
+          "tp1TriggerR": 0.58,
+          "tp1QtyPct": 55,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.36,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 3,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:sol15_wick_of:LR_C0.02_mag|t=0.5589|sc=linear_0.85_1.4",
+        "calCvAuc": 0.5116,
+        "calInAuc": 0.5825,
+        "valRocAuc": 0.571,
+        "valCorrNet": 0.1124,
+        "calRange": [
+          0,
+          87904
+        ],
+        "valRange": [
+          87904,
+          140646
+        ],
+        "holdoutRangeUntouched": [
+          140646,
+          175808
+        ],
+        "calTrainSamples": 241,
+        "eligibleStrictCalVal": true,
+        "eligibleSoftCalVal": true,
+        "calBaseline": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 2.418574921914727,
+          "medianMonthlySweepPct": 1.8677550839452328,
+          "pctPositiveMonths": 51.61290322580645,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -10.832022402888498,
+          "maxMonthlySweepDdPct": 22.36305458401671,
+          "totalSweptNetPct": 74.97582257935653,
+          "compoundedNetPct": 94.35506486220294,
+          "cagrPct": 30.352458364513257,
+          "geomMonthlyPct": 2.1667419047630254,
+          "maxCompoundedDdPct": 34.64885358151473,
+          "winRatePct": 73.85892116182573,
+          "profitFactor": 1.3039054000231303,
+          "liquidationCount": 0,
+          "count": 241
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 2.544510642556971,
+          "medianMonthlySweepPct": 1.3764657798728708,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -10.421372575420351,
+          "maxMonthlySweepDdPct": 16.56228082968609,
+          "totalSweptNetPct": 48.34570220858245,
+          "compoundedNetPct": 52.623664077252876,
+          "cagrPct": 32.45795057023404,
+          "geomMonthlyPct": 2.250233688166192,
+          "maxCompoundedDdPct": 19.19462959450263,
+          "winRatePct": 73.24840764331209,
+          "profitFactor": 1.3285015514896965,
+          "liquidationCount": 0,
+          "count": 157
+        },
+        "calSelected": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 3.260834790070043,
+          "medianMonthlySweepPct": 2.9364229766454697,
+          "pctPositiveMonths": 64.51612903225806,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -9.006144762192402,
+          "maxMonthlySweepDdPct": 14.538531350257387,
+          "totalSweptNetPct": 101.08587849217133,
+          "compoundedNetPct": 152.95821944002174,
+          "cagrPct": 44.80176024327811,
+          "geomMonthlyPct": 3.0389854968948304,
+          "maxCompoundedDdPct": 26.875787146052378,
+          "winRatePct": 76.6497461928934,
+          "profitFactor": 1.5211195350756481,
+          "liquidationCount": 0,
+          "count": 197
+        },
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 3.6718145090171763,
+          "medianMonthlySweepPct": 1.8800577136908858,
+          "pctPositiveMonths": 57.89473684210527,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -8.302464738122406,
+          "maxMonthlySweepDdPct": 12.57480349560911,
+          "totalSweptNetPct": 69.76447567132635,
+          "compoundedNetPct": 86.96986417274066,
+          "cagrPct": 51.59432959146384,
+          "geomMonthlyPct": 3.348402771105996,
+          "maxCompoundedDdPct": 16.28945133135161,
+          "winRatePct": 77.16535433070865,
+          "profitFactor": 1.6186866174667869,
+          "liquidationCount": 0,
+          "count": 127
+        }
+      }
+    },
+    "SOL_1h": {
+      "modelType": "gradient_boosting",
+      "featureNames": [
+        "wick_adv_atr",
+        "ret_12_dir_atr",
+        "delta_ratio_1b",
+        "cvd_imb_24b",
+        "funding_dir_align"
+      ],
+      "threshold": 0.7077,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.7408
+      },
+      "imputer": {
+        "medians": [
+          0.17555735889435312,
+          -1.4881150639243421,
+          0.04297114391560353,
+          -0.008065828092453585,
+          0.2188
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.2575006126559822,
+          -1.5192290754350017,
+          0.04791179470600809,
+          -0.007083003491118779,
+          1.594292146596858
+        ],
+        "scale": [
+          0.2498918492648302,
+          1.0102362854641984,
+          0.0518960885638491,
+          0.020113277357847865,
+          14.922819499510283
+        ]
+      },
+      "classifier": {
+        "initScore": 0.8799230877032803,
+        "learningRate": 0.04,
+        "trees": [
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.7081630527973175,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.003720033066960537,
+              -0.7566732804232806,
+              0.29460270219198775
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0984482765197754,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.03671082626836841,
+              -1.2535405758068974,
+              0.3477574696611819
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.1649247407913208,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.0023407223772174625,
+              1.103739109557835,
+              -0.2783453708005773
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.1170618012547493,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.010884892720380693,
+              0.6155571352601694,
+              -0.3741374576351645
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0984482765197754,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.0028078085627896167,
+              -0.998540388342776,
+              0.14714961464736537
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0971788167953491,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.015328583570466032,
+              -1.102564839841099,
+              0.22164141813583055
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0984482765197754,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.004867004972766786,
+              -1.0361562265919229,
+              0.10582458750323089
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.11906209215521812,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.018439380111988396,
+              0.43135373729534154,
+              -0.3506289791329356
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.16652966290712357,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.0021936215425271883,
+              0.7683248230223406,
+              -0.19459034799802732
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.1170618012547493,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.00962760353967546,
+              0.711548079785845,
+              -0.2880073847776951
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              4,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.035941071808338165,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.009843278094144953,
+              0.1234988617354329,
+              -1.1403076758912418
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              1.0283697247505188,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.03589248279386041,
+              -0.024804496655685626,
+              -1.097808006985985
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -1.0984482765197754,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.00901972652433928,
+              -1.048431814734668,
+              0.09729311414548501
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.7557268440723419,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.02108233976428639,
+              0.2775829681786123,
+              -0.5632388807786474
+            ]
+          }
+        ]
+      },
+      "structuralSpec": {
+        "id": "SOL_1h_Trap_H4_20_or_50_k3_s2.8_tp1_0.7",
+        "sigSpec": {
+          "specId": "SOL_1h_Trap_H4_20_or_50_k3_s2.8_tp1_0.7",
+          "genKind": "1h_MultiTrap",
+          "family": "HtfSmcMultiTrap",
+          "lookback": 20,
+          "p4Lookback": 10,
+          "includePdhl": true,
+          "htfMode": "H4_20_or_50",
+          "trapMaxBars": 3,
+          "limitOffsetAtr": 0.25
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 2.8,
+          "minStopPct": 1.3,
+          "rewardRisk": 1.3,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.4,
+          "beOffsetPct": 0.35,
+          "tp1TriggerR": 0.7,
+          "tp1QtyPct": 55,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.4,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 3.2,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:sol1h_micro_mix:GB_d1_n14|t=0.7077|sc=linear_0.85_1.4",
+        "calCvAuc": 0.5129,
+        "calInAuc": 0.6738,
+        "valRocAuc": 0.548,
+        "valCorrNet": 0.0311,
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 191,
+        "eligibleStrictCalVal": false,
+        "eligibleSoftCalVal": false,
+        "calBaseline": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 3.613988723652552,
+          "medianMonthlySweepPct": 3.262777642802517,
+          "pctPositiveMonths": 67.74193548387096,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -17.396455046009397,
+          "maxMonthlySweepDdPct": 19.945560169067264,
+          "totalSweptNetPct": 112.03365043322911,
+          "compoundedNetPct": 170.38811048536272,
+          "cagrPct": 48.70420209756077,
+          "geomMonthlyPct": 3.2607044679371366,
+          "maxCompoundedDdPct": 28.868082680983058,
+          "winRatePct": 70.68062827225131,
+          "profitFactor": 1.4545672027734788,
+          "liquidationCount": 0,
+          "count": 191
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 2.448104809648883,
+          "medianMonthlySweepPct": 0,
+          "pctPositiveMonths": 47.368421052631575,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -17.60881137608169,
+          "maxMonthlySweepDdPct": 28.58961912736644,
+          "totalSweptNetPct": 46.51399138332877,
+          "compoundedNetPct": 45.89419230512686,
+          "cagrPct": 28.54889602402131,
+          "geomMonthlyPct": 2.0078464860328937,
+          "maxCompoundedDdPct": 29.22539518190732,
+          "winRatePct": 69.44444444444444,
+          "profitFactor": 1.259428769748923,
+          "liquidationCount": 0,
+          "count": 144
+        },
+        "calSelected": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 2.9571587217793964,
+          "medianMonthlySweepPct": 2.615663385868694,
+          "pctPositiveMonths": 70.96774193548387,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -4.585064477480061,
+          "maxMonthlySweepDdPct": 6.10687007205901,
+          "totalSweptNetPct": 91.67192037516129,
+          "compoundedNetPct": 140.4485776803963,
+          "cagrPct": 41.9033837421039,
+          "geomMonthlyPct": 2.870544624016036,
+          "maxCompoundedDdPct": 8.708053165261834,
+          "winRatePct": 80.28169014084507,
+          "profitFactor": 2.658342951351212,
+          "liquidationCount": 0,
+          "count": 71
+        },
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 2.884064183375015,
+          "medianMonthlySweepPct": 1.2311642431452219,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -7.834575657785525,
+          "maxMonthlySweepDdPct": 12.08499734130064,
+          "totalSweptNetPct": 54.797219484125286,
+          "compoundedNetPct": 65.65097341744067,
+          "cagrPct": 39.875416860168244,
+          "geomMonthlyPct": 2.6919796113456185,
+          "maxCompoundedDdPct": 16.79733739607312,
+          "winRatePct": 76,
+          "profitFactor": 2.0159918974210504,
+          "liquidationCount": 0,
+          "count": 50
+        }
+      }
+    },
+    "ETH_15m": {
+      "modelType": "gradient_boosting",
+      "featureNames": [
+        "eth_btc_ema20_dist",
+        "eth_btc_ema50_dist",
+        "eth_btc_zscore_48",
+        "eth_btc_residual_12h_dir"
+      ],
+      "threshold": 0.7662,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.8013
+      },
+      "imputer": {
+        "medians": [
+          -0.07521703144944093,
+          -0.17425531391243515,
+          -0.9221315529359518,
+          -0.0876264776830591
+        ]
+      },
+      "scaler": {
+        "mean": [
+          -0.0574727524792229,
+          -0.22151913978038373,
+          -0.5686604275583821,
+          -0.14317098936048192
+        ],
+        "scale": [
+          0.31736849304821496,
+          0.42088389601674087,
+          1.3543082219631448,
+          0.5475917034324362
+        ]
+      },
+      "classifier": {
+        "initScore": 1.1952391243571814,
+        "learningRate": 0.04,
+        "trees": [
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.1330798640847206,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.017133358905510813,
+              -0.5282188390230231,
+              1.115732265446225
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.5633260011672974,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.009114088479430009,
+              -1.4695199732505109,
+              0.3739705043520306
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.35717058181762695,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.007876401752887726,
+              -0.7009846711395036,
+              0.25812554359523254
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.22227688878774643,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.007797752253987156,
+              -0.768119193164317,
+              0.45296950622781634
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.1330798640847206,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.03006422577976917,
+              -0.2972053036489588,
+              0.9092822505703374
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.37274540960788727,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.04118614943574571,
+              -0.621646356122421,
+              0.6466842456605101
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.4575665444135666,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.034816724793075265,
+              -0.44054770004656124,
+              0.4646829936391599
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.5633260011672974,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.011668885867337322,
+              -1.343651062808461,
+              0.3352768467987738
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.5397111177444458,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.010034688608403078,
+              -0.7193152132638492,
+              0.19174519337901666
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              0,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.15318843722343445,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              -0.006464004866440637,
+              -0.4458751428702652,
+              0.6716108500678655
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              0.539756566286087,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.02693163621402959,
+              0.39848368459395855,
+              -0.7194063666416644
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.4630339592695236,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.028928662605015962,
+              0.6300026450725198,
+              -0.1337687594043112
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              2,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.588704526424408,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.024609526402103846,
+              0.806100832244375,
+              -0.09767134696397034
+            ]
+          },
+          {
+            "childrenLeft": [
+              1,
+              -1,
+              -1
+            ],
+            "childrenRight": [
+              2,
+              -1,
+              -1
+            ],
+            "feature": [
+              3,
+              -2,
+              -2
+            ],
+            "threshold": [
+              -0.6152493059635162,
+              -2.0,
+              -2.0
+            ],
+            "value": [
+              0.00010236898542937384,
+              -0.8461601925056776,
+              0.2975881000267428
+            ]
+          }
+        ]
+      },
+      "structuralSpec": {
+        "id": "ETH_15m_Sync_H4_20_p0.25_s5.2_tbrall_tp1_0.58",
+        "sigSpec": {
+          "specId": "ETH_15m_Sync_H4_20_p0.25_s5.2_tbrall_tp1_0.58",
+          "rawFamily": "M15_H1SyncedMultiTrap",
+          "h1Lookback": 20,
+          "h4Lookback": 10,
+          "ltfLookback": null,
+          "include24h": true,
+          "trapMaxBars": 4,
+          "htfMode": "H4_20",
+          "minAtrPct": 0.14,
+          "pullAtr": 0.25,
+          "tbrMin": null,
+          "adaptive": false
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 8,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 6,
+          "warmup": 250,
+          "stopAtr": 5.2,
+          "minStopPct": 1.4,
+          "rewardRisk": 1.25,
+          "maxHoldBars": 160,
+          "beTriggerR": 0.38,
+          "beOffsetPct": 0.3,
+          "tp1TriggerR": 0.58,
+          "tp1QtyPct": 55,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.36,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 3,
+          "minLev": 1,
+          "maxLev": 2.5
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:eth15_cross_rel:GB_d1_n14|t=0.7662|sc=linear_0.85_1.4",
+        "calCvAuc": 0.5391,
+        "calInAuc": 0.736,
+        "valRocAuc": 0.5383,
+        "valCorrNet": -0.0468,
+        "calRange": [
+          0,
+          87904
+        ],
+        "valRange": [
+          87904,
+          140646
+        ],
+        "holdoutRangeUntouched": [
+          140646,
+          175808
+        ],
+        "calTrainSamples": 99,
+        "eligibleStrictCalVal": true,
+        "eligibleSoftCalVal": true,
+        "calBaseline": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 0.956520721491852,
+          "medianMonthlySweepPct": 0.9237048927955405,
+          "pctPositiveMonths": 61.29032258064516,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -7.493817966752103,
+          "maxMonthlySweepDdPct": 7.493817966752103,
+          "totalSweptNetPct": 29.65214236624741,
+          "compoundedNetPct": 31.417151571880055,
+          "cagrPct": 11.514057642136333,
+          "geomMonthlyPct": 0.8852060801983086,
+          "maxCompoundedDdPct": 8.361260913143697,
+          "winRatePct": 76.76767676767676,
+          "profitFactor": 1.3752662059687588,
+          "liquidationCount": 0,
+          "count": 99
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 1.023556278579583,
+          "medianMonthlySweepPct": 2.1730327930481907,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -12.200775335066682,
+          "maxMonthlySweepDdPct": 17.336407181244653,
+          "totalSweptNetPct": 19.44756929301208,
+          "compoundedNetPct": 18.036602813115344,
+          "cagrPct": 11.655247401451163,
+          "geomMonthlyPct": 0.8765806295045975,
+          "maxCompoundedDdPct": 18.12563084183119,
+          "winRatePct": 75.60975609756098,
+          "profitFactor": 1.2623156346893685,
+          "liquidationCount": 0,
+          "count": 82
+        },
+        "calSelected": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 2.057969052328802,
+          "medianMonthlySweepPct": 1.5605833155944326,
+          "pctPositiveMonths": 77.41935483870968,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -7.2147139539973875,
+          "maxMonthlySweepDdPct": 7.214713953997389,
+          "totalSweptNetPct": 63.79704062219287,
+          "compoundedNetPct": 85.27214995109745,
+          "cagrPct": 27.88744814904449,
+          "geomMonthlyPct": 2.009128397479776,
+          "maxCompoundedDdPct": 8.16593104270293,
+          "winRatePct": 86.76470588235294,
+          "profitFactor": 3.040618261098431,
+          "liquidationCount": 0,
+          "count": 68
+        },
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 0.9919119086271142,
+          "medianMonthlySweepPct": 0.5171154345585238,
+          "pctPositiveMonths": 52.63157894736842,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -6.103702368672559,
+          "maxMonthlySweepDdPct": 15.113866161597922,
+          "totalSweptNetPct": 18.84632626391517,
+          "compoundedNetPct": 18.40011159576096,
+          "cagrPct": 11.883737063196541,
+          "geomMonthlyPct": 0.8929074728225572,
+          "maxCompoundedDdPct": 17.38560584859748,
+          "winRatePct": 77.96610169491525,
+          "profitFactor": 1.3417106008958444,
+          "liquidationCount": 0,
+          "count": 59
+        }
+      }
+    },
+    "ETH_1h": {
+      "modelType": "logistic_regression",
+      "featureNames": [
+        "delta_ratio_1b",
+        "cvd_zscore_48",
+        "wick_adv_atr",
+        "close_pos_dir"
+      ],
+      "threshold": 0.6919,
+      "sizeCurve": {
+        "mode": "linear",
+        "minMult": 0.85,
+        "maxMult": 1.4,
+        "pMax": 0.8008
+      },
+      "imputer": {
+        "medians": [
+          0.05417920865036191,
+          0.7698429253234791,
+          0.21643314207398767,
+          0.8153007369187357
+        ]
+      },
+      "scaler": {
+        "mean": [
+          0.0645246902766892,
+          0.8945196404962023,
+          0.28247935376706457,
+          0.782331090699734
+        ],
+        "scale": [
+          0.04294118009135317,
+          0.5933136121420415,
+          0.2206575052285672,
+          0.15859939863379915
+        ]
+      },
+      "classifier": {
+        "coef": [
+          -0.11666322480752858,
+          0.047329411526911135,
+          -0.11281074398470715,
+          -0.2745757700654629
+        ],
+        "intercept": 0.9930138441109676
+      },
+      "structuralSpec": {
+        "id": "ETH_1h_H4_20_or_50_k4_d0_s3.2_tp1_0.65",
+        "sigSpec": {
+          "specId": "ETH_1h_H4_20_or_50_k4_d0_s3.2_tp1_0.65",
+          "family": "HtfSmcMultiTrap",
+          "lookback": 20,
+          "p4Lookback": 10,
+          "includePdhl": true,
+          "htfMode": "H4_20_or_50",
+          "trapMaxBars": 4,
+          "limitOffsetAtr": 0.24,
+          "minDeltaRatio": 0
+        },
+        "execOptions": {
+          "entryMode": "LIMIT_PULLBACK",
+          "limitExpiryBars": 6,
+          "pendingPolicy": "ignore",
+          "limitSameBarTp": "close",
+          "cooldown": 4,
+          "warmup": 250,
+          "stopAtr": 3.2,
+          "minStopPct": 1.4,
+          "rewardRisk": 1.3,
+          "maxHoldBars": 96,
+          "beTriggerR": 0.4,
+          "beOffsetPct": 0.32,
+          "tp1TriggerR": 0.65,
+          "tp1QtyPct": 60,
+          "tp1FeeMode": "MAKER",
+          "tp1LockOffsetR": 0.38,
+          "costPct": 0.1,
+          "slippagePct": 0.025,
+          "volNormRiskPct": 3.5,
+          "minLev": 1.2,
+          "maxLev": 2.5
+        }
+      },
+      "selectionMeta": {
+        "selectedId": "seq:eth1h_abs_of:LR_C0.15_unw|t=0.6919|sc=linear_0.85_1.4",
+        "calCvAuc": 0.5456,
+        "calInAuc": 0.601,
+        "valRocAuc": 0.5277,
+        "valCorrNet": 0.0103,
+        "calRange": [
+          0,
+          21976
+        ],
+        "valRange": [
+          21976,
+          35161
+        ],
+        "holdoutRangeUntouched": [
+          35161,
+          43952
+        ],
+        "calTrainSamples": 178,
+        "eligibleStrictCalVal": false,
+        "eligibleSoftCalVal": true,
+        "calBaseline": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 2.2498692833118694,
+          "medianMonthlySweepPct": 2.389929607165797,
+          "pctPositiveMonths": 64.51612903225806,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -14.287041965958869,
+          "maxMonthlySweepDdPct": 17.841173418270984,
+          "totalSweptNetPct": 69.74594778266795,
+          "compoundedNetPct": 86.41911533154058,
+          "cagrPct": 28.203759523845218,
+          "geomMonthlyPct": 2.029438864172173,
+          "maxCompoundedDdPct": 21.329808929946793,
+          "winRatePct": 72.47191011235955,
+          "profitFactor": 1.3226430286615185,
+          "liquidationCount": 0,
+          "count": 178
+        },
+        "valBaseline": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 3.1078689273032762,
+          "medianMonthlySweepPct": 1.1551858578979557,
+          "pctPositiveMonths": 57.89473684210527,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -6.239322707890571,
+          "maxMonthlySweepDdPct": 8.79996131804188,
+          "totalSweptNetPct": 59.04950961876225,
+          "compoundedNetPct": 71.34213364841875,
+          "cagrPct": 43.052532010273325,
+          "geomMonthlyPct": 2.8747139321650073,
+          "maxCompoundedDdPct": 14.434522518839518,
+          "winRatePct": 73.33333333333333,
+          "profitFactor": 1.4439898195568313,
+          "liquidationCount": 0,
+          "count": 120
+        },
+        "calSelected": {
+          "totalMonths": 31,
+          "meanMonthlySweepPct": 2.824008757353958,
+          "medianMonthlySweepPct": 3.440979205645145,
+          "pctPositiveMonths": 67.74193548387096,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -11.156404724147107,
+          "maxMonthlySweepDdPct": 16.683758579514084,
+          "totalSweptNetPct": 87.5442714779727,
+          "compoundedNetPct": 122.99054610956955,
+          "cagrPct": 37.70008214704368,
+          "geomMonthlyPct": 2.6207174988670534,
+          "maxCompoundedDdPct": 19.63578769394686,
+          "winRatePct": 75.3731343283582,
+          "profitFactor": 1.576355336569724,
+          "liquidationCount": 0,
+          "count": 134
+        },
+        "valSelected": {
+          "totalMonths": 19,
+          "meanMonthlySweepPct": 3.032231269227809,
+          "medianMonthlySweepPct": 1.867130134630024,
+          "pctPositiveMonths": 57.89473684210527,
+          "pctMonthsGe30": 0,
+          "worstMonthPct": -6.0876683769264694,
+          "maxMonthlySweepDdPct": 9.310365066880294,
+          "totalSweptNetPct": 57.612394115328364,
+          "compoundedNetPct": 69.43519747966995,
+          "cagrPct": 41.991972768738826,
+          "geomMonthlyPct": 2.814134231293197,
+          "maxCompoundedDdPct": 17.121687009566756,
+          "winRatePct": 74.4186046511628,
+          "profitFactor": 1.5910832124571095,
+          "liquidationCount": 0,
+          "count": 86
+        }
+      }
+    }
+  }
+}
